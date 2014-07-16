@@ -13,9 +13,7 @@ fi
 ocamlbuild -use-menhir Main.native
 if_error "ocamlbuild"
 
-MAKEDIR = ../../PTCORE/Application
-
-$(shell mkdir -p $(MAKEDIR) 2>/dev/null)
+mkdir -p ../../PTCORE/Application
 
 ./Main.native ../../PTCORE/RTFM-SRC/Application.core -o ../../PTCORE/Application/autogen.c
 if_error "Main"
