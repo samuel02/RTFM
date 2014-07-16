@@ -6,6 +6,7 @@ makefile
 *.mk
 PTCORE
 affinity
+*.native
 
 #################
 ## OCaml
