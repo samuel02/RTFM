@@ -31,16 +31,16 @@ int readX() {
 	return 0;
 }
 
-void writeX() {
+void writeX(int x) {
 	//...
-	printf("writeX\n");	
+	printf("writeX %d\n", x);	
 }
 
 #define USER_RESET
 
 void user_reset() {
 	printf("User reset\n");
-	int i;
+	int i = 0;
 	<#pend TIMER0_IRQHandler;#>
 	<#pend TIMER0_IRQHandler;#>
 	<#pend TIMER0_IRQHandler;#>

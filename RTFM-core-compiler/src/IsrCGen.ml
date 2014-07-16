@@ -49,7 +49,7 @@ let assign_vectors v p =
   isrs (isrs v p true) p false 
     
 let second (_, b) = b
- 
+  
 let wf_of_v v =
   let rec wf vl = match vl with
     | [] -> true
@@ -63,7 +63,7 @@ let wf_of_v v =
       wf l
   in 
   wf v
- 
+    
 let isrv_lookup id vl = 
   let rec isri i id vl =
     match vl with
@@ -80,7 +80,10 @@ let isrv_to_c_isr_nr vl =
       | _ -> isrv (i + 1) l
   in
   isrv (-16) vl
-  (* interrupts are labeled -14..-1 for core interrupts, >= 0 for vendor defined interrupts *) 
+(* interrupts are labeled -14..-1 for core interrupts, >= 0 for vendor defined interrupts *) 
     
-    
+let rec task_vector p = match p with
+  | [] 						-> []
+  | Isr (_ , id, _, s) :: l	-> (U, id) :: task_vector l 
+  | _ :: l					-> task_vector l
     

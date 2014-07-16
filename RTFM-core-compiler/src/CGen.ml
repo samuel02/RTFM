@@ -5,7 +5,7 @@ open IsrCGen
 open SRP  
   
 let pend id =  match opt.target with
-  | RTFM_KERNEL 	-> "RTFM_pend(IRQ_NR_" ^ id ^ ");"
+  | RTFM_KERNEL -> "RTFM_pend(IRQ_NR_" ^ id ^ ");"
   | RTFM_PT		-> "RTFM_pend(" ^ id ^ "_nr);"
     
 let c_of_p topl v r = 
@@ -89,7 +89,8 @@ let c_of_p topl v r =
         
         "// Initiate interrupt priorities" ^ nl ^ c_init_prio_of_prog topl ^ nl ^
         "// RTFM-Application " ^ nl ^
-        top topl ^ nl    
+        top topl ^ nl   
+         
     | RTFM_PT	->
       "// RTFM-core for RTFM-PT" ^ nl ^
         "// RTFM-Resources" ^ nl ^ c_of_r r ^ nl ^

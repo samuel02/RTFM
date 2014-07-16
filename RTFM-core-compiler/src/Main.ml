@@ -22,7 +22,6 @@ let main () =
   
   try
     let res = Parser.prog Lexer.lex lexbuf in
-    p_stderr ("Parsing " ^ opt.infile ^ nl ^ "writing to " ^ opt.outfile ^ nl);   
     
     match res with
       | None -> p_stderr ("Not accepted!" ^ nl); exit (-1);
@@ -47,40 +46,43 @@ let main () =
           end;  
         end;
         
-        (*
-           if opt.target = RTFM_KERNEL then
-           let nv = assign_vectors isr_vector p in
-           if opt.verbose then begin
-           p_stderr (nl ^ "Original Vector table " ^ nl ^ isrv_to_c isr_vector); 
-           p_stderr (nl ^ "After assignments Vector table " ^ nl ^ isrv_to_c nv);
-           end;
-           match wf_of_v nv with
-           | false -> p_stderr (nl ^ "Error in Vector table!" ^ nl);
-           | true 	-> 
-           (* generate c code *)
-           p_oc oc (c_of_p p nv rm); 
-           (* generate vector table in case of CompCert *)
-           if backend = CCOMP then p_oc oc (isrv_to_c_isr_nr nv); 
-           
-           if opt.verbose then begin
-           p_stderr ("Resource ceilings:" ^ nl ^ string_of_r rm ^ nl);
-           p_stderr (isrv_to_c_isr_nr nv); 
-           p_stderr (nl ^ "Code generation succeeded:" ^ nl); 
-           end;
-           
-         *)    
-           
-        
-        
+        match opt.target with
+          | RTFM_KERNEL -> begin
+            (* vectors *)
+            let nv = assign_vectors isr_vector p in
+            if opt.verbose then begin
+              p_stderr (nl ^ "Original Vector table " ^ nl ^ isrv_to_c isr_vector); 
+              p_stderr (nl ^ "After assignments Vector table " ^ nl ^ isrv_to_c nv);
+            end;
+            match wf_of_v nv with
+              | false 	-> p_stderr (nl ^ "Error in Vector table!" ^ nl);
+              | true 	-> 
+                (* generate c code *)
+                p_oc oc (c_of_p p nv rm); 
+                (* generate vector table in case of CompCert *)
+                if opt.backend = CCOMP then p_oc oc (isrv_to_c_isr_nr nv); 
+                
+                if opt.verbose then begin
+                  p_stderr ("Resource ceilings:" ^ nl ^ string_of_r rm ^ nl);
+                  p_stderr (isrv_to_c_isr_nr nv); 
+                  p_stderr (nl ^ "Code generation succeeded:" ^ nl); 
+                end;
+          end;   
+            
+          | RTFM_PT ->
+            (* generate c code *)
+            let tasks = task_vector p in
+            p_oc oc (c_of_p p tasks rm); 
+            
   (*
      p_oc stderr (d_of_p p);
      p_oc ocd1 (d_of_p_r p rm); 
    *)
   (*
-     p_stderr (d_of_p p );
+     p_stderr (d_of_p p ); 
      p_oc ocd1 (d_of_p p); 
    *) 
-        
+              
   (*
      let dep = dep_of_p p in
      p_stderr (string_of_dep dep);
@@ -104,10 +106,10 @@ let main () =
    *)
      p_stderr ("---- tsort " ^ String.concat ", " (tsort dep e) ^ nl); 
    *)
-        
-        
-        
-        
+              
+              
+              
+  (* exception handling *)            
   with 
     | Lexer.SyntaxError msg -> p_stderr (msg ^ parse_err_msg lexbuf);
     | RtfmError msg 		-> p_stderr msg;
