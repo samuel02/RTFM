@@ -1,0 +1,100 @@
+### Starting build.
+# Target: Main.ml.depends, tags: { extension:ml, file:Main.ml, ocaml, ocamldep, quiet }
+/usr/local/bin/ocamldep.opt -modules Main.ml > Main.ml.depends
+# Target: AST.ml.depends, tags: { extension:ml, file:AST.ml, ocaml, ocamldep, quiet }
+/usr/local/bin/ocamldep.opt -modules AST.ml > AST.ml.depends # cached
+# Target: Common.ml.depends, tags: { extension:ml, file:Common.ml, ocaml, ocamldep, quiet }
+/usr/local/bin/ocamldep.opt -modules Common.ml > Common.ml.depends # cached
+# Target: Common.cmo, tags: { byte, compile, extension:cmo, extension:ml, file:Common.cmo, file:Common.ml, implem, ocaml, quiet }
+/usr/local/bin/ocamlc.opt -c -o Common.cmo Common.ml # cached
+# Target: AST.cmo, tags: { byte, compile, extension:cmo, extension:ml, file:AST.cmo, file:AST.ml, implem, ocaml, quiet }
+/usr/local/bin/ocamlc.opt -c -o AST.cmo AST.ml # cached
+# Target: CGen.ml.depends, tags: { extension:ml, file:CGen.ml, ocaml, ocamldep, quiet }
+/usr/local/bin/ocamldep.opt -modules CGen.ml > CGen.ml.depends # cached
+# Target: IsrCGen.ml.depends, tags: { extension:ml, file:IsrCGen.ml, ocaml, ocamldep, quiet }
+/usr/local/bin/ocamldep.opt -modules IsrCGen.ml > IsrCGen.ml.depends # cached
+# Target: IsrVector.ml.depends, tags: { extension:ml, file:IsrVector.ml, ocaml, ocamldep, quiet }
+/usr/local/bin/ocamldep.opt -modules IsrVector.ml > IsrVector.ml.depends # cached
+# Target: IsrVector.cmo, tags: { byte, compile, extension:cmo, extension:ml, file:IsrVector.cmo, file:IsrVector.ml, implem, ocaml, quiet }
+/usr/local/bin/ocamlc.opt -c -o IsrVector.cmo IsrVector.ml # cached
+# Target: IsrCGen.cmo, tags: { byte, compile, extension:cmo, extension:ml, file:IsrCGen.cmo, file:IsrCGen.ml, implem, ocaml, quiet }
+/usr/local/bin/ocamlc.opt -c -o IsrCGen.cmo IsrCGen.ml # cached
+# Target: SRP.ml.depends, tags: { extension:ml, file:SRP.ml, ocaml, ocamldep, quiet }
+/usr/local/bin/ocamldep.opt -modules SRP.ml > SRP.ml.depends # cached
+# Target: SRP.cmo, tags: { byte, compile, extension:cmo, extension:ml, file:SRP.cmo, file:SRP.ml, implem, ocaml, quiet }
+/usr/local/bin/ocamlc.opt -c -o SRP.cmo SRP.ml # cached
+# Target: CGen.cmo, tags: { byte, compile, extension:cmo, extension:ml, file:CGen.cmo, file:CGen.ml, implem, ocaml, quiet }
+/usr/local/bin/ocamlc.opt -c -o CGen.cmo CGen.ml # cached
+# Target: Cmd.ml.depends, tags: { extension:ml, file:Cmd.ml, ocaml, ocamldep, quiet }
+/usr/local/bin/ocamldep.opt -modules Cmd.ml > Cmd.ml.depends # cached
+# Target: Cmd.cmo, tags: { byte, compile, extension:cmo, extension:ml, file:Cmd.cmo, file:Cmd.ml, implem, ocaml, quiet }
+/usr/local/bin/ocamlc.opt -c -o Cmd.cmo Cmd.ml # cached
+# Target: Dot.ml.depends, tags: { extension:ml, file:Dot.ml, ocaml, ocamldep, quiet }
+/usr/local/bin/ocamldep.opt -modules Dot.ml > Dot.ml.depends # cached
+# Target: Dot.cmo, tags: { byte, compile, extension:cmo, extension:ml, file:Dot.cmo, file:Dot.ml, implem, ocaml, quiet }
+/usr/local/bin/ocamlc.opt -c -o Dot.cmo Dot.ml # cached
+# Target: Error.ml.depends, tags: { extension:ml, file:Error.ml, ocaml, ocamldep, quiet }
+/usr/local/bin/ocamldep.opt -modules Error.ml > Error.ml.depends # cached
+# Target: Error.cmo, tags: { byte, compile, extension:cmo, extension:ml, file:Error.cmo, file:Error.ml, implem, ocaml, quiet }
+/usr/local/bin/ocamlc.opt -c -o Error.cmo Error.ml # cached
+# Target: Lexer.mll, tags: { extension:mll, file:Lexer.mll, lexer, ocaml, ocamllex, quiet }
+/usr/local/bin/ocamllex.opt -q Lexer.mll
+# Target: Lexer.ml.depends, tags: { extension:ml, file:Lexer.ml, ocaml, ocamldep, quiet }
+/usr/local/bin/ocamldep.opt -modules Lexer.ml > Lexer.ml.depends
+# Target: Parser.mly.depends, tags: { extension:mly, file:Parser.mly, menhir_ocamldep, ocaml, ocamldep, quiet }
+menhir --raw-depend --ocamldep '/usr/local/bin/ocamldep.opt -modules' Parser.mly > Parser.mly.depends # cached
+# Target: Parser.mly, tags: { byte, compile, extension:mly, file:Parser.mly, menhir, ocaml, parser, quiet }
+menhir --ocamlc /usr/local/bin/ocamlc.opt --infer Parser.mly
+# Target: Parser.mli.depends, tags: { extension:mli, file:Parser.mli, ocaml, ocamldep, quiet }
+/usr/local/bin/ocamldep.opt -modules Parser.mli > Parser.mli.depends
+# Target: Parser.cmi, tags: { byte, compile, extension:mli, file:Parser.mli, interf, ocaml, quiet }
+/usr/local/bin/ocamlc.opt -c -o Parser.cmi Parser.mli
+# Target: Locks.ml.depends, tags: { extension:ml, file:Locks.ml, ocaml, ocamldep, quiet }
+/usr/local/bin/ocamldep.opt -modules Locks.ml > Locks.ml.depends # cached
+# Target: Locks.cmo, tags: { byte, compile, extension:cmo, extension:ml, file:Locks.cmo, file:Locks.ml, implem, ocaml, quiet }
+/usr/local/bin/ocamlc.opt -c -o Locks.cmo Locks.ml # cached
+# Target: Lexer.cmo, tags: { byte, compile, extension:cmo, extension:ml, file:Lexer.cmo, file:Lexer.ml, implem, ocaml, quiet }
+/usr/local/bin/ocamlc.opt -c -o Lexer.cmo Lexer.ml
+# Target: Main.cmo, tags: { byte, compile, extension:cmo, extension:ml, file:Main.cmo, file:Main.ml, implem, ocaml, quiet }
+/usr/local/bin/ocamlc.opt -c -o Main.cmo Main.ml
++ /usr/local/bin/ocamlc.opt -c -o Main.cmo Main.ml
+File "Main.ml", line 18, characters 6-8:
+Warning 26: unused variable oc.
+File "Main.ml", line 19, characters 6-10:
+Warning 26: unused variable ocd1.
+# Target: Common.cmx, tags: { compile, extension:cmx, extension:ml, file:Common.cmx, file:Common.ml, implem, native, ocaml, quiet }
+/usr/local/bin/ocamlopt.opt -c -o Common.cmx Common.ml # cached
+# Target: AST.cmx, tags: { compile, extension:cmx, extension:ml, file:AST.cmx, file:AST.ml, implem, native, ocaml, quiet }
+/usr/local/bin/ocamlopt.opt -c -o AST.cmx AST.ml # cached
+# Target: IsrVector.cmx, tags: { compile, extension:cmx, extension:ml, file:IsrVector.cmx, file:IsrVector.ml, implem, native, ocaml, quiet }
+/usr/local/bin/ocamlopt.opt -c -o IsrVector.cmx IsrVector.ml # cached
+# Target: IsrCGen.cmx, tags: { compile, extension:cmx, extension:ml, file:IsrCGen.cmx, file:IsrCGen.ml, implem, native, ocaml, quiet }
+/usr/local/bin/ocamlopt.opt -c -o IsrCGen.cmx IsrCGen.ml # cached
+# Target: SRP.cmx, tags: { compile, extension:cmx, extension:ml, file:SRP.cmx, file:SRP.ml, implem, native, ocaml, quiet }
+/usr/local/bin/ocamlopt.opt -c -o SRP.cmx SRP.ml # cached
+# Target: CGen.cmx, tags: { compile, extension:cmx, extension:ml, file:CGen.cmx, file:CGen.ml, implem, native, ocaml, quiet }
+/usr/local/bin/ocamlopt.opt -c -o CGen.cmx CGen.ml # cached
+# Target: Cmd.cmx, tags: { compile, extension:cmx, extension:ml, file:Cmd.cmx, file:Cmd.ml, implem, native, ocaml, quiet }
+/usr/local/bin/ocamlopt.opt -c -o Cmd.cmx Cmd.ml # cached
+# Target: Dot.cmx, tags: { compile, extension:cmx, extension:ml, file:Dot.cmx, file:Dot.ml, implem, native, ocaml, quiet }
+/usr/local/bin/ocamlopt.opt -c -o Dot.cmx Dot.ml # cached
+# Target: Error.cmx, tags: { compile, extension:cmx, extension:ml, file:Error.cmx, file:Error.ml, implem, native, ocaml, quiet }
+/usr/local/bin/ocamlopt.opt -c -o Error.cmx Error.ml # cached
+# Target: Parser.ml.depends, tags: { extension:ml, file:Parser.ml, ocaml, ocamldep, quiet }
+/usr/local/bin/ocamldep.opt -modules Parser.ml > Parser.ml.depends
+# Target: Parser.cmx, tags: { compile, extension:cmx, extension:ml, file:Parser.cmx, file:Parser.ml, implem, native, ocaml, quiet }
+/usr/local/bin/ocamlopt.opt -c -o Parser.cmx Parser.ml
+# Target: Locks.cmx, tags: { compile, extension:cmx, extension:ml, file:Locks.cmx, file:Locks.ml, implem, native, ocaml, quiet }
+/usr/local/bin/ocamlopt.opt -c -o Locks.cmx Locks.ml # cached
+# Target: Lexer.cmx, tags: { compile, extension:cmx, extension:ml, file:Lexer.cmx, file:Lexer.ml, implem, native, ocaml, quiet }
+/usr/local/bin/ocamlopt.opt -c -o Lexer.cmx Lexer.ml
+# Target: Main.cmx, tags: { compile, extension:cmx, extension:ml, file:Main.cmx, file:Main.ml, implem, native, ocaml, quiet }
+/usr/local/bin/ocamlopt.opt -c -o Main.cmx Main.ml
++ /usr/local/bin/ocamlopt.opt -c -o Main.cmx Main.ml
+File "Main.ml", line 18, characters 6-8:
+Warning 26: unused variable oc.
+File "Main.ml", line 19, characters 6-10:
+Warning 26: unused variable ocd1.
+# Target: Main.native, tags: { dont_link_with, extension:native, file:Main.native, link, native, ocaml, program, quiet }
+/usr/local/bin/ocamlopt.opt Common.cmx AST.cmx IsrVector.cmx IsrCGen.cmx SRP.cmx CGen.cmx Cmd.cmx Dot.cmx Error.cmx Parser.cmx Lexer.cmx Locks.cmx Main.cmx -o Main.native
+# Compilation successful.

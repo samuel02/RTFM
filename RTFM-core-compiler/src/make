@@ -1,0 +1,17 @@
+#!/bin/bash
+
+##################
+function if_error
+##################
+{
+if [[ $? -ne 0 ]]; then # check return code passed to function
+#print "$1 TIME:$TIME" | tee -a $LOG # if rc > 0 then print error msg and quit
+exit $?
+fi
+}
+
+ocamlbuild -use-menhir Main.native
+if_error "ocamlbuild"
+
+./Main.native ~/RTFM_AUTOGEN/PTCORE/RTFM-SRC/Application.core -o ~/RTFM_AUTOGEN/PTCORE/Application/autogen.c
+if_error "Main"

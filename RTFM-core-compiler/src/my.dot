@@ -1,0 +1,42 @@
+digraph RTFM {
+P3 [shape=plaintext, label = "Priority/Ceiling 3\nTask compute"]
+
+P5 [shape=plaintext, label = "Priority/Ceiling 5\n[R_SData], Isr EINT0_IRQHandler"]
+P3 -> P5[dir=none]
+
+sd_get [shape=record, label="{sd_get | <L13>\#\> SData r...\<\#\l | <L14>claim R_SData_sd_get\l | <L16>\#\> return...\<\#\l}"]
+
+
+R [shape=record, label=" R_SData_sd_get | shjk "]
+
+sd_get:<L14>:e -> R:n 
+{ rank=same; "P5"; "R"; }
+
+
+sd_set [shape=record, label="sd_set | <L17>claim R_SData_sd_set\l"]
+
+R_SData_sd_set [shape=record, label="R_SData_sd_set | <L18>\#\> sd = s...\<\#\l"]
+
+sd_set:<L17>:e -> R_SData_sd_set:n [constraint=false]
+{ rank=same; "P5"; "R_SData_sd_set"; }
+
+ISR_compute [label="Task compute\npriority = 3"]
+{ rank=source; ISR_compute ; }
+ISR_compute -> compute [constraint=false]
+compute [shape=record, label="{compute | <L19>\#\> //calcul...\<\#\l | <L20>sync sd_get\l | <L21>\#\> // do...\<\#\l | <L22>sync sd_set\l}"]
+
+compute:<L20>:e -> sd_get
+
+
+compute:<L22>:e -> sd_set
+{ rank=same; "P3"; "compute"; }
+
+ISR_EINT0_IRQHandler [label="Isr EINT0_IRQHandler\npriority = 5", shape = box ]
+{ rank=source; ISR_EINT0_IRQHandler ; }
+ISR_EINT0_IRQHandler -> EINT0_IRQHandler [constraint=false]
+EINT0_IRQHandler [shape=record, label="EINT0_IRQHandler | <L23>\#\> //read h...\<\#\l | <L24>sync sd_set\l"]
+
+EINT0_IRQHandler:<L24>:e -> sd_set
+{ rank=same; "P5"; "EINT0_IRQHandler"; }
+
+}

@@ -1,0 +1,16 @@
+#!/bin/bash
+
+##################
+function if_error
+##################
+{
+if [[ $? -ne 0 ]]; then # check return code passed to function
+#print "$1 TIME:$TIME" | tee -a $LOG # if rc > 0 then print error msg and quit
+exit $?
+fi
+}
+
+dot -T pdf my.dot -o my.pdf
+if_error "dot"
+
+zathura my.pdf 

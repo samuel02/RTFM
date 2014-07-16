@@ -1,0 +1,21 @@
+#!/bin/bash
+
+##################
+function if_error
+##################
+{
+if [[ $? -ne 0 ]]; then # check return code passed to function
+#print "$1 TIME:$TIME" | tee -a $LOG # if rc > 0 then print error msg and quit
+exit $?
+fi
+}
+
+./make
+
+./Main.native ~/RTFM_AUTOGEN/PTCORE/RTFM-SRC/Application.core -o ~/RTFM_AUTOGEN/PTCORE/Application/autogen.c -d  ./out.dot
+if_error "Main"if_error "Main"
+
+dot -T pdf out.dot -o out.pdf
+if_error "dot"
+
+zathura out.pdf &

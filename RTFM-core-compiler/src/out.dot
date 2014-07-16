@@ -1,0 +1,70 @@
+digraph RTFM {
+P3 [shape=plaintext, label = "Priority/Ceiling 3\nTask compute"]
+
+P5 [shape=plaintext, label = "Priority/Ceiling 5\nIsr EINT0_IRQHandler"]
+
+P7 [shape=plaintext, label = "Priority/Ceiling 7\n[R_SData], Isr TIMER0_IRQHandler"]
+P3 -> P5 -> P7[dir=none]
+
+(CCODE) -> TIMER0_IRQHandler
+
+(CCODE) -> TIMER0_IRQHandler
+
+(CCODE) -> TIMER0_IRQHandler
+
+(CCODE) -> TIMER0_IRQHandler
+
+sd_get [shape=record, label="{sd_get | <L23>\#\> printf(...\<\#\l | <L24>\#\> SData r...\<\#\l | <L25>claim R_SData_sd_get\l | <L27>\#\> return...\<\#\l}"]
+
+
+
+R_SData_sd_get [shape=record, label="{R_SData_sd_get | <L26>\#\> r = sd...\<\#\l}"]
+
+sd_get:<L25>:e -> R_SData_sd_get:n
+{ rank=same; "P7"; "R_SData_sd_get"; }
+
+
+sd_set [shape=record, label="{sd_set | <L28>\#\> printf(...\<\#\l | <L29>claim R_SData_sd_set\l}"]
+
+
+R_SData_sd_set [shape=record, label="{R_SData_sd_set | <L30>\#\> sd = s...\<\#\l}"]
+
+sd_set:<L29>:e -> R_SData_sd_set:n
+{ rank=same; "P7"; "R_SData_sd_set"; }
+
+ISR_compute [label="Task compute\npriority = 3"]
+{ rank=source; ISR_compute ; }
+ISR_compute -> compute
+compute [shape=record, label="{compute | <L31>\#\> printf(...\<\#\l | <L32>\#\> //calcul...\<\#\l | <L33>sync sd_get\l | <L34>\#\> // do...\<\#\l | <L35>sync sd_set\l}"]
+
+
+compute:<L33>:e -> sd_get
+
+
+compute:<L35>:e -> sd_set
+{ rank=same; "P3"; "compute"; }
+
+ISR_EINT0_IRQHandler [label="Isr EINT0_IRQHandler\npriority = 5", shape = box ]
+{ rank=source; ISR_EINT0_IRQHandler ; }
+ISR_EINT0_IRQHandler -> EINT0_IRQHandler
+EINT0_IRQHandler [shape=record, label="{EINT0_IRQHandler | <L36>\#\> printf(...\<\#\l | <L37>\#\> //read h...\<\#\l | <L38>sync sd_set\l}"]
+
+
+EINT0_IRQHandler:<L38>:e -> sd_set
+{ rank=same; "P5"; "EINT0_IRQHandler"; }
+
+
+ISR_TIMER0_IRQHandler [label="Isr TIMER0_IRQHandler\npriority = 7", shape = box ]
+{ rank=source; ISR_TIMER0_IRQHandler ; }
+ISR_TIMER0_IRQHandler -> TIMER0_IRQHandler
+TIMER0_IRQHandler [shape=record, label="{TIMER0_IRQHandler | <L39>\#\> printf(...\<\#\l | <L40>\#\> //write...\<\#\l | <L41>sync sd_get\l | <L42>\#\> write...\<\#\l | <L43>pend compute\l | <L44>\#\> ...\<\#\l}"]
+
+
+TIMER0_IRQHandler:<L41>:e -> sd_get
+
+
+TIMER0_IRQHandler:<L43>:e -> ISR_compute [style=dotted, constraint=false]
+
+{ rank=same; "P7"; "TIMER0_IRQHandler"; }
+
+}
