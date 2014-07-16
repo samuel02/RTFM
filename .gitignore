@@ -1,4 +1,13 @@
 #################
+## PT core
+#################
+autogen.c
+makefile
+*.mk
+PTCORE
+affinity
+
+#################
 ## OCaml
 #################
 *.annot
@@ -10,6 +19,8 @@
 *.cmx
 *.cmxs
 *.cmxa
+*.dot
+*.pdf
 _build/
 bin/
 
@@ -51,6 +62,10 @@ local.properties
 
 # Locally stored "Eclipse launch configurations"
 *.launch
+
+# ODT-specific
+.settings
+.preferences.xml
 
 # CDT-specific
 .cproject
