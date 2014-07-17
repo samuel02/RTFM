@@ -88,7 +88,7 @@ let main () =
                 p_oc ocl (dot_of_dep dep);
               	close_out ocl;
               end; 
-            end;
+            end;  
             
             p_stderr ("Deadlock free execution can be guaranteed " ^ nl ^ "Topologial order obatined :" ^ String.concat ", " (tsort dep e) ^ nl)
               

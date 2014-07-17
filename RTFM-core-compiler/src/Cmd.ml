@@ -3,7 +3,7 @@ open Common
   
 let usage = 
   "The RTFM-core compiler v1.0, Per Lindgren (c) 2014" ^ nl ^ nl
-    ^ "Usage core [-gcc|-ccomp|-clang] [ptl|km3] [-v] [-D] [-d dotfile] [-d_ast] [-o outfile] [-i] infile" ^ nl
+    ^ "Usage core [-gcc|-ccomp|-clang] [ptl|km3] [-v] [-D] [-d file.dot] [-ldot file.dot] [-d_ast] [-o outfile.c] [-i] infile.core" ^ nl
     ^ "Recognized source file:" ^ nl
     ^ ".core           RTFM-core source infile (root)" ^ nl
     ^ nl
