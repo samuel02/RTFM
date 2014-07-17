@@ -4,7 +4,6 @@
 autogen.c
 makefile
 *.mk
-PTCORE
 affinity
 *.native
 
