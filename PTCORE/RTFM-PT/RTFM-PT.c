@@ -6,11 +6,18 @@
  */
 #include "RTFM-PT.h"
 #define _GNU_SOURCE
-int debug = TRUE; // should be an argument to main
+
 //#define COND
 #define SEM
+#define OSX
 
 #define handle_error_en(en, msg) do { errno = en; perror(msg); exit(EXIT_FAILURE); } while (0)
+#define handle_error(msg) do { perror(msg); exit(EXIT_FAILURE); } while (0)
+#define min(a, b) (a < b ? a : b)
+#define max(a, b) (a > b ? a : b)
+
+//#define DEBUG(x) x
+#define DEBUG(x)
 
 #include "../Application/autogen.c"
 
@@ -18,6 +25,7 @@ int debug = TRUE; // should be an argument to main
 #include <stdlib.h>
 #include <pthread.h>
 #include <errno.h>
+#include <string.h>
 
 pthread_mutex_t res_mutex[RES_NR];
 void RTFM_lock(int r) {
@@ -75,7 +83,10 @@ void *thread_handler(void *id_ptr) {
 
 #ifdef SEM
 #include <semaphore.h>
-sem_t pend_sem[ENTRY_NR];
+#ifdef OSX
+//char *semaphore_name[ENTRY_NR];
+#endif
+sem_t* pend_sem[ENTRY_NR];
 pthread_mutex_t pend_mutex[ENTRY_NR];
 int pend_count[ENTRY_NR] = { 0 };
 
@@ -93,7 +104,7 @@ void s_wait(sem_t *s) {
 
 void RTFM_pend(int t) {
 	int lcount;
-	printf("Pend id %d\n", t);
+	DEBUG( printf("Pend id %d\n", t); )
 
 	m_lock(&pend_mutex[t]);
 	lcount = pend_count[t]; // inside lock of the counter
@@ -102,20 +113,20 @@ void RTFM_pend(int t) {
 	m_unlock(&pend_mutex[t]);
 
 	if (lcount == 0) { // just a single outstanding semaphore/mimic the single buffer pend of interrupt hardware
-		s_post(&pend_sem[t]);
-		printf("---> semaphore posted\n");
+		s_post(pend_sem[t]);
+		DEBUG( printf("---> semaphore posted\n"); )
 	} else {
-		printf("---> semaphore discarded, already outstanding\n");
+		DEBUG( printf("---> semaphore discarded, already outstanding\n"); )
 	}
 }
 
 void *thread_handler(void *id_ptr) {
 	int id = *((int *) id_ptr);
-	printf("thread %d started\n", id);
+	DEBUG( printf("thread %d started\n", id); )
 
 	while (1) {
-		fprintf(stderr, "Thread %d blocked\n", id);
-		s_wait(&pend_sem[id]);
+		DEBUG( fprintf(stderr, "Thread %d blocked\n", id); )
+		s_wait(pend_sem[id]);
 
 		entry_func[id](); // dispatch the task
 
@@ -127,14 +138,49 @@ void *thread_handler(void *id_ptr) {
 }
 #endif
 
+void dump_priorities() {
+	int i;
+	for (i = 0; i < RES_NR; i++)
+		printf("Res %d \t ceiling %d\n", i,  ceilings[i]);
+
+	for (i = 0; i < ENTRY_NR; i++)
+		printf("Task %d \tpriority %d \n",i, entry_prio[i]);
+
+}
 int main() {
+
+	/*
+	sem_t *sem = sem_open("test", O_CREAT, 0, 1);
+	if (sem == SEM_FAILED) {
+	        perror("sem_open");
+	        return 1;
+	    }
+
+	    int value;
+	    if (sem_getvalue(sem, &value)) {
+	        perror("sem_getvalue");
+	        return 1;
+	    }
+	printf("val : %d\n", 	value);
+	*/
+
 	int policy = SCHED_FIFO; // SCHED_RR; //SCHED_OTHER;
 	int p_max = sched_get_priority_max(policy);
 	int p_min = sched_get_priority_min(policy);
 	int s, i;
 
-	if (debug)
-		printf("start \np_max %d, p_min %d\n", p_max, p_min);
+	DEBUG(
+		printf("POSIX priorities: np_max %d, p_min %d\n", p_max, p_min);
+		dump_priorities();
+	)
+
+	/* re-mapping of logic priorities to POSIX priorities */
+	for (i = 0; i < RES_NR; i++)
+		ceilings[i] = min(p_max, ceilings[i] + p_min);
+	for (i = 0; i < ENTRY_NR; i++)
+		entry_prio[i] = min(p_max, entry_prio[i] + p_min);
+
+	DEBUG( dump_priorities(); )
 
 	/* Resource management */
 	pthread_mutexattr_t mutexattr;
@@ -152,15 +198,35 @@ int main() {
 		handle_error_en(s, "pthread_mutexattr_setprotocol\n");
 
 	for (i = 0; i < RES_NR; i++) {
+		/*
+		 * The prioceiling attribute contains the priority ceiling of initialised mutexes.
+		 * The values of prioceiling will be within the maximum range of priorities defined by SCHED_FIFO.
+		 * The prioceiling attribute defines the priority ceiling of initialised mutexes, which is the
+		 * minimum priority level at which the critical section guarded by the mutex is executed.
+		 * In order to avoid priority inversion, the priority ceiling of the mutex will be set to a
+		 * priority higher than or equal to the highest priority of all the threads that may lock that
+		 * mutex.
+		 *
+		 * The values of prioceiling will be within the maximum range of priorities defined under the SCHED_FIFO
+		 * scheduling policy.
+		 */
+
 		if ((s = pthread_mutexattr_setprioceiling(&mutexattr, ceilings[i])))
 			handle_error_en(s, "pthread_mutexattr_setprioceiling\n");
+
+		/* The pthread_mutex_init() function initialises the mutex referenced by mutex with attributes
+		 * specified by attr. If attr is NULL, the default mutex attributes are used; the effect is the
+		 * same as passing the address of a default mutex attributes object.
+		 * Upon successful initialisation, the state of the mutex becomes initialised and unlocked.
+		 */
+
 		if ((s = pthread_mutex_init(&res_mutex[i], &mutexattr)))
 			handle_error_en(s, "pthread_mutex_init\n");
 	}
 	/* Task/thread management */
 	pthread_t thread[ENTRY_NR];
 
-	int id[ENTRY_NR]; // used for debugging
+	int id[ENTRY_NR]; // unique identifier for each thread
 
 	pthread_attr_t attr;
 	if ((s = pthread_attr_init(&attr)))
@@ -184,9 +250,36 @@ int main() {
 		handle_error_en(s, "pthread_attr_setinheritsched");
 
 	for (i = 0; i < ENTRY_NR; i++) {
-		param.sched_priority = entry_prio[i];
+		/* pend_mutex initialization*/
+
+		if ((s = pthread_mutex_init(&pend_mutex[i], &mutexattr)))
+					handle_error_en(s, "pthread_mutex_init\n");
 
 #ifdef SEM
+		/* semaphore handling */
+#ifdef OSX
+		char str[32];
+
+		if ((sprintf(str, "RTFM_SEM_%d",i)) < 0)
+			handle_error_en(errno, "sprintf_failed\n");
+
+		/*
+		 * The named semaphore named name is removed.
+		 */
+		DEBUG( printf("Semaphore str len %d :%s\n", (int) strlen(str), str); )
+		if ((s = sem_unlink(str)))
+			handle_error_en(errno, "sem_unlink");
+			//printf("warning sem unlink failed\n");
+
+		/*
+		 * The named semaphore named name is initialized and opened as specified by
+		 * the argument oflag and a semaphore descriptor is returned to the calling process.
+		 */
+		pend_sem[i] = sem_open(str, O_CREAT, O_RDWR, 0);
+		if (pend_sem[i] == SEM_FAILED)
+			handle_error_en(errno, "sem_open");
+
+#else
 		/* The sem_init() function is used to initialise the unnamed semaphore referred to by sem.
 		 * The value of the initialised semaphore is value. Following a successful call to sem_init(),
 		 * the semaphore may be used in subsequent calls to sem_wait(), sem_trywait(), sem_post(),
@@ -198,6 +291,8 @@ int main() {
 		if ((s = sem_init(&pend_sem[i], 0, 0)))
 			handle_error_en(s, "sem_init");
 #endif
+#endif
+		param.sched_priority = entry_prio[i];
 
 		if ((s = pthread_attr_setschedparam(&attr, &param)))
 			handle_error_en(s, "pthread_attr_setschedparam");
@@ -205,19 +300,20 @@ int main() {
 		if ((s = pthread_create(&thread[i], &attr, thread_handler, &id[i])))
 			handle_error_en(s, "pthread_create\n");
 
-		if (debug)
-			printf("thread %d created\n", i);
+		DEBUG( printf("thread %d created\n", i); )
 	}
 
 #ifdef USER_RESET
 	user_reset();
 #endif
+
+	/* code for cleanup omitted, we trust linux/OSX to do the cleaning */
+
 	/*
 	 for (i = 0; i < ENTRY_NR; i++) {
 	 if (s = pthread_join(thread[i], NULL))
 	 handle_error_en(s, "pthread_join");
 	 }
 	 */
-	fflush(stdout);
 	return 0;
 }
