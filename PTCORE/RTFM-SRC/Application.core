@@ -1,6 +1,3 @@
-// Shared data structure
-// Protected by R_SData
-
 #> 
 #include <stdio.h>  // printf, etc.
 #include <unistd.h> // sleep, etc.
@@ -20,7 +17,8 @@ void user_reset() {
 	printf("User reset exit\n");
 }
 <#
- 
+
+(*
 Task task1 1 {
 	#>printf("task1 start\n");<#
 	claim R {
@@ -31,7 +29,7 @@ Task task1 1 {
 	}
 	#>printf("task1 end\n");<#
 }
-
+*)
 ISR TIMER0_IRQHandler 7 {
 	#>printf("TIMER0_IRQHandler \n");<#
 	#>sleep(2);<#

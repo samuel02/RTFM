@@ -92,9 +92,9 @@ let string_of_opt opt =
     "verbose 	: " ^ string_of_bool opt.verbose ^ nl ^
     "debug 		: " ^ string_of_bool opt.debug ^ nl ^
     "dotout		: " ^ string_of_bool opt.dotout ^ nl ^
-    "dotfile 	: " ^ opt.dotfile ^ nl ^
+    "dotfile 	: " ^ opt.dotfile ^ nl 
     
-    nl
+   
     
     
     

@@ -140,37 +140,23 @@ void *thread_handler(void *id_ptr) {
 
 void dump_priorities() {
 	int i;
+	printf("\nResource ceilings:\n");
 	for (i = 0; i < RES_NR; i++)
 		printf("Res %d \t ceiling %d\n", i,  ceilings[i]);
-
+	printf("\nTask priorities:\n");
 	for (i = 0; i < ENTRY_NR; i++)
 		printf("Task %d \tpriority %d \n",i, entry_prio[i]);
 
 }
 int main() {
-
-	/*
-	sem_t *sem = sem_open("test", O_CREAT, 0, 1);
-	if (sem == SEM_FAILED) {
-	        perror("sem_open");
-	        return 1;
-	    }
-
-	    int value;
-	    if (sem_getvalue(sem, &value)) {
-	        perror("sem_getvalue");
-	        return 1;
-	    }
-	printf("val : %d\n", 	value);
-	*/
-
-	int policy = SCHED_FIFO; // SCHED_RR; //SCHED_OTHER;
-	int p_max = sched_get_priority_max(policy);
-	int p_min = sched_get_priority_min(policy);
+	int policy 	= SCHED_FIFO; // SCHED_RR; //SCHED_OTHER;
+	int p_max 	= sched_get_priority_max(policy);
+	int p_min 	= sched_get_priority_min(policy);
 	int s, i;
 
 	DEBUG(
-		printf("POSIX priorities: np_max %d, p_min %d\n", p_max, p_min);
+		printf("POSIX priorities: np_min %d, p_max %d\n\n", p_min, p_max);
+		printf("Task/ceilings of the source .core program\n");
 		dump_priorities();
 	)
 
@@ -180,7 +166,10 @@ int main() {
 	for (i = 0; i < ENTRY_NR; i++)
 		entry_prio[i] = min(p_max, entry_prio[i] + p_min);
 
-	DEBUG( dump_priorities(); )
+	DEBUG(
+		printf("\nAfter re-mapping priorities to POSIX priorities.\n");
+		dump_priorities();
+	)
 
 	/* Resource management */
 	pthread_mutexattr_t mutexattr;
@@ -192,7 +181,7 @@ int main() {
 	 * all the mutexes owned by this thread and initialized with this attribute,
 	 * regardless of whether other threads are blocked on any of these mutexes or not.
 	 *
-	 * Essentially this implements the system ceiling of SRP
+	 * RTFM: Essentially this implements the system ceiling of SRP.
 	 */
 	if ((s = pthread_mutexattr_setprotocol(&mutexattr, PTHREAD_PRIO_PROTECT)))
 		handle_error_en(s, "pthread_mutexattr_setprotocol\n");
@@ -250,13 +239,8 @@ int main() {
 		handle_error_en(s, "pthread_attr_setinheritsched");
 
 	for (i = 0; i < ENTRY_NR; i++) {
-		/* pend_mutex initialization*/
-
-		if ((s = pthread_mutex_init(&pend_mutex[i], &mutexattr)))
-					handle_error_en(s, "pthread_mutex_init\n");
-
-#ifdef SEM
 		/* semaphore handling */
+#ifdef SEM
 #ifdef OSX
 		char str[32];
 
@@ -269,7 +253,6 @@ int main() {
 		DEBUG( printf("Semaphore str len %d :%s\n", (int) strlen(str), str); )
 		if ((s = sem_unlink(str)))
 			handle_error_en(errno, "sem_unlink");
-			//printf("warning sem unlink failed\n");
 
 		/*
 		 * The named semaphore named name is initialized and opened as specified by
@@ -292,6 +275,11 @@ int main() {
 			handle_error_en(s, "sem_init");
 #endif
 #endif
+		/* pend_mutex initialization*/
+		if ((s = pthread_mutex_init(&pend_mutex[i], &mutexattr)))
+			handle_error_en(s, "pthread_mutex_init\n");
+
+		/* pthread initialization */
 		param.sched_priority = entry_prio[i];
 
 		if ((s = pthread_attr_setschedparam(&attr, &param)))

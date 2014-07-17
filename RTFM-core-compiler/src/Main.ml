@@ -16,7 +16,6 @@ let main () =
   
   let inBuffer = open_in opt.infile in
   let oc = open_out opt.outfile in
-  let ocd1 = open_out "out1.dot" in
   let lexbuf = Lexing.from_channel inBuffer in
   lexbuf.lex_curr_p <- { lexbuf.lex_curr_p with pos_fname = opt.infile };
   
@@ -26,7 +25,7 @@ let main () =
     match res with
       | None -> p_stderr ("Not accepted!" ^ nl); exit (-1);
       | Some (Prog p)-> 
-        if opt.verbose then p_stderr ("Parsing succeeded:" ^ nl ^ nl); 
+        if opt.verbose then p_stderr ("Parsing succeeded:" ^ nl); 
         if opt.d_ast then p_stderr (string_of_p p); 
         
         let rm = ceiling p in
@@ -74,7 +73,26 @@ let main () =
             let tasks = task_vector p in
             p_oc oc (c_of_p p tasks rm); 
             
+            (* comupte cyclic dependencies *)
+            let dep = dep_of_p p in
+            let e = entry p in
+            if (opt.verbose) then begin
+              p_stderr (string_of_dep dep); 
+              p_stderr (string_of_entry e); 
+            end;
+            
+            p_stderr ("Deadlock free execution can be guaranteed " ^ nl ^ "Topologial order obatined :" ^ String.concat ", " (tsort dep e) ^ nl)
+            
   (*
+     (* let c = count dep in *)
+            (* p_stderr (string_of_count c); *)
+            (* let (rem,con) = topsort e dep c in *)
+            (* p_stderr ("---- dep " ^ string_of_dep rem); *)
+     		
+     let hdep = hull dep in 
+            p_stderr ("hull " ^ nl ^ string_of_dep hdep);
+     p_stderr ("---- count " ^ string_of_count con);
+     		       
      p_oc stderr (d_of_p p);
      p_oc ocd1 (d_of_p_r p rm); 
    *)

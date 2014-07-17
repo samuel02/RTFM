@@ -8,7 +8,7 @@ let usage =
     ^ ".core           RTFM-core source infile (root)" ^ nl
     ^ nl
     ^ "Output C file:" ^ nl
-    ^ "-o outfile      Compiler output (defaults to input.c)" ^ nl
+    ^ "-o outfile.c    Compiler output (defaults to input.c)" ^ nl
     ^ nl 
     ^ "Backend options:" ^ nl
     ^ "-gcc            Generate code for GCC backend (default)" ^ nl
@@ -64,7 +64,7 @@ let speclist =
     ("-v", Arg.Set o_verbose, 		  "\t\t: verbose mode");
     ("-D", Arg.Set o_debug, 		  "\t\t: debug mode");
   
-    ("-d_ast", Arg.Set d_ast, 		  "\t\t: dump AST");   
+    ("-d_ast", Arg.Set d_ast, 		    "\t: dump AST");   
   ]
     
 (* check if e is a file extension of s *)    
