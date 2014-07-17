@@ -33,11 +33,12 @@ let rec entry ll = match ll with
     
     
 let string_of_entry e = "Entry points :" ^ String.concat ", " e ^ nl  
-  
+
+let dot_of_dep dep =
+  "digraph RTFM {" ^ nl ^ string_of_dep dep ^ "}"   
+        
 (*
    
-   let dot_of_dep dep =
-   "digraph RTFM {" ^ nl ^ string_of_dep dep ^ "}"        
    
    let rec hull dep =
    let rec iter ll  = 

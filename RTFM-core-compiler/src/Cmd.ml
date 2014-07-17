@@ -24,8 +24,9 @@ let usage =
     ^ "-D              Enable : Generate output for debugging (default disbaled)" ^ nl
     ^ nl 
     ^ "Additional options:" ^ nl
-    ^ "-d dotfile      Enable : Task and resource structure in dot format (default disabled)" ^ nl
+    ^ "-d file.dot     Enable : Task and resource structure in dot format (default disabled)" ^ nl
     ^ "-d_ast          Enable : Dump internal AST (default disabled)" ^ nl
+    ^ "-ldot file.dot  Enable : Lock structure in dot format (default disabled)" ^ nl
     ^ nl
     ^ "All file paths are relative current dir" ^ nl 
     ^ "For further documentation see RTFM.lang.org" ^ nl
@@ -45,7 +46,8 @@ let o_debug		= ref false
 let f_infile	= ref ""
 let f_outfile 	= ref ""
 let f_dotfile 	= ref ""
-  
+let f_ldotfile 	= ref ""
+    
 let d_ast		= ref false  
   
 let speclist = 
@@ -53,6 +55,7 @@ let speclist =
     ("-i", Arg.Set_string f_infile,   "\t\t: infile");
     ("-o", Arg.Set_string f_outfile,  "\t\t: outfile (default infile.c)");
     ("-d", Arg.Set_string f_dotfile,  "\t\t: dotfile (default none)");
+    ("-ldot", Arg.Set_string f_ldotfile,"\t: dotfile (default none)");
     
     ("-gcc", Arg.Set o_gcc, 		  "\t\t: for gcc (default)");
     ("-ccomp", Arg.Set o_ccomp, 		"\t: for ccomp");
@@ -114,6 +117,11 @@ let cmd =
     if opt.dotout then begin
       opt.dotfile <- !f_dotfile;
       if (not (ext opt.dotfile ".dot")) then raise (Arg.Bad("Bad dotfile extention (.dot exptected) " ^ opt.dotfile));
+    end;
+    opt.ldotout <- (not (String.compare (!f_ldotfile) "" == 0));
+    if opt.ldotout then begin
+      opt.ldotfile <- !f_ldotfile;
+      if (not (ext opt.ldotfile ".dot")) then raise (Arg.Bad("Bad dotfile extention (.dot exptected) " ^ opt.ldotfile));
     end;
     opt.d_ast <- !d_ast;  
   with

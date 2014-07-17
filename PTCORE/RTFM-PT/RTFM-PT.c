@@ -16,9 +16,8 @@
 #define min(a, b) (a < b ? a : b)
 #define max(a, b) (a > b ? a : b)
 
-//#define DEBUG(x) x
-#define DEBUG(x)
-
+#define DEBUG(x) x
+ //#define DEBUG(x)
 #include "../Application/autogen.c"
 
 #include <stdio.h>
@@ -251,9 +250,9 @@ int main() {
 		 * The named semaphore named name is removed.
 		 */
 		DEBUG( printf("Semaphore str len %d :%s\n", (int) strlen(str), str); )
-		if ((s = sem_unlink(str)))
-			handle_error_en(errno, "sem_unlink");
-
+		if ((s = sem_unlink(str))) {
+			DEBUG( printf("Warning sem_unlinked failed, the named semaphore did not exist\n");)
+		}
 		/*
 		 * The named semaphore named name is initialized and opened as specified by
 		 * the argument oflag and a semaphore descriptor is returned to the calling process.

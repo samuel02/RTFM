@@ -81,51 +81,16 @@ let main () =
               p_stderr (string_of_entry e); 
             end;
             
-            p_stderr ("Deadlock free execution can be guaranteed " ^ nl ^ "Topologial order obatined :" ^ String.concat ", " (tsort dep e) ^ nl)
+            (* ldot optout *)
+            if (opt.ldotout) then begin
+              let ocl = open_out opt.ldotfile in 
+              begin
+                p_oc ocl (dot_of_dep dep);
+              	close_out ocl;
+              end; 
+            end;
             
-  (*
-     (* let c = count dep in *)
-            (* p_stderr (string_of_count c); *)
-            (* let (rem,con) = topsort e dep c in *)
-            (* p_stderr ("---- dep " ^ string_of_dep rem); *)
-     		
-     let hdep = hull dep in 
-            p_stderr ("hull " ^ nl ^ string_of_dep hdep);
-     p_stderr ("---- count " ^ string_of_count con);
-     		       
-     p_oc stderr (d_of_p p);
-     p_oc ocd1 (d_of_p_r p rm); 
-   *)
-  (*
-     p_stderr (d_of_p p ); 
-     p_oc ocd1 (d_of_p p); 
-   *) 
-              
-  (*
-     let dep = dep_of_p p in
-     p_stderr (string_of_dep dep);
-     p_oc ocd (dot_of_dep dep);
-     
-     let hdep = hull dep in 
-     p_stderr ("hull " ^ nl ^ string_of_dep hdep);
-     p_oc ocd1 (dot_of_dep hdep);
-     
-     let c = count dep in
-     p_stderr (string_of_count c);
-     
-     let e = entry p in
-     p_stderr (string_of_entry e);
-     
-     (*
-     let (rem,con) = topsort e dep c in 
-     p_stderr ("---- dep " ^ string_of_dep rem);
-     p_stderr ("---- count " ^ string_of_count con);
-     p_stderr ("---- tsort " ^ String.concat ", " (tsort dep e) ^ nl)
-   *)
-     p_stderr ("---- tsort " ^ String.concat ", " (tsort dep e) ^ nl); 
-   *)
-              
-              
+            p_stderr ("Deadlock free execution can be guaranteed " ^ nl ^ "Topologial order obatined :" ^ String.concat ", " (tsort dep e) ^ nl)
               
   (* exception handling *)            
   with 
