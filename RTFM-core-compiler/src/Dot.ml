@@ -80,8 +80,8 @@ let d_of_dt rl d =
         ^ "{ rank=same; " ^ ec ^ "P" ^ string_of_int prio ^ ec ^ "; " ^ ec ^ id ^ ec ^ "; }" ^ nl 
     | DFunc (t, id, (Ds (i, l))) 		-> (record  (id)) l ^ nl ^ cs id l
     | DCcode  							-> ""
-    | DPend id 							-> "(CCODE) -> " ^ id
-      
+    | DPend id 							-> "CCODE -> " ^ id ^ nl ^ "{ rank=source; CCODE}" ^ nl ^ "CCODE [shape=diamond]" ^ nl   
+        
 (* parse the program stmts*)
 let label = ref (0);;
 

@@ -85,20 +85,22 @@ let main () =
             if (opt.ldotout) then begin
               let ocl = open_out opt.ldotfile in 
               begin
-                p_oc ocl (dot_of_dep dep);
+                p_oc ocl (dot_of_dep dep p);
               	close_out ocl;
               end; 
             end;  
-            
-            p_stderr ("Deadlock free execution can be guaranteed " ^ nl ^ "Topologial order obatined :" ^ String.concat ", " (tsort dep e) ^ nl)
-              
+            let ts = (tsort dep e) in
+            match ts with
+              | Some top -> p_stderr ("Deadlock free execution can be guaranteed " ^ nl 
+                                        ^ "Topologial order obatined :" ^ (String.concat ", " top) ^ nl)
+              | None     -> p_stderr "Exiting";
   (* exception handling *)            
   with 
     | Lexer.SyntaxError msg -> p_stderr (msg ^ parse_err_msg lexbuf);
     | RtfmError msg 		-> p_stderr msg;
     | Failure msg 			-> p_stderr msg; 
     | Parser.Error 			-> p_stderr ("Parser error." ^ parse_err_msg lexbuf);
-    | Cyclic msg			-> p_stderr ("Cyclic " ^ msg);
+    
       exit (-1);;    
 (* exit 0;; *)
 

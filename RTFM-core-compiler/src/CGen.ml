@@ -9,11 +9,14 @@ let pend id =  match opt.target with
   | RTFM_PT		-> "RTFM_pend(" ^ id ^ "_nr);"
     
 let c_of_p topl v r = 
+  let quote x = "\"" ^ x ^ "\"" in
   let c_of_r rl = match opt.target with 
     | RTFM_KERNEL 	-> String.concat nl (List.map (fun (id, prio) -> "#define " ^ id ^ " " ^ string_of_int prio) rl)
     | RTFM_PT		-> 
       "enum resources {" ^ String.concat "," ((List.map fst rl) @ ["RES_NR"]) ^ "};" ^ nl ^
+        "char* res_names[] = {" ^ String.concat "," (List.map quote (List.map fst rl)) ^ "};" ^ nl ^
         "int ceilings[RES_NR] = {" ^ String.concat ", " (List.map string_of_int (List.map snd rl)) ^ "};" 
+        
         
   in
   let c_prio_of_top topl = match opt.target with
@@ -40,8 +43,8 @@ let c_of_p topl v r =
       "enum entry_nr {" ^ String.concat ", "  ((c topl "_nr" ) @ ["ENTRY_NR"]) ^ "};" ^ nl ^
         "int entry_prio[] = {" ^ String.concat ", "  (prio topl) ^ "};" ^ nl ^ 
         String.concat "" (List.map proto topl) ^
-        "ENTRY_FUNC entry_func[] = {" ^ String.concat ", "  (c topl "") ^ "};" ^ nl
-        
+        "ENTRY_FUNC entry_func[] = {" ^ String.concat ", "  (c topl "") ^ "};" ^ nl ^
+        "char* entry_names[] = {" ^ (String.concat ", " (List.map quote (c topl ""))) ^ "};" ^ nl
         
         
   in

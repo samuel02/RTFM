@@ -1,96 +1,62 @@
 /*
  * RTFM-PT.c
  * Pthread run-time system implementation for RTFM-core
- * (C) 2014 Per Lindgren
+ * (C) 2014 Per Lindgren, Marcus Lindner (WINAPI)
  *
+ * DEBUG		enable internal debugging of the run-time
+ * POSIX		implementation using pthreads + named semaphores
+ * WINAPI		implementation using Windows threads and semaphores
  */
-#include "RTFM-PT.h"
-#define _GNU_SOURCE
 
-//#define COND
-#define SEM
-
-#define handle_error_en(en, msg) do { errno = en; perror(msg); exit(EXIT_FAILURE); } while (0)
-#define handle_error(msg) do { perror(msg); exit(EXIT_FAILURE); } while (0)
 #define min(a, b) (a < b ? a : b)
 #define max(a, b) (a > b ? a : b)
 
 #ifdef DEBUG
-#define D(x) x
+#define DP(fmt, ...) {fprintf(stderr, "\t\t\t\t"fmt"\n", ##__VA_ARGS__);}
+#define DF(x) x
 #else
-#define D(x)
+#define DP(fmt, ...)
+#define DF(x)
 #endif
 
+#ifdef DEBUG_PT
+#define DPT(fmt, ...) {fprintf(stderr, "\t\t\t\t\t\t\t\t"fmt"\n", ##__VA_ARGS__);}
+#else
+#define DPT(fmt, ...)
+#endif
+
+#include "RTFM-PT.h"
+//#define _GNU_SOURCE
 #include "../Application/autogen.c"
+
+#ifdef POSIX
+#define handle_error_en(en, msg) do { errno = en; perror(msg); exit(EXIT_FAILURE); } while (0)
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <pthread.h>
 #include <errno.h>
 #include <string.h>
+#include <semaphore.h>
 
+/* data structures for the threads and semaphores */
 pthread_mutex_t res_mutex[RES_NR];
-void RTFM_lock(int r) {
-	int s;
-	if ((s = pthread_mutex_lock(&res_mutex[r])))
-		handle_error_en(s, "pthread_mutex_lock\n");
-}
-void RTFM_unlock(int r) {
-	int s;
-	if ((s = pthread_mutex_unlock(&res_mutex[r])))
-		handle_error_en(s, "pthread_mutex_unlock\n");
-}
+sem_t* 			pend_sem[ENTRY_NR];
+pthread_mutex_t pend_count_mutex[ENTRY_NR];
+int				pend_count[ENTRY_NR] = { 0 };
 
+/* mutex management primitves*/
 void m_lock(pthread_mutex_t *m) {
-	int s;
-	if ((s = pthread_mutex_lock(m)))
-		handle_error_en(s, "pthread_mutex_lock\n");
+	int e;
+	if ((e = pthread_mutex_lock(m)))
+		handle_error_en(e, "pthread_mutex_lock\n");
 }
 
 void m_unlock(pthread_mutex_t *m) {
-	int s;
-	if ((s = pthread_mutex_unlock(m)))
-		handle_error_en(s, "pthread_mutex_unlock\n");
+	int e;
+	if ((e = pthread_mutex_unlock(m)))
+		handle_error_en(e, "pthread_mutex_unlock\n");
 }
-
-#ifdef COND
-pthread_mutex_t pend_mutex[ENTRY_NR];
-pthread_cond_t pend_cond[ENTRY_NR] = {PTHREAD_COND_INITIALIZER};
-
-void RTFM_pend(int t) {
-	printf("Pend id %d\n", t);
-// rendezvous behavior
-	pthread_mutex_lock(&pend_mutex[t]);// ensure that the receiver is has finished previous invokation
-	pthread_mutex_unlock(&pend_mutex[t]);// releases the lock so that the
-	pthread_cond_signal(&pend_cond[t]);// wakes up the receiver, and continues
-}
-
-#define handle_error_en(en, msg) do { errno = en; perror(msg); exit(EXIT_FAILURE); } while (0)
-int debug = TRUE; // should be an argument to main
-
-// conditional variable synchronization
-void *thread_handler(void *id_ptr) {
-	int id = *((int *) id_ptr);
-	int s;
-	printf("thread %d started\n", id);
-	while (1) {
-		fprintf(stderr, "Thread %d blocked\n", id);
-		if ((s = pthread_cond_wait(&pend_cond[id], &pend_mutex[id])))
-		handle_error_en(s, "pthread_cond_wait\n");
-		entry_func[id](); // dispatch the task
-	}
-	return NULL;
-}
-#endif
-
-#ifdef SEM
-#include <semaphore.h>
-#ifdef OSX
-//char *semaphore_name[ENTRY_NR];
-#endif
-sem_t* pend_sem[ENTRY_NR];
-pthread_mutex_t pend_mutex[ENTRY_NR];
-int pend_count[ENTRY_NR] = { 0 };
 
 void s_post(sem_t *s) {
 	int e;
@@ -103,42 +69,58 @@ void s_wait(sem_t *s) {
 	if ((e = sem_wait(s)))
 		handle_error_en(e, "sem_wait\n");
 }
+#endif
+
+/* RTFM_API */
+void RTFM_lock(int r) {
+	DP("Claim     :%s", res_names[r])
+	m_lock(&res_mutex[r]);
+}
+
+void RTFM_unlock(int r) {
+	DP("Release   :%s", res_names[r])
+	m_unlock(&res_mutex[r]);
+}
 
 void RTFM_pend(int t) {
 	int lcount;
-	D( printf("Pend id %d\n", t); )
+	DP("Pend      :%s", entry_names[t])
 
-	m_lock(&pend_mutex[t]);
-	lcount = pend_count[t]; // inside lock of the counter
-	if (lcount == 0)
-		pend_count[t]++;
-	m_unlock(&pend_mutex[t]);
+	m_lock(&pend_count_mutex[t]);
+	{   // inside lock of the counter
+		lcount = pend_count[t];
+		if (lcount == 0)
+			pend_count[t]++; // may not be atomic, due to C compiler non-optimization
+	}
+	m_unlock(&pend_count_mutex[t]);
 
 	if (lcount == 0) { // just a single outstanding semaphore/mimic the single buffer pend of interrupt hardware
 		s_post(pend_sem[t]);
-		D( printf("---> semaphore posted\n"); )
+		DPT("Post :semaphore posted %s", entry_names[t])
 	} else {
-		D( printf("---> semaphore discarded, already outstanding\n"); )
+		DPT("Post :semaphore discarded, already outstanding")
 	}
 }
 
+/* run-time system implementation */
 void *thread_handler(void *id_ptr) {
 	int id = *((int *) id_ptr);
-	D( printf("thread %d started\n", id); )
+	DPT("Working thread %d started : Task %s", id, entry_names[id])
 
 	while (1) {
-		D( fprintf(stderr, "Thread %d blocked\n", id); )
+		DPT( "Task blocked (awaiting invocation): %s", entry_names[id])
 		s_wait(pend_sem[id]);
 
 		entry_func[id](); // dispatch the task
 
-		m_lock(&pend_mutex[id]);
-		pend_count[id]--; // inside lock of the counter
-		m_unlock(&pend_mutex[id]);
+		m_lock(&pend_count_mutex[id]);
+		{   // inside lock of the counter
+			pend_count[id]--; // inside lock of the counter
+		}
+		m_unlock(&pend_count_mutex[id]);
 	}
 	return NULL;
 }
-#endif
 
 void dump_priorities() {
 	int i;
@@ -148,16 +130,17 @@ void dump_priorities() {
 	printf("\nTask priorities:\n");
 	for (i = 0; i < ENTRY_NR; i++)
 		printf("Task %d \tpriority %d \n",i, entry_prio[i]);
-
 }
+
+#ifdef POSIX
 int main() {
 	int policy 	= SCHED_FIFO; // SCHED_RR; //SCHED_OTHER;
 	int p_max 	= sched_get_priority_max(policy);
 	int p_min 	= sched_get_priority_min(policy);
 	int s, i;
 
-	D(
-		printf("POSIX priorities: np_min %d, p_max %d\n\n", p_min, p_max);
+	DF(
+		printf("POSIX priorities: np_min %d, p_max %d\n\n", p_min, p_max );
 		printf("Task/ceilings of the source .core program\n");
 		dump_priorities();
 	)
@@ -168,7 +151,7 @@ int main() {
 	for (i = 0; i < ENTRY_NR; i++)
 		entry_prio[i] = min(p_max, entry_prio[i] + p_min);
 
-	D(
+	DF(
 		printf("\nAfter re-mapping priorities to POSIX priorities.\n");
 		dump_priorities();
 	)
@@ -216,7 +199,6 @@ int main() {
 	}
 	/* Task/thread management */
 	pthread_t thread[ENTRY_NR];
-
 	int id[ENTRY_NR]; // unique identifier for each thread
 
 	pthread_attr_t attr;
@@ -232,7 +214,6 @@ int main() {
 	if ((s = pthread_attr_setschedpolicy(&attr, SCHED_FIFO)))
 		handle_error_en(s, "pthread_attr_setschedpolicy");
 
-	struct sched_param param;
 	/*
 	 * Specifies that the scheduling policy and associated attributes are to be set to the
 	 * corresponding values from this attribute object.
@@ -240,64 +221,45 @@ int main() {
 	if ((s = pthread_attr_setinheritsched(&attr, PTHREAD_EXPLICIT_SCHED)))
 		handle_error_en(s, "pthread_attr_setinheritsched");
 
+	struct sched_param param;
 	for (i = 0; i < ENTRY_NR; i++) {
 		/* semaphore handling */
-#ifdef SEM
-#ifdef OSX
-		char str[32];
-
-		if ((sprintf(str, "RTFM_SEM_%d",i)) < 0)
-			handle_error_en(errno, "sprintf_failed\n");
-
 		/*
 		 * The named semaphore named name is removed.
 		 */
-		D( printf("Semaphore str len %d :%s\n", (int) strlen(str), str); )
-		if ((s = sem_unlink(str))) {
-			D( printf("Warning sem_unlinked failed, the named semaphore did not exist\n");)
+		if ((s = sem_unlink(entry_names[i]))) {
+			DPT("Warning sem_unlinked failed, the named semaphore did not exist\n")
 		}
 		/*
 		 * The named semaphore named name is initialized and opened as specified by
 		 * the argument oflag and a semaphore descriptor is returned to the calling process.
 		 */
-		pend_sem[i] = sem_open(str, O_CREAT, O_RDWR, 0);
+		pend_sem[i] = sem_open(entry_names[i], O_CREAT, O_RDWR, 0);
 		if (pend_sem[i] == SEM_FAILED)
 			handle_error_en(errno, "sem_open");
 
-#else
-		/* The sem_init() function is used to initialise the unnamed semaphore referred to by sem.
-		 * The value of the initialised semaphore is value. Following a successful call to sem_init(),
-		 * the semaphore may be used in subsequent calls to sem_wait(), sem_trywait(), sem_post(),
-		 * and sem_destroy(). This semaphore remains usable until the semaphore is destroyed. If the
-		 * pshared argument has a non-zero value, then the semaphore is shared between processes;
-		 * in this case, any process that can access the semaphore sem can use sem for performing
-		 * sem_wait(), sem_trywait(), sem_post(), and sem_destroy() operations.
-		 */
-		if ((s = sem_init(&pend_sem[i], 0, 0)))
-			handle_error_en(s, "sem_init");
-#endif
-#endif
-		/* pend_mutex initialization*/
-		if ((s = pthread_mutex_init(&pend_mutex[i], &mutexattr)))
+		/* pend_count_mutex initialization*/
+		if ((s = pthread_mutex_init(&pend_count_mutex[i], &mutexattr)))
 			handle_error_en(s, "pthread_mutex_init\n");
 
 		/* pthread initialization */
 		param.sched_priority = entry_prio[i];
-
 		if ((s = pthread_attr_setschedparam(&attr, &param)))
 			handle_error_en(s, "pthread_attr_setschedparam");
+
 		id[i] = i;
 		if ((s = pthread_create(&thread[i], &attr, thread_handler, &id[i])))
 			handle_error_en(s, "pthread_create\n");
 
-		D( printf("thread %d created\n", i); )
+		DPT("thread %d created\n", i)
 	}
-
+	sleep(2); // let the setup be done until continuing
 #ifdef USER_RESET
+	printf("-----------------------------------------------------------------------------------------------------------------------\n");
 	user_reset();
 #endif
 
-	/* code for cleanup omitted, we trust linux/OSX to do the cleaning */
+	/* code for cleanup omitted, we trust Linux/OSX/Windows to do the cleaning */
 
 	/*
 	 for (i = 0; i < ENTRY_NR; i++) {
@@ -307,3 +269,4 @@ int main() {
 	 */
 	return 0;
 }
+#endif
