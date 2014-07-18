@@ -9,15 +9,18 @@
 
 //#define COND
 #define SEM
-#define OSX
 
 #define handle_error_en(en, msg) do { errno = en; perror(msg); exit(EXIT_FAILURE); } while (0)
 #define handle_error(msg) do { perror(msg); exit(EXIT_FAILURE); } while (0)
 #define min(a, b) (a < b ? a : b)
 #define max(a, b) (a > b ? a : b)
 
-#define DEBUG(x) x
- //#define DEBUG(x)
+#ifdef DEBUG
+#define D(x) x
+#else
+#define D(x)
+#endif
+
 #include "../Application/autogen.c"
 
 #include <stdio.h>
@@ -103,7 +106,7 @@ void s_wait(sem_t *s) {
 
 void RTFM_pend(int t) {
 	int lcount;
-	DEBUG( printf("Pend id %d\n", t); )
+	D( printf("Pend id %d\n", t); )
 
 	m_lock(&pend_mutex[t]);
 	lcount = pend_count[t]; // inside lock of the counter
@@ -113,18 +116,18 @@ void RTFM_pend(int t) {
 
 	if (lcount == 0) { // just a single outstanding semaphore/mimic the single buffer pend of interrupt hardware
 		s_post(pend_sem[t]);
-		DEBUG( printf("---> semaphore posted\n"); )
+		D( printf("---> semaphore posted\n"); )
 	} else {
-		DEBUG( printf("---> semaphore discarded, already outstanding\n"); )
+		D( printf("---> semaphore discarded, already outstanding\n"); )
 	}
 }
 
 void *thread_handler(void *id_ptr) {
 	int id = *((int *) id_ptr);
-	DEBUG( printf("thread %d started\n", id); )
+	D( printf("thread %d started\n", id); )
 
 	while (1) {
-		DEBUG( fprintf(stderr, "Thread %d blocked\n", id); )
+		D( fprintf(stderr, "Thread %d blocked\n", id); )
 		s_wait(pend_sem[id]);
 
 		entry_func[id](); // dispatch the task
@@ -153,7 +156,7 @@ int main() {
 	int p_min 	= sched_get_priority_min(policy);
 	int s, i;
 
-	DEBUG(
+	D(
 		printf("POSIX priorities: np_min %d, p_max %d\n\n", p_min, p_max);
 		printf("Task/ceilings of the source .core program\n");
 		dump_priorities();
@@ -165,7 +168,7 @@ int main() {
 	for (i = 0; i < ENTRY_NR; i++)
 		entry_prio[i] = min(p_max, entry_prio[i] + p_min);
 
-	DEBUG(
+	D(
 		printf("\nAfter re-mapping priorities to POSIX priorities.\n");
 		dump_priorities();
 	)
@@ -249,9 +252,9 @@ int main() {
 		/*
 		 * The named semaphore named name is removed.
 		 */
-		DEBUG( printf("Semaphore str len %d :%s\n", (int) strlen(str), str); )
+		D( printf("Semaphore str len %d :%s\n", (int) strlen(str), str); )
 		if ((s = sem_unlink(str))) {
-			DEBUG( printf("Warning sem_unlinked failed, the named semaphore did not exist\n");)
+			D( printf("Warning sem_unlinked failed, the named semaphore did not exist\n");)
 		}
 		/*
 		 * The named semaphore named name is initialized and opened as specified by
@@ -287,7 +290,7 @@ int main() {
 		if ((s = pthread_create(&thread[i], &attr, thread_handler, &id[i])))
 			handle_error_en(s, "pthread_create\n");
 
-		DEBUG( printf("thread %d created\n", i); )
+		D( printf("thread %d created\n", i); )
 	}
 
 #ifdef USER_RESET

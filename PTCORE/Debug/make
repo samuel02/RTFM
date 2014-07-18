@@ -1,3 +1,21 @@
+#!/bin/bash
+
+##################
+function if_error
+##################
+{
+if [[ $? -ne 0 ]]; then # check return code passed to function
+#print "$1 TIME:$TIME" | tee -a $LOG # if rc > 0 then print error msg and quit
+exit $?
+fi
+}
+
+echo make clean
 make clean
+if_error "make clean"
+
+echo make 
 make 
+if_error "make"
+
 sudo ./PTCORE

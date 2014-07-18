@@ -78,6 +78,43 @@ OCAML ODT plugin                See http://ocamldt.free.fr/spip.php?article5
 Workspace                       Root for your RTFM-core developments
 PTCORE                          C project for the run-time
                                 create as existing code with Makefile
+                                
+                                You can get eclipse to auto generate the makefile 
+                                It will be placed in the directory of the (active)
+                                configuration (e.g., Default, Debug etc.)
+                                
+                                You may create several configurations, and switch between
+                                those in eclipse.
+                                
+                                NOTICE, under OSX for each configuration you need to add 
+                                
+                                PTCORE Properties
+                                 |C/C++ Build
+                                  |Settings
+                                   |Tool Settings
+                                    |Symbols
+                                     |Defined Symbols -D
+                                      OSX 
+                                (Linux is selected by default).      
+                                
+                                If you want DEBUG output from the run-time, add
+                                     |Defined Symbols -D
+                                      DEBUG 
+                                      
+                                You should exlude the Appication/augotgen.c from the      
+                                atomatic builder (it is included by the run-time)
+                                To this end, select the file, goto and check/cross
+                                PTCORE/Application/Properties
+                                 | Exclude resource from build  
+                                 
+                                This option is also available as a "filter" 
+                                PTCORE Properties
+                                 |C/C++ General
+                                  |Paths and Symbols
+                                   |[Source Location]
+                                    |PTCORE
+                                     |Filter Application/autogen.c
+                                
 RTFM-core-compiler              OCaml project for the compiler
 
 RTFM-KM3                        Optional Cross C project for ARM Cortex target
@@ -86,4 +123,51 @@ RTFM-KM3                        Optional Cross C project for ARM Cortex target
 USEAGE  
 
 core                            RTFM-core v1.0 compiler
-                                core -h for options     
+                                core -h for options   
+                                
+PTCORE                          Running you application under Pthreads                                  
+                                Use the ./make script (it cleans, builds and executes).
+                                In order to operated on threads at low level, it needs to
+                                be run as "sudo", hence you will be asked for passwd
+                                
+                                You may also manually invoke 
+                                make clean
+                                make
+                                sudo ./PTCORE
+                                (in either of your configurations (e.g., Debug/Default)
+                                
+                                You may also greate your own makefiles:
+                                Basically all you need is to compile  
+                                gcc [-D OSX] [-D DEBUG] RTFM-PT.c -o PTCORE -lpthread
+                                
+                                and run
+                                sudo ./PTCORE
+                                
+                                Technical Note: 
+                                We use named semaphores under OSX.
+                                
+                                As a system in CORE is "static" and assumed to run "forever"
+                                there is no notion of ending an application in CORE.
+                                This is done through the environment (OSX/Linux) and we
+                                rely on its ability to clean things up.
+                                However, OSX deos not clean out named semaphores 
+                                automatically. 
+                                
+                                Instead we do it before "opening" the sempahore.
+                                
+                                First time we will create a warning when trying to "un_link"
+                                previous instances of the named semaphore (since there is no).
+                                
+                                On a second invocation the named emaphore is there and will be 
+                                successfully "un_link"ed by the run-time.
+                                
+                                OSX, does not correclty report the error on trying to
+                                unlink a named semaphore (should report errno=ENOENT) but it 
+                                does not (it seems). So we report this as a warning (if DEBUG).
+                                
+                                Under Linux, we use unnamed semaphores for simplicity, thus 
+                                this problem does not emerge.
+                                
+                                
+                                
+                                
