@@ -49,6 +49,7 @@ sudo port install zathura*      ZATHURA is a lightweight pdf viewer that can be
                                 Uses X11
  
 PREPARATION LINUX
+
 Ubuntu 12.04/14.04              Should work on any modern LINUX
 
 sudo apt-get install ocaml      OCAML compiler
@@ -86,7 +87,7 @@ PTCORE                          C project for the run-time
                                 You may create several configurations, and switch between
                                 those in eclipse.
                                 
-                                NOTICE, under OSX for each configuration you need to add 
+                                NOTICE, under OSX/Linux for each configuration you need to add 
                                 
                                 PTCORE Properties
                                  |C/C++ Build
@@ -94,12 +95,12 @@ PTCORE                          C project for the run-time
                                    |Tool Settings
                                     |Symbols
                                      |Defined Symbols -D
-                                      OSX 
-                                (Linux is selected by default).      
+                                      POSIX      
                                 
                                 If you want DEBUG output from the run-time, add
                                      |Defined Symbols -D
                                       DEBUG 
+                                      DEBUG_PT
                                       
                                 You should exlude the Appication/augotgen.c from the      
                                 atomatic builder (it is included by the run-time)
@@ -138,7 +139,7 @@ PTCORE                          Running you application under Pthreads
                                 
                                 You may also greate your own makefiles:
                                 Basically all you need is to compile  
-                                gcc [-D OSX] [-D DEBUG] RTFM-PT.c -o PTCORE -lpthread
+                                gcc [-D POSIX] [-D DEBUG] [-D DEBUG_PT] RTFM-PT.c -o PTCORE -lpthread
                                 
                                 and run
                                 sudo ./PTCORE
@@ -165,8 +166,7 @@ PTCORE                          Running you application under Pthreads
                                 unlink a named semaphore (should report errno=ENOENT) but it 
                                 does not (it seems). So we report this as a warning (if DEBUG).
                                 
-                                Under Linux, we use unnamed semaphores for simplicity, thus 
-                                this problem does not emerge.
+                                
                                 
                                 
                                 
