@@ -4,8 +4,7 @@
  * (C) 2014 Per Lindgren, Marcus Lindner (WINAPI)
  *
  * DEBUG		enable internal debugging of the run-time
- * POSIX		implementation using pthreads + named semaphores
- * WINAPI		implementation using Windows threads and semaphores
+ * DEBUG_RT
  */
 
 #define min(a, b) (a < b ? a : b)
@@ -19,7 +18,7 @@
 #define DF(x)
 #endif
 
-#ifdef DEBUG_PT
+#ifdef DEBUG_RT
 #define DPT(fmt, ...) {fprintf(stderr, "\t\t\t\t\t\t\t\t"fmt"\n", ##__VA_ARGS__);}
 #else
 #define DPT(fmt, ...)
@@ -29,7 +28,6 @@
 //#define _GNU_SOURCE
 #include "../Application/autogen.c"
 
-#ifdef POSIX
 #define handle_error_en(en, msg) do { errno = en; perror(msg); exit(EXIT_FAILURE); } while (0)
 
 #include <stdio.h>
@@ -69,22 +67,21 @@ void s_wait(sem_t *s) {
 	if ((e = sem_wait(s)))
 		handle_error_en(e, "sem_wait\n");
 }
-#endif
 
 /* RTFM_API */
 void RTFM_lock(int r) {
-	DP("Claim     :%s", res_names[r])
+	DP("Claim     :%s", res_names[r]);
 	m_lock(&res_mutex[r]);
 }
 
 void RTFM_unlock(int r) {
-	DP("Release   :%s", res_names[r])
+	DP("Release   :%s", res_names[r]);
 	m_unlock(&res_mutex[r]);
 }
 
 void RTFM_pend(int t) {
 	int lcount;
-	DP("Pend      :%s", entry_names[t])
+	DP("Pend      :%s", entry_names[t]);
 
 	m_lock(&pend_count_mutex[t]);
 	{   // inside lock of the counter
@@ -105,10 +102,10 @@ void RTFM_pend(int t) {
 /* run-time system implementation */
 void *thread_handler(void *id_ptr) {
 	int id = *((int *) id_ptr);
-	DPT("Working thread %d started : Task %s", id, entry_names[id])
+	DPT("Working thread %d started : Task %s", id, entry_names[id]);
 
 	while (1) {
-		DPT( "Task blocked (awaiting invocation): %s", entry_names[id])
+		DPT( "Task blocked (awaiting invocation): %s", entry_names[id]);
 		s_wait(pend_sem[id]);
 
 		entry_func[id](); // dispatch the task
@@ -132,7 +129,6 @@ void dump_priorities() {
 		printf("Task %d \tpriority %d \n",i, entry_prio[i]);
 }
 
-#ifdef POSIX
 int main() {
 	int policy 	= SCHED_FIFO; // SCHED_RR; //SCHED_OTHER;
 	int p_max 	= sched_get_priority_max(policy);
@@ -143,7 +139,7 @@ int main() {
 		printf("POSIX priorities: np_min %d, p_max %d\n\n", p_min, p_max );
 		printf("Task/ceilings of the source .core program\n");
 		dump_priorities();
-	)
+	);
 
 	/* re-mapping of logic priorities to POSIX priorities */
 	for (i = 0; i < RES_NR; i++)
@@ -154,7 +150,7 @@ int main() {
 	DF(
 		printf("\nAfter re-mapping priorities to POSIX priorities.\n");
 		dump_priorities();
-	)
+	);
 
 	/* Resource management */
 	pthread_mutexattr_t mutexattr;
@@ -251,7 +247,7 @@ int main() {
 		if ((s = pthread_create(&thread[i], &attr, thread_handler, &id[i])))
 			handle_error_en(s, "pthread_create\n");
 
-		DPT("thread %d created\n", i)
+		DPT("thread %d created\n", i);
 	}
 	sleep(2); // let the setup be done until continuing
 #ifdef USER_RESET
@@ -269,4 +265,4 @@ int main() {
 	 */
 	return 0;
 }
-#endif
+
