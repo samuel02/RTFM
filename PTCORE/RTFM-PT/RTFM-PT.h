@@ -4,7 +4,6 @@
  * (C) 2014 Per Lindgren
  */
 
-
 #ifndef RTFM_PT_H_
 #define RTFM_PT_H_
 
