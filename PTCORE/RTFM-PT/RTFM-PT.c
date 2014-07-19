@@ -69,19 +69,21 @@ void s_wait(sem_t *s) {
 }
 
 /* RTFM_API */
-void RTFM_lock(int r) {
-	DP("Claim     :%s", res_names[r]);
+void RTFM_lock(int f, int r) {
+	DP("Claim   :%s->%s", entry_names[f], res_names[r]);
 	m_lock(&res_mutex[r]);
+	DP("Claimed :%s->%s", entry_names[f], res_names[r]);
+
 }
 
-void RTFM_unlock(int r) {
-	DP("Release   :%s", res_names[r]);
+void RTFM_unlock(int f, int r) {
+	DP("Release :%s<-%s", entry_names[f],res_names[r]);
 	m_unlock(&res_mutex[r]);
 }
 
-void RTFM_pend(int t) {
+void RTFM_pend(int f, int t) {
 	int lcount;
-	DP("Pend      :%s", entry_names[t]);
+	DP("Pend    :%s->%s", entry_names[f], entry_names[t]);
 
 	m_lock(&pend_count_mutex[t]);
 	{   // inside lock of the counter
@@ -108,7 +110,7 @@ void *thread_handler(void *id_ptr) {
 		DPT( "Task blocked (awaiting invocation): %s", entry_names[id]);
 		s_wait(pend_sem[id]);
 
-		entry_func[id](); // dispatch the task
+		entry_func[id](id); // dispatch the task
 
 		m_lock(&pend_count_mutex[id]);
 		{   // inside lock of the counter
@@ -249,11 +251,9 @@ int main() {
 
 		DPT("thread %d created\n", i);
 	}
-	sleep(2); // let the setup be done until continuing
-#ifdef USER_RESET
+	sleep(1); // let the setup be done until continuing
 	printf("-----------------------------------------------------------------------------------------------------------------------\n");
-	user_reset();
-#endif
+	user_reset(0);
 
 	/* code for cleanup omitted, we trust Linux/OSX/Windows to do the cleaning */
 
