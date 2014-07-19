@@ -129,8 +129,9 @@ RTFM-KM3                        Optional Cross C project for ARM Cortex target
 USEAGE  
 =========
 
-core                            RTFM-core v1.0 compiler
-                                core -h for options   
+#core
+RTFM-core v1.0 compiler 
+	core -h for options   
                                 
 PTCORE                          Running you application under Pthreads                                  
                                 Use the ./make script (it cleans, builds and executes).
