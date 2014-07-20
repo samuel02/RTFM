@@ -11,5 +11,5 @@ fi
 }
 
 ocamlbuild -clean
-rm -r _build ../../PTCORE/Application
+rm -r ../../PTCORE/Application
 rm ./Main.native
