@@ -74,7 +74,6 @@ let pl topl rl =
   and res pl rl = match rl with
     | []						-> pl
     | (id, p) :: l 				-> let pl' = add (p, "[" ^ id ^ "]") pl in res pl' l
-    | _ :: l					-> res pl l
     
   in
   let isrs = top [] topl in
