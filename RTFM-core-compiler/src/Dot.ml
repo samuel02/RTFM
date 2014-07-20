@@ -7,7 +7,7 @@ type dstmt =
   | DotClaim of int * string * string * string * dstmts
   | DotSync of int * string * string 
   | DotPend of int * string * string 
-  | DotPendAfter of int * string * int
+  | DotPendAfter of int * string * string * int
   | DotHalt of int
   | DotC of int * string 
 and
@@ -41,7 +41,8 @@ let d_of_ds d =
   let st = match d with
     | DotClaim (i, _, _, s, _)	-> record_line i ("claim " ^ s) 
     | DotSync (i, _, s) 		-> record_line i ("sync " ^ s) 
-    | DotPend (i, _, s)			-> record_line i ("pend " ^ s) 
+    | DotPend (i, _, s)			-> record_line i ("pend " ^ s)
+    | DotPendAfter (i, _, s, ti)-> record_line i ("pendAfter " ^ string_of_int ti ^ " " ^ s)
     | DotHalt	(i)				-> record_line i ("halt ")
     | DotC (i, s)				-> record_line i ("\\#\\> " ^ strip (String.sub s 0 (min 8 (String.length s))) ^ "...\\<\\#")  
   in
@@ -84,7 +85,7 @@ let d_of_dt rl d =
         
 (* parse the program stmts*)
 let label = ref (0);;
-
+ 
 let d_of_p p rml = 
   let rec stmts t s = 
     label := !label + 1;
@@ -94,9 +95,10 @@ let d_of_p p rml =
       | Claim (cr, cs) 		-> let de = cr ^ "_" ^ t in DotClaim (i, cr, t, de, Ds (de , List.map (stmts de) cs))
       | Sync (sid, _) 		-> DotSync (i, t, sid) 
       | Pend (pid) 			-> DotPend (i, t, pid)
-      | PendAfter (pid,t) 	-> DotPendAfter (i, pid, t)
+      | PendAfter (pid, ti) -> DotPendAfter (i, t, pid, ti)
       | ClaimC (s) 			-> DotC (i, s)
       | Halt  				-> DotHalt (i)
+      | _					-> raise (RtfmError("Enable not implemented"))
         
         (* parse the program entry points *)      
   in
@@ -107,7 +109,7 @@ let d_of_p p rml =
     | TopPend (id)			-> DPend (id)
       
   in
-  
+   
   (* leftmost column is the prio/priority ceiling legend *)
   let dot_of pl = 
     let def = function
