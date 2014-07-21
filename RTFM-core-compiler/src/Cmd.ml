@@ -29,7 +29,7 @@ let usage =
     ^ "-ldot file.dot  Enable : Lock structure in dot format (default disabled)" ^ nl
     ^ nl
     ^ "All file paths are relative current dir" ^ nl 
-    ^ "For further documentation see RTFM.lang.org" ^ nl
+    ^ "For further documentation see www.rtfm-lang.org" ^ nl
     ^ nl
     ^ "Options summary:"
     
