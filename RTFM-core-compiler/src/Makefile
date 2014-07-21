@@ -57,35 +57,47 @@ V1 =
 all: rtfm_core dot
 
 rtfm_core: application_dir
-	$(OCAMLBUILD) $(OCAMLFLAGS) $(OCAML_TARGETDIR)$(OCAML_TARGET)
+	$(V0) echo $(quote) Compiling RTFM-core... $(quote)
+	$(V0) $(OCAMLBUILD) $(OCAMLFLAGS) $(OCAML_TARGETDIR)$(OCAML_TARGET)
 
 application_dir:
-	$(DIRBUILD) $(DIRFLAGS) $(APPLICATION_TARGETDIR)
+	$(V0) echo $(quote) Creating application directory... $(quote)
+	$(V0) $(DIRBUILD) $(DIRFLAGS) $(APPLICATION_TARGETDIR)
 
 dot:
-	$(OCAML_TARGETDIR)$(OCAML_TARGET) $(APPLICATION_SRC) -o $(APPLICATION_TARGETDIR)$(C_TARGET) $(DOTFLAGS)
+	$(V0) echo $(quote) Generating application and DOT files... $(quote)
+	$(V0) $(OCAML_TARGETDIR)$(OCAML_TARGET) $(APPLICATION_SRC) -o $(APPLICATION_TARGETDIR)$(C_TARGET) $(DOTFLAGS)
 
-pdf: $(ALL_PDF)
+pdf: pdf_print $(ALL_PDF)
+
+pdf_print:
+	$(V0) echo $(quote) Generating PDF files... $(quote)
 	 
 %.pdf: %.dot
 	$(V0) $(DOTBUILD) $(PDFFLAGS) $< -o $@
 
 application:
+	$(V0) echo $(quote) Generating application... $(quote)
 	$(OCAML_TARGETDIR)$(OCAML_TARGET) $(APPLICATION_SRC) -o $(APPLICATION_TARGETDIR)$(C_TARGET)
 
 ex1:
+	$(V0) echo $(quote) Generating example 1... $(quote)
 	$(OCAML_TARGETDIR)$(OCAML_TARGET) $(EXAMPLE1_SRC) -o $(APPLICATION_TARGETDIR)$(C_TARGET)
 
 ex2:
+	$(V0) echo $(quote) Generating example 2... $(quote)
 	$(OCAML_TARGETDIR)$(OCAML_TARGET) $(EXAMPLE2_SRC) -o $(APPLICATION_TARGETDIR)$(C_TARGET)
 
 ex3:
+	$(V0) echo $(quote) Generating example 3... $(quote)
 	$(OCAML_TARGETDIR)$(OCAML_TARGET) $(EXAMPLE3_SRC) -o $(APPLICATION_TARGETDIR)$(C_TARGET)
 
 ex4:
+	$(V0) echo $(quote) Generating example 4... $(quote)
 	$(OCAML_TARGETDIR)$(OCAML_TARGET) $(EXAMPLE4_SRC) -o $(APPLICATION_TARGETDIR)$(C_TARGET)
 
 ex5:
+	$(V0) echo $(quote) Generating example 5... $(quote)
 	$(OCAML_TARGETDIR)$(OCAML_TARGET) $(EXAMPLE5_SRC) -o $(APPLICATION_TARGETDIR)$(C_TARGET)
 
 clean: clean_ocaml clean_application clean_dot clean_pdf
