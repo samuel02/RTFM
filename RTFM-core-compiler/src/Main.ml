@@ -31,7 +31,7 @@ let main () =
         let rm = ceiling p in
         if opt.verbose then begin
           p_stderr ("Resource ceilings:" ^ nl ^ string_of_r rm );
-          p_stderr ("Tasks/Isrs per priority: " ^ nl^ string_of (pl p rm) );
+          p_stderr ("Tasks/ISRs per priority: " ^ nl^ string_of (pl p rm) );
         end;
         
         (* dot for task/resource structure *)
@@ -92,7 +92,7 @@ let main () =
             let ts = (tsort dep e) in
             match ts with
               | Some top -> p_stderr ("Deadlock free execution can be guaranteed " ^ nl 
-                                        ^ "Topologial order obatined :" ^ (String.concat ", " top) ^ nl)
+                                        ^ "Topological order obtained: " ^ (String.concat ", " top) ^ nl)
               | None     -> p_stderr "Exiting";
   (* exception handling *)            
   with 
