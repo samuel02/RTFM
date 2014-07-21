@@ -184,9 +184,4 @@ PTCORE                          Running you application under Pthreads
                                 OSX, does not correclty report the error on trying to
                                 unlink a named semaphore (should report errno=ENOENT) but it 
                                 does not (it seems). So we report this as a warning (if DEBUG).
-                                
-                                
-                                
-                                
-                                
-                                
+                        
