@@ -28,7 +28,7 @@ let usage =
     ^ "-d_ast          Enable : Dump internal AST (default disabled)" ^ nl
     ^ "-ldot file.dot  Enable : Lock structure in dot format (default disabled)" ^ nl
     ^ nl
-    ^ "All file paths are relative current dir" ^ nl 
+    ^ "All file paths are relative to the current directory" ^ nl 
     ^ "For further documentation see www.rtfm-lang.org" ^ nl
     ^ nl
     ^ "Options summary:"
