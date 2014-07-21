@@ -1,0 +1,14 @@
+. < in embedded CCODE broken
+
+
+- check, multiple task with same name
+- DONE, c code list preamble
+- use of Core, to get TIme e.g.
+
+- RS_trace maybe RS<trace, or maybe just RS
+
+- Thread safe exception (potentially raised from the environment!)
+ - inside claim, local handling of exception, to ensure graceful handling of state consistency
+ - to external sync, handled inside sync or optional outside sync ...
+ 
+
