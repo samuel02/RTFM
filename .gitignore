@@ -2,7 +2,8 @@
 ## PT core
 #################
 autogen.c
-makefile
+PTCORE/Debug/makefile
+PTCORE/makefile
 *.mk
 affinity
 *.native
