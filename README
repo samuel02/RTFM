@@ -7,11 +7,12 @@ History
 DISTRIBUTION AND DIRECTORY STRUCTURE
 RTFM-core                       RTFM-core compiler v1.0
 ->src                           source files
-                                ./make to build compiler script
-                                ./make X build applicaiton X script
-                                ./makedot X build application X with dot out
-                                ./makeinstall <path>
-                                copies "core" to directory <path> 
+                                make rtfm_core - to build compiler script
+                                make X - build applicaiton X script, where X can
+                                    be: application, ex1, ex2, ex3, ex4, ex5
+                                make dot - build application X with dot out
+                                make pdf - generates PDFs from dot files
+                                makeinstall <path> copies "core" to directory <path> 
 
 PTCORE                          RTFM-core Pthread run-time (OSX/Linux)
 ->RTFM_SRC                      Source .core files (including examples)
