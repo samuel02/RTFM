@@ -78,7 +78,7 @@ Tested on Windows 7, 8 and 8.1. All 64-bit.
 
 Download wodi 32bit graphical installer: http://wodi.forge.ocamlcore.org/download.html
 Install at standard location (C:\wodi32)
-Run "Wodi32 Package Manager" and search for menhir
+Run "Wodi32 Package Manager", search for menhir and select it for installation
 Install menhir by clicking on "Apply"
 
 Download graphviz for Windows: http://www.graphviz.org/Download_windows.php
@@ -121,8 +121,8 @@ PTCORE                          C project for the run-time
                                       DEBUG 
                                       DEBUG_PT
                                       
-                                You should exlude the Appication/augotgen.c from the      
-                                atomatic builder (it is included by the run-time)
+                                You should exclude the Appication/augotgen.c from the      
+                                automatic builder (it is included by the run-time)
                                 To this end, select the file, goto and check/cross
                                 PTCORE/Application/Properties
                                  | Exclude resource from build  
@@ -148,7 +148,7 @@ core                            RTFM-core v1.0 compiler
 PTCORE                          Running you application under Pthreads                                  
                                 Use the ./make script (it cleans, builds and executes).
                                 In order to operated on threads at low level, it needs to
-                                be run as "sudo", hence you will be asked for passwd
+                                be run as "sudo", hence you will be asked for password
                                 
                                 You may also manually invoke 
                                 make clean
@@ -156,7 +156,7 @@ PTCORE                          Running you application under Pthreads
                                 sudo ./PTCORE
                                 (in either of your configurations (e.g., Debug/Default)
                                 
-                                You may also greate your own makefiles:
+                                You may also create your own makefiles:
                                 Basically all you need is to compile  
                                 gcc [-D POSIX] [-D DEBUG] [-D DEBUG_PT] RTFM-PT.c -o PTCORE -lpthread
                                 
@@ -170,18 +170,18 @@ PTCORE                          Running you application under Pthreads
                                 there is no notion of ending an application in CORE.
                                 This is done through the environment (OSX/Linux) and we
                                 rely on its ability to clean things up.
-                                However, OSX deos not clean out named semaphores 
+                                However, OSX does not clean out named semaphores 
                                 automatically. 
                                 
-                                Instead we do it before "opening" the sempahore.
+                                Instead we do it before "opening" the semaphore.
                                 
                                 First time we will create a warning when trying to "un_link"
                                 previous instances of the named semaphore (since there is no).
                                 
-                                On a second invocation the named emaphore is there and will be 
+                                On a second invocation the named semaphore is there and will be 
                                 successfully "un_link"ed by the run-time.
                                 
-                                OSX, does not correclty report the error on trying to
+                                OSX, does not correctly report the error on trying to
                                 unlink a named semaphore (should report errno=ENOENT) but it 
                                 does not (it seems). So we report this as a warning (if DEBUG).
                         
