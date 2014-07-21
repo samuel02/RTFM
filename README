@@ -12,6 +12,7 @@ RTFM-core                       RTFM-core compiler v1.0
                                     be: application, ex1, ex2, ex3, ex4, ex5
                                 make dot - build application X with dot out
                                 make pdf - generates PDFs from dot files
+                                make clean - cleans all generated files and directories
                                 makeinstall <path> copies "core" to directory <path> 
 
 PTCORE                          RTFM-core Pthread run-time (OSX/Linux)
