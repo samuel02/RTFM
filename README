@@ -192,8 +192,8 @@ To generate an .exe file from the RTFM-core compiler, the "PREPARATION WINDOWS"
 must have been made and then do the following.
 
 1. cd in the "Wodi32 Cygwin" terminal to the src folder of the compiler.
-2. Run make rtfm_core.
+2. Run "make rtfm_core".
 3. Copy the last line ocamlbuild prints ex: ''C:/wodi32/opt/wodi32/bin/ocamlopt.opt Common.cmx AST.cmx IsrVector.cmx IsrCGen.cmx SRP.cmx CGen.cmx Cmd.cmx Dot.cmx Error.cmx Parser.cmx Lexer.cmx Locks.cmx Main.cmx -o Main.native
-4. cd to the _build directory: cd _build
-5. Force it to use ocamlopt and execute the command: ocamlopt Common.cmx AST.cmx IsrVector.cmx IsrCGen.cmx SRP.cmx CGen.cmx Cmd.cmx Dot.cmx Error.cmx Parser.cmx Lexer.cmx Locks.cmx Main.cmx -o rtfm-core.exe
+4. cd to the _build directory: "cd _build"
+5. Force it to use ocamlopt and execute the command: "ocamlopt Common.cmx AST.cmx IsrVector.cmx IsrCGen.cmx SRP.cmx CGen.cmx Cmd.cmx Dot.cmx Error.cmx Parser.cmx Lexer.cmx Locks.cmx Main.cmx -o rtfm-core.exe"
 6. Use the rtfm-core.exe as a stand-alone executable. Done!
