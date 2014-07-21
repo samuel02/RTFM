@@ -29,6 +29,7 @@ OCAMLFLAGS      = -use-menhir
 OCAMLCLEANFLAGS = -quiet -clean
 DIRFLAGS        = -p
 DOTFLAGS        = -d out.dot -ldot lout.dot
+PDFFLAGS        = -Tpdf
 
 # Application directory
 APPLICATION_DIR = ../../PTCORE/RTFM-SRC/
@@ -63,6 +64,11 @@ application_dir:
 
 dot:
 	$(OCAML_TARGETDIR)$(OCAML_TARGET) $(APPLICATION_SRC) -o $(APPLICATION_TARGETDIR)$(C_TARGET) $(DOTFLAGS)
+
+pdf: $(ALL_PDF)
+	 
+%.pdf: %.dot
+	$(V0) $(DOTBUILD) $(PDFFLAGS) $< -o $@
 
 application:
 	$(OCAML_TARGETDIR)$(OCAML_TARGET) $(APPLICATION_SRC) -o $(APPLICATION_TARGETDIR)$(C_TARGET)
