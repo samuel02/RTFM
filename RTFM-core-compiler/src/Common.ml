@@ -17,7 +17,12 @@ let ec      = "\""
   
 (* Error handling *)  
 exception RtfmError of string
-  
+
+exception UnMatched    
+let rec mymap m = function
+    | []     -> []
+    | e :: l -> try (m e) :: mymap m l with _ -> mymap m l 
+        
 (* Helper functions *)  
 let p_stderr x = Printf.fprintf stderr "%s\n%!" x
 let p_oc oc x = Printf.fprintf oc "%s\n%!" x

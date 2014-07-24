@@ -1,9 +1,6 @@
 // Shared data structure
 // Protected by R_SData
-
-#> 
-#include <stdio.h>  // printf, etc.
-#include <unistd.h> // sleep, etc.
+#>
 typedef struct {
 	int x;
 	// ...
@@ -35,31 +32,30 @@ void writeX(int x) {
 	//...
 	printf("writeX %d\n", x);	
 }
+<#
 
-#define USER_RESET
-
-void user_reset() {
-	printf("User reset\n");
-	int i = 0;
-	<#pend TIMER0_IRQHandler;#>
-	<#pend TIMER0_IRQHandler;#>
-	<#pend TIMER0_IRQHandler;#>
-	sleep(5);
+Reset {
+	#> printf("User reset\n"); <#
+	#> int i = 0; <#
+	pend TIMER0_IRQHandler;
+	pend TIMER0_IRQHandler;
+	pend TIMER0_IRQHandler;
+	#>
+	RTFM_SLEEP(SEC(5));
 	printf("User reset after sleep\n");
 		
 	while (i != 2) {
 		printf("i = %d\n", i);
 		//
-		<#pend TIMER0_IRQHandler;#>
+		<# pend TIMER0_IRQHandler; #>
 		i++;
-		sleep(1);
+		RTFM_SLEEP(SEC(1));
 	}
-	printf("User reset exit\n");
+	<#
 }
-<#
  
 Func SData sd_get() { 
-	#>printf("sd_get\n");<#	
+	#> printf("sd_get\n"); <#	
 	#> SData r; <#
 	claim R_SData {
 		#> r = sd; <#
@@ -68,7 +64,7 @@ Func SData sd_get() {
 }
  
 Func void sd_set(SData s) {
-	#>printf("sd_set\n");<#	
+	#> printf("sd_set\n"); <#	
 	claim R_SData {
 		#> sd = s; <#
 	}
@@ -76,9 +72,9 @@ Func void sd_set(SData s) {
 
 
 Task compute 3 {
-	#>printf("calculate\n");<#
+	#> printf("calculate\n"); <#
 	#>//calculate 
-	SData csd = <#sync sd_get();#>;
+	SData csd = <# sync sd_get(); #>;
 	// do some fancy interpolation on my
 	csd = slow(csd);
 	<#
@@ -86,8 +82,8 @@ Task compute 3 {
 }
 
 ISR EINT0_IRQHandler 5 {
-	#>printf("EINT0_IRQHandler\n");<#	
-	#>//read hw  
+	#> printf("EINT0_IRQHandler\n"); <#	
+	#> //read hw  
 	SData rsd; 
 	rsd.x = readX(); //...
 	rsd = fast(rsd);
@@ -102,14 +98,14 @@ int nr_invok = 0;
 <#
  
 ISR TIMER0_IRQHandler 7 {
-	#>printf("TIMER0_IRQHandler %d\n", ++nr_invok);<#
-	#>//write hw
-	SData wsd = <# sync sd_get();#>;
+	#> printf("TIMER0_IRQHandler %d\n", ++nr_invok); <#
+	#> //write hw
+	SData wsd = <# sync sd_get(); #>;
 	writeX(wsd.x); //...
 	
 	cnt = (cnt + 1) % MAX_CNT; 
 	if (cnt == 0) {
-		<#pend compute;#>
+		<# pend compute; #>
 	}
 	<#
 }

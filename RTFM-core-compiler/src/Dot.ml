@@ -17,11 +17,9 @@ and
 type dtop =
   | DIsr of isr_type * string * int * dstmts
   | DFunc of string * string * dstmts 
-  | DCcode 
-  | DPend of string
+  | DReset of dstmts 
     
 (* strip from leading ws and end at internal nl *)
-    
 let strip str = 
   let printable c = match c with
     | 'a'..'z' | 'A'..'Z' | '0' .. '9' | '/' | '*' | '+' | '-' | '%' | '$' | '&' | '=' | '<' | '>' | '(' | ')' | '[' | ']'   	
@@ -80,12 +78,13 @@ let d_of_dt rl d =
         ^ (record (id)) l ^ cs id l
         ^ "{ rank=same; " ^ ec ^ "P" ^ string_of_int prio ^ ec ^ "; " ^ ec ^ id ^ ec ^ "; }" ^ nl 
     | DFunc (t, id, (Ds (i, l))) 		-> (record  (id)) l ^ nl ^ cs id l
-    | DCcode  							-> ""
-    | DPend id 							-> "CCODE -> " ^ id ^ nl ^ "{ rank=source; CCODE}" ^ nl ^ "CCODE [shape=diamond]" ^ nl   
-        
+    (* | DCcode  							-> "" *)
+    (* | DPend id 							-> "CCODE -> " ^ id ^ nl ^ "{ rank=source; CCODE}" ^ nl ^ "CCODE [shape=diamond]" ^ nl   *)
+    | DReset (Ds (t, l))                -> let id = "User Reset" in (record (id)) l ^ nl ^ cs id l
+      
 (* parse the program stmts*)
 let label = ref (0);;
- 
+
 let d_of_p p rml = 
   let rec stmts t s = 
     label := !label + 1;
@@ -98,18 +97,15 @@ let d_of_p p rml =
       | PendAfter (pid, ti) -> DotPendAfter (i, t, pid, ti)
       | ClaimC (s) 			-> DotC (i, s)
       | Halt  				-> DotHalt (i)
-      | _					-> raise (RtfmError("Enable not implemented"))
-        
-        (* parse the program entry points *)      
+      | _					-> raise (RtfmError("Enable not implemented"))      
   in
-  let top = function 
-    | Isr (t, id, prio, sl)	-> DIsr (t, id, prio, Ds ("", (List.map (stmts id) sl) ) )
+  (* parse the program entry points *)
+  let mytop = function 
+    | Isr (t, id, prio, sl) -> DIsr (t, id, prio, Ds ("", (List.map (stmts id) sl) ) )
     | Func (t, id, _, sl) 	-> DFunc (t, id, Ds ("", (List.map (stmts id) sl) ) )
-    | TopC (s)				-> DCcode
-    | TopPend (id)			-> DPend (id)
-      
+    | Reset (sl)            -> DReset (Ds ("", (List.map (stmts "User Reset") sl ) ) )
+    | _                     -> raise UnMatched 
   in
-   
   (* leftmost column is the prio/priority ceiling legend *)
   let dot_of pl = 
     let def = function
@@ -121,7 +117,7 @@ let d_of_p p rml =
     String.concat nl (List.map def pl) ^ String.concat " -> " (List.map chain pl) ^ "[dir=none]" ^ nl
       
   in
-  let pd = List.map top p in
+  let pd = mymap mytop p in
   "digraph RTFM {" ^ nl ^
   (*
      dot_of_rml (sort rml) ^ (* list resrouces to the left *)	*)

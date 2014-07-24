@@ -17,7 +17,7 @@ let c_of_p topl v r =
       "enum resources {" ^ String.concat "," ((List.map fst rl) @ ["RES_NR"]) ^ "};" ^ nl ^
         "char* res_names[] = {" ^ String.concat "," (List.map quote (List.map fst rl)) ^ "};" ^ nl ^
         "int ceilings[RES_NR] = {" ^ String.concat ", " (List.map string_of_int (List.map snd rl)) ^ "};" 
-                
+        
   in
   let c_prio_of_top topl = match opt.target with
     | RTFM_KERNEL 	-> 
@@ -44,10 +44,10 @@ let c_of_p topl v r =
           )
         | _	                        -> ""
       in   
-      let user_reset = "User_reset" in
+      let user_reset = "user_reset" in
       
-      "enum entry_nr {" ^ String.concat ", "  (user_reset :: ((c topl "_nr" ) @ ["ENTRY_NR"])) ^ "};" ^ nl ^
-        "int entry_prio[] = {" ^ String.concat ", " (user_reset :: (prio topl)) ^ "};" ^ nl ^ 
+      "enum entry_nr {" ^ String.concat ", "  ((user_reset ^ "_nr") :: ((c topl "_nr" ) @ ["ENTRY_NR"])) ^ "};" ^ nl ^
+        "int entry_prio[] = {" ^ String.concat ", " ("0" :: (prio topl)) ^ "};" ^ nl ^ 
         String.concat "" (List.map proto topl) ^
         "ENTRY_FUNC entry_func[] = {" ^ String.concat ", "  (user_reset::(c topl "")) ^ "};" ^ nl ^
         "char* entry_names[] = {" ^ (String.concat ", " (List.map quote (user_reset::(c topl "")))) ^ "};" ^ nl
@@ -69,12 +69,18 @@ let c_of_p topl v r =
     | s :: l -> let st = match s with
       | Claim ( r, csl ) 		-> 
         ( match opt.target with
-          | RTFM_KERNEL -> "RTFM_lock(" ^ r ^ ");" ^ nl ^ stmt csl ^ nl ^ "RTFM_unlock(" ^ r ^ ");" ^ nl 
-          | RTFM_PT     -> "RTFM_lock(RTFM_id, " ^ r ^ ");" ^ nl ^ stmt csl ^ nl ^ "RTFM_unlock(RTFM_id, " ^ r ^ ");" ^ nl 
+          | RTFM_KERNEL -> "RTFM_lock(" ^ r ^ ");" ^ nl ^ stmt csl ^ "RTFM_unlock(" ^ r ^ ");"  
+          | RTFM_PT     -> "RTFM_lock(RTFM_id, " ^ r ^ ");" ^ nl ^ stmt csl ^ "RTFM_unlock(RTFM_id, " ^ r ^ ");" 
         )   
       | Pend ( id ) 			-> if (isrv_lookup id v > 0) then pend id else ""	
       | PendAfter ( id, time ) 	-> if (isrv_lookup id v > 0) then "RTFM_pend_after(IRQ_NR_^" ^ id ^ ", " ^ string_of_int time ^ ");" else  "" 
-      | Sync ( id, pars ) 		-> id ^ pars ^ ";"
+      | Sync ( id, par ) 		-> 
+        (
+           match opt.target with 
+             | RTFM_KERNEL  -> id ^ "(" ^ par ^ ");"
+             | RTFM_PT      -> id ^ (if String.compare par "" == 0 then "(RTFM_id" else "(RTFM_id, ") ^ par ^ ");"
+        )
+          
       | Enable ( b ) 			-> if b then "RTFM_enable();" else "RTFM_disable():"
       | Halt 					-> "while (1) ;"
       | ClaimC (c) 				-> c 
@@ -86,13 +92,24 @@ let c_of_p topl v r =
     |  t :: l -> 
       let st = match t with 
         | TopC (c) 					-> "// top level code " ^ nl ^ c 
-        | TopPend (id) 				-> pend id  
+        (*  | TopPend (id) 				-> pend id  *)
         | Isr (b, id, p, sl) 		-> 
           ( match opt.target with 
             | RTFM_KERNEL   -> "void " ^ id ^ "() {" ^ nl ^ stmt sl ^ "}" 
             | RTFM_PT       -> "void " ^ id ^ "(int RTFM_id) {" ^ nl ^ stmt sl ^ "}" 
           )   
-        | Func (t, id, par, sl) 	-> t ^ " " ^ id ^ par ^ "{" ^ stmt sl ^ "}"
+        | Func (t, id, par, sl) 	-> 
+          (
+             match opt.target with 
+               | RTFM_KERNEL  ->  t ^ " " ^ id ^ "(" ^ par ^ ") " ^ "{" ^ nl ^ stmt sl ^ "}"
+               | RTFM_PT      ->  t ^ " " ^ id ^ (if String.compare par "" == 0 then "(int RTFM_id" else "(int RTFM_id, ") ^ par ^ ") " ^ "{" ^ nl ^ stmt sl ^ "}"
+          )
+        | Reset (sl)                 -> 
+          
+          ( match opt.target with 
+            | RTFM_KERNEL   -> "void user_reset() {" ^ nl ^ stmt sl ^ "}"
+            | RTFM_PT       -> "void user_reset(int RTFM_id) {" ^ nl ^ stmt sl ^ "}" 
+          )
       in
       st ^ nl ^ top l ^ nl
   in

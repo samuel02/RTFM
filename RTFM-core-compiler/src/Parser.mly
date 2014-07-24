@@ -3,7 +3,7 @@
 %token <bool> BOOLVAL
 %token <string> CCODE
 %token <string> PARAMS
-%token ISR TASK FUNC PEND AFTER SYNC ENABLE CLAIM HALT SC LCP RCP (* LP RP *) EOF
+%token ISR TASK FUNC RESET PEND AFTER SYNC ENABLE CLAIM HALT SC LCP RCP (* LP RP *) EOF
 
 %{
   open AST 
@@ -20,10 +20,11 @@ prog:
   
 top:
   | CCODE                           { TopC ($1) }
-  | PEND ID SC                      { TopPend ($2) } 
+    (* | PEND ID SC                      { TopPend ($2) } *)
   | ISR ID INTVAL LCP stmt* RCP 	{ Isr (HARD, $2, $3, $5) }
   | TASK ID INTVAL LCP stmt* RCP 	{ Isr (SOFT, $2, $3, $5) }
   | FUNC ID ID PARAMS LCP stmt* RCP	{ Func ($2, $3, $4, $6) } 
+  | RESET LCP stmt* RCP             { Reset ($3) }
               
 stmt:
   | CCODE 							{ ClaimC ($1) }

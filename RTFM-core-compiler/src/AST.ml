@@ -8,7 +8,8 @@ type stmt =
   | Sync of string * string
   | Enable of bool	
   | Halt
-  | ClaimC of string				
+  | ClaimC of string
+  
     
 type isr_type = 
   | HARD
@@ -16,9 +17,10 @@ type isr_type =
     
 type top =
   | TopC of string
-  | TopPend of string
+  (*  | TopPend of string *)
   | Isr of isr_type * string * int * stmt list
   | Func of string * string * string * stmt list
+  | Reset of stmt list
     
 type prog =
   | Prog of top list
@@ -44,9 +46,10 @@ let string_of_p p =
   (* top *)
   and top i = match i with
     | TopC (c)				-> "#> CCODE <#"
-    | TopPend (id)			-> "Pend " ^ id 
+    (*  | TopPend (id)			-> "Pend " ^ id *)
     | Isr (_, id, p, s) 	-> "Isr " ^ id ^ ", priority " ^ string_of_int p ^ op ^ stmts "" s ^ cl ^ nl 
     | Func (t, id, par, s)	-> "Func " ^ t ^ " " ^ id ^ " " ^ par ^ op ^ stmts "" s ^ cl ^ nl
+    | Reset (s)             -> "Reset " ^ op ^ stmts "" s ^ cl ^ nl 
       
   (* stmt *)
   and stmt t s = match s with
@@ -59,7 +62,7 @@ let string_of_p p =
     | ClaimC (c)        	-> "#> CCODE <#"
   in
   (* prog *)
-  "Prog \n" ^ tops p
+  "Prog:" ^ nl ^ tops p
     
 (* resources *)
 (*    
@@ -73,8 +76,7 @@ let string_of_p p =
    (* prog *)
    match p with
    | Prog isrs -> res_i [] isrs 
- *)
-    
+ *)    
     
 let rec prio_to_string r = match r with
   | []				-> ""
