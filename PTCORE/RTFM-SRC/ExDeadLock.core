@@ -1,0 +1,33 @@
+#> 
+#include <stdio.h>  // printf, etc.
+<#
+
+Reset {
+	pend task;
+	pend task; //  will be discarded due to single buffer
+	pend TIMER2_IRQHandler;
+}
+
+Func void func() {
+	claim R1 {
+		#>printf("func R1 claimed\n");<#
+		claim R2 {
+			#>printf("func R2 claimed\n");<#
+		}
+	}
+}
+
+Task task 1 {
+	#>printf("task\n");<#
+	sync func();
+}
+
+ISR TIMER2_IRQHandler 2 {
+	#>printf("TIMER0_IRQHandler\n");<#
+	claim R2 {
+		#>printf("TIMER0_IRQHandler R2 claimed\n");<#
+		claim R1 {
+			#>printf("TIMER0_IRQHandler R1 claimed\n");<#
+		}
+	}
+}

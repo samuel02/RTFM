@@ -20,7 +20,6 @@ prog:
   
 top:
   | CCODE                           { TopC ($1) }
-    (* | PEND ID SC                      { TopPend ($2) } *)
   | ISR ID INTVAL LCP stmt* RCP 	{ Isr (HARD, $2, $3, $5) }
   | TASK ID INTVAL LCP stmt* RCP 	{ Isr (SOFT, $2, $3, $5) }
   | FUNC ID ID PARAMS LCP stmt* RCP	{ Func ($2, $3, $4, $6) } 
