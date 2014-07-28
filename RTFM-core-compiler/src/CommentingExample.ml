@@ -23,12 +23,11 @@ exception LengthMismatch of string;;
  @author    Emil Fresk
  *)
 let rec merge f l1 l2 =
-  if List.length l1 = List.length l2 then
-    match l1, l2 with
-      | [], []             -> []
-      | h1 :: t1, h2 :: t2 -> f h1 h2 :: merge f t1 t2
-  else
-    raise (LengthMismatch "merge: Lists are of different lengths!")
+  match l1, l2 with
+    | [], []             -> []
+    | _::_, []           -> raise (LengthMismatch "merge: Lists are of different lengths!")
+    | [], _::_           -> raise (LengthMismatch "merge: Lists are of different lengths!")
+    | h1 :: t1, h2 :: t2 -> f h1 h2 :: merge f t1 t2
 ;;
 
 (**
