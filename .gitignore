@@ -25,6 +25,9 @@ affinity
 _build/
 bin/
 
+*.html
+*.css
+
 #################
 ## Sublime Project Files
 #################
