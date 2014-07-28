@@ -32,6 +32,7 @@ OCAMLCLEANFLAGS = -quiet -clean
 DIRFLAGS        = -p
 DOTFLAGS        = -d out.dot -ldot lout.dot
 PDFFLAGS        = -Tpdf
+DOCFLAGS		= -html -all-params
 
 # Application directory
 APPLICATION_DIR = ../../PTCORE/RTFM-SRC/
@@ -83,6 +84,9 @@ pdf_print:
 application: rtfm_core
 	$(V0) echo $(quote) Generating application... $(quote)
 	$(OCAML_TARGETDIR)$(OCAML_TARGET) $(APPLICATION_SRC) -o $(APPLICATION_TARGETDIR)$(C_TARGET)
+
+docs:
+	$(V0) $(DOCBUILD) $(DOCFLAGS) CommentingExample.ml
 
 ex1: rtfm_core
 	$(V0) echo $(quote) Generating example 1... $(quote)
