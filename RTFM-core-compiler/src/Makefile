@@ -15,6 +15,7 @@ endif
 OCAMLBUILD = ocamlbuild
 DOTBUILD   = dot
 DIRBUILD   = mkdir
+DOCBUILD   = ocamldoc
 
 # Remove
 REMOVE     = rm -f
@@ -23,6 +24,7 @@ REMOVE_DIR = rm -fr
 # Remove files
 ALL_DOT = out.dot lout.dot
 ALL_PDF = out.pdf lout.pdf
+ALL_DOCUMENTATION = *.html *.css
 
 # Flags
 OCAMLFLAGS      = -use-menhir
@@ -110,7 +112,7 @@ ex_err: rtfm_core
 	$(V0) echo $(quote) Generating example 5... $(quote)
 	$(OCAML_TARGETDIR)$(OCAML_TARGET) $(EXAMPLE_ERR_SRC) -o $(APPLICATION_TARGETDIR)$(C_TARGET)
 
-clean: clean_ocaml clean_application clean_dot clean_pdf
+clean: clean_ocaml clean_application clean_dot clean_pdf clean_documenation
 
 clean_dot:
 	$(V0) echo $(quote) Removing generated DOT files... $(quote)
@@ -129,3 +131,6 @@ clean_application:
 	$(V0) echo $(quote) Removing generated application files... $(quote)
 	$(V0) $(REMOVE_DIR) $(APPLICATION_TARGETDIR)
 	
+clean_documenation:
+	$(V0) echo $(quote) Removing generated documentation files... $(quote)
+	$(V0) $(REMOVE) $(ALL_DOCUMENTATION)
