@@ -1,5 +1,5 @@
 (**
- * @breif Exception definition for length mismatch errors.
+ * @brief Exception definition for length mismatch errors.
  *)
 exception LengthMismatch of string;;
 
@@ -25,7 +25,7 @@ let rec merge f l1 l2 =
 ;;
 
 (**
- * @breif     Converts a list of strings to a list of the lengths of the
+ * @brief     Converts a list of strings to a list of the lengths of the
  *            corresponding strings.
  *
  * @param lst List of strings to convert.
@@ -39,7 +39,7 @@ let rec string_list_to_size lst =
 ;;
 
 (**
- * @breif     Converts a list of lists to a single list.
+ * @brief     Converts a list of lists to a single list.
  * @details   Makes a list of lists and merges all of the lists to a single
  *            list. The function f is applied on the two merging lists as
  *            defined in @p merge.
@@ -50,7 +50,7 @@ let rec string_list_to_size lst =
  * @param f   Function to apply to the lists while merging.
  * @param lst List of lists to merge.
  *
- * @return     The merged list.
+ * @return    The merged list.
  *)
 let rec merge_lists f lst =
   match lst with
