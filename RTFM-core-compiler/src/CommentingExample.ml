@@ -1,4 +1,8 @@
-(** Example of commenting for OCaml Doc (ocamldoc) *)
+(** 
+ Example of commenting for OCaml Doc (ocamldoc)
+
+ @author    Emil Fresk
+ *)
 
 (**
  Exception definition for length mismatch errors.
@@ -15,6 +19,8 @@ exception LengthMismatch of string;;
 
  @raise LengthMismatch  Exception if there was a size mismatch.
  @return    The merged list.
+
+ @author    Emil Fresk
  *)
 let rec merge f l1 l2 =
   if List.length l1 = List.length l2 then
@@ -32,6 +38,8 @@ let rec merge f l1 l2 =
  @param lst List of strings to convert.
 
  @return    The converted list.
+
+ @author    Emil Fresk
  *)
 let rec string_list_to_size lst =
   match lst with
@@ -52,6 +60,8 @@ let rec string_list_to_size lst =
  @param lst List of lists to merge.
 
  @return    The merged list.
+
+ @author    Emil Fresk
  *)
 let rec merge_lists f lst =
   match lst with
