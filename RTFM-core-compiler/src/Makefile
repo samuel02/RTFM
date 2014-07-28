@@ -41,6 +41,8 @@ EXAMPLE2_SRC = $(APPLICATION_DIR)Ex2.core
 EXAMPLE3_SRC = $(APPLICATION_DIR)Ex3.core
 EXAMPLE4_SRC = $(APPLICATION_DIR)Ex4.core
 EXAMPLE5_SRC = $(APPLICATION_DIR)Ex5.core
+EXAMPLE_DL_SRC = $(APPLICATION_DIR)ExDeadLock.core
+EXAMPLE_ERR_SRC = $(APPLICATION_DIR)ExError.core
 
 # Application target directory
 APPLICATION_TARGETDIR = ../../PTCORE/Application/
@@ -76,29 +78,37 @@ pdf_print:
 %.pdf: %.dot
 	$(V0) $(DOTBUILD) $(PDFFLAGS) $< -o $@
 
-application:
+application: rtfm_core
 	$(V0) echo $(quote) Generating application... $(quote)
 	$(OCAML_TARGETDIR)$(OCAML_TARGET) $(APPLICATION_SRC) -o $(APPLICATION_TARGETDIR)$(C_TARGET)
 
-ex1:
+ex1: rtfm_core
 	$(V0) echo $(quote) Generating example 1... $(quote)
 	$(OCAML_TARGETDIR)$(OCAML_TARGET) $(EXAMPLE1_SRC) -o $(APPLICATION_TARGETDIR)$(C_TARGET)
 
-ex2:
+ex2: rtfm_core
 	$(V0) echo $(quote) Generating example 2... $(quote)
 	$(OCAML_TARGETDIR)$(OCAML_TARGET) $(EXAMPLE2_SRC) -o $(APPLICATION_TARGETDIR)$(C_TARGET)
 
-ex3:
+ex3: rtfm_core
 	$(V0) echo $(quote) Generating example 3... $(quote)
 	$(OCAML_TARGETDIR)$(OCAML_TARGET) $(EXAMPLE3_SRC) -o $(APPLICATION_TARGETDIR)$(C_TARGET)
 
-ex4:
+ex4: rtfm_core
 	$(V0) echo $(quote) Generating example 4... $(quote)
 	$(OCAML_TARGETDIR)$(OCAML_TARGET) $(EXAMPLE4_SRC) -o $(APPLICATION_TARGETDIR)$(C_TARGET)
 
-ex5:
+ex5: rtfm_core
 	$(V0) echo $(quote) Generating example 5... $(quote)
 	$(OCAML_TARGETDIR)$(OCAML_TARGET) $(EXAMPLE5_SRC) -o $(APPLICATION_TARGETDIR)$(C_TARGET)
+
+ex_dl: rtfm_core
+	$(V0) echo $(quote) Generating example 5... $(quote)
+	$(OCAML_TARGETDIR)$(OCAML_TARGET) $(EXAMPLE_DL_SRC) -o $(APPLICATION_TARGETDIR)$(C_TARGET)
+
+ex_err: rtfm_core
+	$(V0) echo $(quote) Generating example 5... $(quote)
+	$(OCAML_TARGETDIR)$(OCAML_TARGET) $(EXAMPLE_ERR_SRC) -o $(APPLICATION_TARGETDIR)$(C_TARGET)
 
 clean: clean_ocaml clean_application clean_dot clean_pdf
 
