@@ -54,9 +54,9 @@ C_TARGET     = autogen.c
 V0 = @
 V1 = 
 
-all: rtfm_core dot
+all: rtfm_coore dot
 
-rtfm_core: application_dir
+rtfm_coore: application_dir
 	$(V0) echo $(quote) Compiling RTFM-core... $(quote)
 	$(V0) $(OCAMLBUILD) $(OCAMLFLAGS) $(OCAML_TARGETDIR)$(OCAML_TARGET)
 

@@ -58,12 +58,13 @@ let d_of_dt rl d =
       in
   let rec d_of_ds_rec id d = match d with
     | DotClaim (i, cr, ft, s, (Ds (t, l)))	-> (
-                                                 (record t "tan1") l ^ nl ^ String.concat nl (List.map (d_of_ds_rec id) l) ^ nl
-                                                 ^ ft ^ ":L" ^ string_of_int i ^ ":e -> " ^ t ^ ":n [dir = back, arrowtail = dot]" ^ nl
+                                                 (record t "tan1") l ^ nl 
+                                                 ^ ft ^ ":L" ^ string_of_int i ^ ":e -> " ^ t ^ ":n [dir = both, arrowtail = dot, arrowhead = none]" ^ nl
                                                  ^ "{ rank=same; " ^ ec ^ "P" ^ string_of_int (List.assoc cr rl) ^ ec ^ "; " ^ ec ^ t ^ ec ^ "; }" ^ nl 
+                                                 ^ String.concat nl (List.map (d_of_ds_rec id) l) ^ nl
                                               )
-    | DotSync (i, ft, id)				 	-> ft ^ ":L" ^ string_of_int i ^ ":e -> " ^ id ^ ":n [dir = back, arrowtail = none]" ^ nl 
-    | DotPend (i, ft, id)				  	-> ft ^ ":L" ^ string_of_int i ^ ":e -> " ^ (* "ISR_" ^ *) id ^ ":n [dir = back, arrowtail = invempty, style=dotted]" ^ nl 
+    | DotSync (i, ft, id)				 	-> ft ^ ":L" ^ string_of_int i ^ ":e -> " ^ id ^ ":n [arrowhead = none, arrowtail = none]" ^ nl 
+    | DotPend (i, ft, id)				  	-> ft ^ ":L" ^ string_of_int i ^ ":e -> " ^ (* "ISR_" ^ *) id ^ ":n [dir = both, arrowtail = invempty, arrowhead = none, style=dotted]" ^ nl 
     | _ -> ""
       
   in      
