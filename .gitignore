@@ -40,7 +40,7 @@ bin/
 #################
 
 *.pydevproject
-.project
+.project*
 .metadata
 bin/
 tmp/
@@ -53,6 +53,7 @@ local.properties
 .classpath
 .settings/
 .loadpath
+.paths
 
 # GCC
 *.o
