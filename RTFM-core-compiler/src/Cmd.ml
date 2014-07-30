@@ -33,17 +33,17 @@ let usage =
     ^ nl
     ^ "Options summary:"
     
-let o_gcc		= ref false
-let o_ccomp		= ref false
-let o_clang		= ref false
+let o_gcc		    = ref false
+let o_ccomp		  = ref false
+let o_clang		  = ref false
   
-let o_km3		= ref false
-let o_ptl		= ref false  
+let o_km3		    = ref false
+let o_ptl		    = ref false  
   
-let o_verbose 	= ref false
-let o_debug		= ref false
+let o_verbose   = ref false
+let o_debug		  = ref false
   
-let f_infile	= ref ""
+let f_infile	  = ref ""
 let f_outfile 	= ref ""
 let f_dotfile 	= ref ""
 let f_ldotfile 	= ref ""

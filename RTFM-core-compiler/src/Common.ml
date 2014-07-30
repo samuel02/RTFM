@@ -13,7 +13,7 @@ let op 		= " {" ^ nl
   
 let cl 		= "}"
   
-let ec      = "\""  
+let ec    = "\""  
   
 (* Error handling *)  
 exception RtfmError of string
@@ -49,7 +49,7 @@ type target =
     
 let string_of_target (t:target) = match t with
   | RTFM_KERNEL -> "RTFM_KERNEL"
-  | RTFM_PT		-> "RTFM_PT"
+  | RTFM_PT		  -> "RTFM_PT"
     
 type backend =
   | GCC
@@ -65,29 +65,29 @@ type options =
   {mutable target: 		target; 
    mutable backend: 	backend; 
    mutable verbose: 	bool;
-   mutable debug:		bool;
+   mutable debug:		  bool;
    mutable infile: 		string;
    mutable outfile: 	string;
    mutable dotout:		bool;
    mutable dotfile:		string;
-   mutable d_ast:		bool;
+   mutable d_ast:		  bool;
    mutable ldotout:		bool;
    mutable ldotfile:	string;
-   (* mutable string:	Time.t; -- requires Core *)
+   (* mutable string:	Time.t; -- not yet implemented *)
   }
   
 let opt = 
   {target 	= RTFM_PT; 
    backend 	= GCC;
    verbose 	= false;
-   debug	= false;
-   infile	= "";
+   debug	  = false;
+   infile	  = "";
    outfile	= "";
-   dotout	= false;
+   dotout	  = false;
    dotfile	= "";
    ldotout	= false;
    ldotfile	= "";
-   d_ast	= false;
+   d_ast	  = false;
   } 
     
     

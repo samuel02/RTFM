@@ -2,7 +2,7 @@
 %token <int> INTVAL
 %token <bool> BOOLVAL
 %token <char> CHARVAL
-%token CLASS TASK PEND RETURN VOID ASSIGN COMMA INT CHAR BOOL LT GT LP RP LCP RCP DOT SC EOF
+%token TASK ISR RESET PEND CLASS RETURN ASSIGN COMMA INT CHAR BOOL BYTE VOID LT GT LP RP LCP RCP DOT SC EOF
   
 %{
   open AST 
@@ -35,6 +35,8 @@ classDecl:
   | ID LT params GT ID  SC                                   { COVar ($1, $3, $5) }
   | pType ID LP mArgs RP LCP stmt* RCP                       { CMDecl ($1, $2, $4, $7) }
 	| TASK ID INTVAL LCP stmt* RCP														 { CTDecl ($2, $3, $5) }
+  | ISR ID INTVAL LCP stmt* RCP                              { CTDecl ($2, $3, $5) }
+  | RESET LCP stmt* RCP                                      { CRDecl ($3) }
     
 mArgs:
   alist = separated_list(COMMA, mArg)                        { alist }
@@ -46,6 +48,7 @@ pType:
   | INT                                                      { Int }
   | CHAR                                                     { Char }
   | BOOL                                                     { Bool }
+	| BYTE																										 { Byte }
   | VOID                                                     { Void }  
      
 params:
@@ -63,6 +66,7 @@ expr:
     
         
 stmt:
+  | expr SC																										 { ExpStmt ($1) }
   | pType ID ASSIGN expr SC                                  { MPVar ($1, $2, $4) }  
   | ID ASSIGN expr SC                                        { Assign ($1, $3) }
   | RETURN expr SC                                           { Return ($2) }

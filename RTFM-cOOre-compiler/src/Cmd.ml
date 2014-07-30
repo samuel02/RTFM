@@ -2,8 +2,8 @@
 open Common
 
 let usage =
-	"The RTFM-core compiler v1.0, Per Lindgren (c) 2014" ^ nl ^ nl
-	^ "Usage core [-v] [-D] [-d_ast] [-o outfile.core] [-i] infile.coore" ^ nl
+	"The RTFM-coore compiler v1.0, Per Lindgren (c) 2014" ^ nl ^ nl
+	^ "Usage rtfm-coore [-v] [-D] [-d_ast] [-o outfile.core] [-i] infile.coore" ^ nl
 	^ "Recognized source file:" ^ nl
 	^ ".coore           RTFM-core source infile (root)" ^ nl
 	^ nl
@@ -22,19 +22,19 @@ let usage =
 	^ nl
 	^ "Options summary:"
 
-let o_gcc = ref false
-let o_ccomp = ref false
-let o_clang = ref false
+let o_gcc      = ref false
+let o_ccomp    = ref false
+let o_clang    = ref false
 
-let o_km3 = ref false
-let o_ptl = ref false
+let o_km3      = ref false
+let o_ptl      = ref false
 
-let o_verbose = ref false
-let o_debug = ref false
+let o_verbose  = ref false
+let o_debug    = ref false
 
-let f_infile	= ref ""
-let f_outfile = ref ""
-let f_dotfile = ref ""
+let f_infile	 = ref ""
+let f_outfile  = ref ""
+let f_dotfile  = ref ""
 let f_ldotfile = ref ""
 
 let d_ast = ref false

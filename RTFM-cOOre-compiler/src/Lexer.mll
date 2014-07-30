@@ -3,6 +3,7 @@
  type token =
   | CLASS
 	| TASK
+	| RESET
 	| PEND
   | RETURN
      
@@ -13,9 +14,11 @@
    
   | COMMA
   | INT 
-  | CHAR 
+  | CHAR
+	| BYTE 
   | BOOL
   | VOID
+	 
   | ASSIGN  
   | LT 
   | GT
@@ -44,12 +47,15 @@ let digits  = ['0'-'9']+
 
 (* lexing rules *)  
 rule lex = parse
-  | "class"               { CLASS }
-	| "task"								{ TASK }
-	| "pend"                { PEND }
+	| "Task"								{ TASK }																(* RTFM-core related *)
+	| "ISR"									{ ISR }
+	| "Pend"                { PEND }
+	| "Reset"								{ RESET }																
+  
+  | "class"               { CLASS }                               (* RTFM-cOOre related *) 
   | "return"              { RETURN }
-                          
-  | "int"                 { INT }
+     
+	| "int"                 { INT }																	(* Primitive types *)                                                                      
   | "char"                { CHAR }
   | "bool"                { BOOL }
   | "void"                { VOID }

@@ -10,18 +10,19 @@ volatile SData sd;
 
 SData fast(SData fsd) {
 	printf("fast\n");
-	return fsd*2;
+	fsd.x = fsd.x*2;
+	return fsd;
 }
 
 SData slow(SData ssd) {
 	printf("slow start\n");
-	RTFM_SLEEP(SEC(2)); // emulate slow caclulation
+	RTFM_sleep(RTFM_sec(2)); // emulate slow caclulation
 	printf("slow end\n");
 	return ssd;
 }
 
 int readX() {
-	return rand()%100;
+	return RTFM_rand(100);
 }
 
 void writeX(int x) {
@@ -34,7 +35,8 @@ Reset {#>
 	<# pend TIMER0_IRQHandler; #>
 	while (1) {
 		<# pend EINT0_IRQHandler; #>
-		SLEEP(SEC(rand()%5)); // emulate sporatic envirnment 0..4 SEC
+		//RTFM_sleep(RTFM_sec(RTFM_rand(5)+1)); // emulate sporatic envirnment 0..4 SEC
+		RTFM_sleep(RTFM_sec(RTFM_rand(5)+1)); // emulate sporatic envirnment 1..5 SEC
 	} 
 <#}
  
@@ -63,6 +65,7 @@ ISR EINT0_IRQHandler 5 {#>
 	printf("EINT0_IRQHandler\n");	
 	SData rsd; 
 	rsd.x = readX(); // Read hardware
+	printf("read value %d\n", rsd.x);
 	rsd = fast(rsd); 
 	<# sync sd_set(rsd); #>
 <#} 				 
@@ -79,9 +82,11 @@ ISR TIMER0_IRQHandler 7 {#>
 	writeX(wsd.x); // Write hardware
 	
 	cnt = (cnt + 1) % MAX_CNT; 
+	printf("cnt = %d\n", cnt);
 	if (cnt == 0) {
-		<# pend compute; #>
+		<# pend compute; #>;
+		printf("Tjoho");
 	}
-	RTFM_SLEEP(SEC(1)); // Emulate periodic behvior
+	RTFM_sleep(RTFM_sec(1)); // Emulate periodic behvior
 	<# pend TIMER0_IRQHandler; #>		
 <#}

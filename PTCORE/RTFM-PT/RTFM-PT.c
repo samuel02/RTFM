@@ -24,18 +24,21 @@
 #define DPT(fmt, ...)
 #endif
 
+#include <unistd.h>		// sleep etc.
+#include <stdio.h>		// printf etc.
+#include <stdlib.h>		// rand etc.
 #include "RTFM-PT.h"
+
 //#define _GNU_SOURCE
 #include "../Application/autogen.c"
 
 #define handle_error_en(en, msg) do { errno = en; perror(msg); exit(EXIT_FAILURE); } while (0)
 
-#include <stdio.h>
-#include <stdlib.h>
 #include <pthread.h>
 #include <errno.h>
 #include <string.h>
 #include <semaphore.h>
+#include <time.h>			// for random seed
 
 /* data structures for the threads and semaphores */
 pthread_mutex_t res_mutex[RES_NR];
@@ -89,7 +92,7 @@ void RTFM_pend(int f, int t) {
 	{   // inside lock of the counter
 		lcount = pend_count[t];
 		if (lcount == 0)
-			pend_count[t]++; // may not be atomic, due to C compiler non-optimization
+			pend_count[t]++; // may not be atomic, hence needs a lock
 	}
 	m_unlock(&pend_count_mutex[t]);
 
@@ -109,14 +112,14 @@ void *thread_handler(void *id_ptr) {
 	while (1) {
 		DPT( "Task blocked (awaiting invocation): %s", entry_names[id]);
 		s_wait(pend_sem[id]);
-
-		entry_func[id](id); // dispatch the task
-
+		// consume the semaphore (decrement it's value)
 		m_lock(&pend_count_mutex[id]);
 		{   // inside lock of the counter
-			pend_count[id]--; // inside lock of the counter
+			pend_count[id]--; // may not be atomic, hence needs a lock
 		}
 		m_unlock(&pend_count_mutex[id]);
+
+		entry_func[id](id); // dispatch the task
 	}
 	return NULL;
 }
@@ -132,6 +135,19 @@ void dump_priorities() {
 }
 
 int main() {
+	fprintf(stderr, "RTFM-RT Per Lindgren (C) 2014 \n");
+	fprintf(stderr, "Executing %s : RTFM-RT Options : ", CORE_FILE_INFO);
+#ifdef DEBUG
+	fprintf(stderr, "-DEBUG ");
+#endif
+#ifdef DEBUG_RT
+	fprintf(stderr, "-DEBUG_RT");
+#endif
+	fprintf(stderr, "\n");
+
+	// Commodity random function provide for the exmaples
+	srand(time(NULL));
+
 	int policy 	= SCHED_FIFO; // SCHED_RR; //SCHED_OTHER;
 	int p_max 	= sched_get_priority_max(policy);
 	int p_min 	= sched_get_priority_min(policy);
@@ -139,7 +155,6 @@ int main() {
 
 	DF(
 		printf("POSIX priorities: np_min %d, p_max %d\n\n", p_min, p_max );
-		printf("Task/ceilings of the source .core program\n");
 		dump_priorities();
 	);
 
@@ -220,7 +235,7 @@ int main() {
 		handle_error_en(s, "pthread_attr_setinheritsched");
 
 	struct sched_param param;
-	for (i = 0; i < ENTRY_NR; i++) {
+	for (i = 1; i < ENTRY_NR; i++) {
 		/* semaphore handling */
 		/*
 		 * The named semaphore named name is removed.
@@ -253,8 +268,9 @@ int main() {
 	}
 	sleep(1); // let the setup be done until continuing
 	printf("-----------------------------------------------------------------------------------------------------------------------\n");
-	user_reset(0);
-
+	user_reset(user_reset_nr);
+	while (1)
+		;
 	/* code for cleanup omitted, we trust Linux/OSX/Windows to do the cleaning */
 
 	/*

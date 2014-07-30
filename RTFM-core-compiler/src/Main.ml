@@ -71,6 +71,7 @@ let main () =
           | RTFM_PT ->
             (* generate c code *)
             let tasks = task_vector p in
+            p_stderr ("Tasks : " ^ String.concat ", " (List.map snd tasks) ^ nl );
             p_oc oc (c_of_p p tasks rm); 
             
             (* comupte cyclic dependencies *)

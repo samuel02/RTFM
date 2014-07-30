@@ -86,4 +86,6 @@ let rec task_vector p = match p with
   | [] 						-> []
   | Isr (_ , id, _, s) :: l	-> (U, id) :: task_vector l 
   | _ :: l					-> task_vector l
+
+
     
