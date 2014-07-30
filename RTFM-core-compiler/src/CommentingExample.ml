@@ -60,4 +60,4 @@ Converts a list of string lists to a list of lists with the lengths of the corre
 let rec string_lists_to_size lst =
   match lst with
     | []       -> []
-    | hd :: tl -> (List.map String.length hd) :: (string_list_to_size tl)
+    | hd :: tl -> (List.map String.length hd) :: (string_lists_to_size tl)
