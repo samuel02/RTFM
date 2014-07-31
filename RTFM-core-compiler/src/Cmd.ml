@@ -119,7 +119,7 @@ let cmd =
     opt.dotout <- (not (String.compare (!f_dotfile) "" == 0));
     
     let gv_ext = ".gv" in
-    let gv_ext_err = "Bad Graphviz extension (.gv exptected) " in
+    let gv_ext_err = "Bad Graphviz extension (.gv expected) " in
     if opt.dotout then begin
       opt.dotfile <- !f_dotfile;
       check_ext opt.dotfile gv_ext gv_ext_err

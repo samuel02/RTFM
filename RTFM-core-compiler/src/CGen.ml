@@ -109,12 +109,13 @@ let c_of_p topl v r =
               )
         in
         st ^ nl ^ top l ^ nl
+  in      
+  let info = "const char* CORE_FILE_INFO = \"Compiled with : " ^ String.escaped (string_of_opt opt) ^ "\";" ^ nl      
   in
   match opt.target with
   | RTFM_KERNEL ->
-      "// RTFM-core for RTFM-KERNEL" ^ nl ^
-      "#define CORE_FILE_INFO \"" ^ opt.infile ^ "\"" ^ nl
-      (* "#include \"../RTFM-kernel/RTFM-kernel.h\"" ^ nl ^ nl ^ *)
+      "// RTFM-core for RTFM-KERNEL" ^ nl 
+      ^ info ^ nl
       ^ "// Resource Ceiling Bindings" ^ nl ^ c_of_r r ^ nl
       ^ "// Defintions for IRQ_NR" ^ nl ^ isrv_to_c_isr_nr v ^ nl
       ^ "// Defintions for IRQ_PRI" ^ nl ^ c_prio_of_top topl ^ nl
@@ -124,8 +125,8 @@ let c_of_p topl v r =
       ^ top topl ^ nl
   
   | RTFM_PT	->
-      "// RTFM-core for RTFM-PT" ^ nl ^
-      "#define CORE_FILE_INFO \"" ^ opt.infile ^ "\"" ^ nl
+      "// RTFM-core for RTFM-PT" ^ nl 
+      ^ info ^ nl 
       ^ "// RTFM-Resources" ^ nl ^ c_of_r r ^ nl
       ^ "// RTFM-Entry points" ^ nl ^ c_prio_of_top topl ^ nl
       ^ "// RTFM-Application " ^ nl
