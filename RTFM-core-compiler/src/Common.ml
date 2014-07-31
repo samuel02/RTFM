@@ -92,18 +92,18 @@ let opt =
     
     
 let string_of_opt opt = 
-  "RTFM-core compilation options:" ^ nl ^  
-    "infile     	: " ^ opt.infile ^ nl ^
-    "outfile    	: " ^ opt.outfile ^ nl ^
-    "target     	: " ^ string_of_target opt.target ^ nl ^
-    "backend    	: " ^ string_of_backend opt.backend ^ nl ^
-    "verbose    	: " ^ string_of_bool opt.verbose ^ nl ^
-    "debug      	: " ^ string_of_bool opt.debug ^ nl ^
-    "dotout     	: " ^ string_of_bool opt.dotout ^ nl ^
-    "dotfile    	: " ^ opt.dotfile ^ nl ^
-    "ldotout    	: " ^ string_of_bool opt.ldotout ^ nl ^
-    "ldotfile   	: " ^ opt.ldotfile ^ nl ^
-    "d_ast      	: " ^ string_of_bool opt.d_ast ^ nl
+  "RTFM-core options:" ^ nl ^  
+  "infile     	: " ^ opt.infile ^ nl ^
+  "outfile    	: " ^ opt.outfile ^ nl ^
+  "target     	: " ^ string_of_target opt.target ^ nl ^
+  "backend    	: " ^ string_of_backend opt.backend ^ nl ^
+  "verbose    	: " ^ string_of_bool opt.verbose ^ nl ^
+  "debug      	: " ^ string_of_bool opt.debug ^ nl ^
+  "dotout     	: " ^ string_of_bool opt.dotout ^ nl ^
+  "dotfile    	: " ^ opt.dotfile ^ nl ^
+  "ldotout    	: " ^ string_of_bool opt.ldotout ^ nl ^
+  "ldotfile   	: " ^ opt.ldotfile ^ nl ^
+  "d_ast      	: " ^ string_of_bool opt.d_ast ^ nl
     
     
     
