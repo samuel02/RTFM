@@ -61,4 +61,7 @@ let isr_vector = [
     (F, "USBActivity_IRQHandler");                 (* 49; 0xc4 - USB Activity interrupt to wakeup *)
     (F, "CANActivity_IRQHandler");                 (* 50; 0xc8 - CAN Activity interrupt to wakeup *)
 ]
+    
+let isr_maxpri = 32
 
+      

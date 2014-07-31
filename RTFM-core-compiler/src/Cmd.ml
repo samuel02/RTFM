@@ -3,47 +3,47 @@ open Common
   
 let usage = 
   "The RTFM-core compiler v1.0, Per Lindgren (c) 2014" ^ nl ^ nl
-    ^ "Usage core [-gcc|-ccomp|-clang] [ptl|km3] [-v] [-D] [-d file.dot] [-ldot file.dot] [-d_ast] [-o outfile.c] [-i] infile.core" ^ nl
+    ^ "Usage core [-gcc|-ccomp|-clang] [-rt|-km3] [-v] [-D] [-gv_task file.gv] [-gv_res file.gv] [-d_ast] [-o outfile.c] [-i] infile.core" ^ nl
     ^ "Recognized source file:" ^ nl
-    ^ ".core           RTFM-core source infile (root)" ^ nl
+    ^ ".core            RTFM-core source infile (root)" ^ nl
     ^ nl
     ^ "Output C file:" ^ nl
-    ^ "-o outfile.c    Compiler output (defaults to input.c)" ^ nl
+    ^ "-o outfile.c     Compiler output (defaults to input.c)" ^ nl
     ^ nl 
     ^ "Backend options:" ^ nl
-    ^ "-gcc            Generate code for GCC backend (default)" ^ nl
-    ^ "-ccomp          Generate code for CCOMP backend" ^ nl
-    ^ "-clang          Generate code for CLANG backend" ^ nl
+    ^ "-gcc             Generate code for GCC backend (default)" ^ nl
+    ^ "-ccomp           Generate code for CCOMP backend" ^ nl
+    ^ "-clang           Generate code for CLANG backend" ^ nl
     ^ nl 
     ^ "Target options:" ^ nl
-    ^ "-ptl            Target RTFM Kernel Pthread Linux (default)" ^ nl
-    ^ "-km3            Target RTFM Kernel ARM Cortex M3" ^ nl
+    ^ "-rt              Target RTFM Run-Time (OSX/Linux/Windows) (default)" ^ nl
+    ^ "-km3             Target RTFM Kernel ARM Cortex M3" ^ nl
     ^ nl 
     ^ "General options:" ^ nl
-    ^ "-v              Enable : Verbose compiltion (default disbaled)" ^ nl
-    ^ "-D              Enable : Generate output for debugging (default disbaled)" ^ nl
+    ^ "-v               Enable : Verbose compiltion (default disbaled)" ^ nl
+    ^ "-D               Enable : Generate output for debugging (default disbaled)" ^ nl
     ^ nl 
     ^ "Additional options:" ^ nl
-    ^ "-d file.dot     Enable : Task and resource structure in dot format (default disabled)" ^ nl
-    ^ "-d_ast          Enable : Dump internal AST (default disabled)" ^ nl
-    ^ "-ldot file.dot  Enable : Lock structure in dot format (default disabled)" ^ nl
+    ^ "-gv_task file.gv Enable : Task and resource structure in gv format (default disabled)" ^ nl
+    ^ "-gv_res  file.gv Enable : Resource dependency graph (lock structure) in gv format (default disabled)" ^ nl
+    ^ "-d_ast           Enable : Dump internal AST (default disabled)" ^ nl
     ^ nl
-    ^ "All file paths are relative current dir" ^ nl 
-    ^ "For further documentation see RTFM.lang.org" ^ nl
+    ^ "All file paths are relative to the current directory" ^ nl 
+    ^ "For further documentation see www.rtfm-lang.org" ^ nl
     ^ nl
     ^ "Options summary:"
     
-let o_gcc		= ref false
-let o_ccomp		= ref false
-let o_clang		= ref false
+let o_gcc		    = ref false
+let o_ccomp		  = ref false
+let o_clang		  = ref false
   
-let o_km3		= ref false
-let o_ptl		= ref false  
+let o_km3		    = ref false
+let o_ptl		    = ref false  
   
-let o_verbose 	= ref false
-let o_debug		= ref false
+let o_verbose   = ref false
+let o_debug		  = ref false
   
-let f_infile	= ref ""
+let f_infile	  = ref ""
 let f_outfile 	= ref ""
 let f_dotfile 	= ref ""
 let f_ldotfile 	= ref ""
@@ -54,14 +54,14 @@ let speclist =
   [
     ("-i", Arg.Set_string f_infile,   "\t\t: infile");
     ("-o", Arg.Set_string f_outfile,  "\t\t: outfile (default infile.c)");
-    ("-d", Arg.Set_string f_dotfile,  "\t\t: dotfile (default none)");
-    ("-ldot", Arg.Set_string f_ldotfile,"\t: dotfile (default none)");
+    ("-gv_task", Arg.Set_string f_dotfile,  "\t\t: graphviz file (default none)");
+    ("-gv_res", Arg.Set_string f_ldotfile,"\t: graphviz file (default none)");
     
     ("-gcc", Arg.Set o_gcc, 		  "\t\t: for gcc (default)");
     ("-ccomp", Arg.Set o_ccomp, 		"\t: for ccomp");
     ("-clang", Arg.Set o_clang, 		"\t: for clang");
     
-    ("-ptl", Arg.Set o_ptl, 		  "\t\t: for Pthread Linux (default)");
+    ("-rt", Arg.Set o_ptl,  		  "\t\t: for Pthread Linux (default)");
     ("-km3", Arg.Set o_km3, 		  "\t\t: for ARM Cortex M3");
     
     ("-v", Arg.Set o_verbose, 		  "\t\t: verbose mode");
@@ -90,9 +90,12 @@ let cmd =
   (* Read the arguments *) 
   Arg.parse speclist (fun x -> f_infile := x) usage;
   try
+  let check_ext name ex err = 
+    if (not (ext name ex)) then raise (Arg.Bad(err ^ " " ^ name));
+  in                                       
     (* infile *)
     if (String.compare !f_infile "" == 0) then raise (Arg.Bad("No infile selected"));
-    if (not (ext !f_infile ".core")) then raise (Arg.Bad("Bad infile extention (.core exptected) " ^ (!f_infile)));
+    check_ext !f_infile ".core" "Bad infile extention (.core exptected)";
     opt.infile <- !f_infile;
     
     (* outfile *)
@@ -114,14 +117,17 @@ let cmd =
     
     (* additional options *)
     opt.dotout <- (not (String.compare (!f_dotfile) "" == 0));
+    
+    let gv_ext = ".gv" in
+    let gv_ext_err = "Bad Graphviz extension (.gv exptected) " in
     if opt.dotout then begin
       opt.dotfile <- !f_dotfile;
-      if (not (ext opt.dotfile ".dot")) then raise (Arg.Bad("Bad dotfile extention (.dot exptected) " ^ opt.dotfile));
+      check_ext opt.dotfile gv_ext gv_ext_err
     end;
     opt.ldotout <- (not (String.compare (!f_ldotfile) "" == 0));
     if opt.ldotout then begin
       opt.ldotfile <- !f_ldotfile;
-      if (not (ext opt.ldotfile ".dot")) then raise (Arg.Bad("Bad dotfile extention (.dot exptected) " ^ opt.ldotfile));
+      check_ext opt.ldotfile gv_ext gv_ext_err
     end;
     opt.d_ast <- !d_ast;  
   with

@@ -1,0 +1,28 @@
+
+class A <int a, int b, int (int, char) cb> {
+    int c  := 7;
+    int d := 0;
+    int m(int c) {
+        d := cb(1, 'c');
+        return d;
+    }
+    
+    Task q 3 {
+        c := b;
+    }
+}
+
+class Root<> {
+  int i := 5;
+  A<1,2,x> a;
+  int j := 18;
+  
+  int x(int r, char c) {
+    return r;
+  }
+  
+  Reset {
+    int s := a.m(1);
+    
+  } 
+}

@@ -1,18 +1,13 @@
-#> 
-#include <stdio.h>  // printf, etc.
-#include <unistd.h> // sleep, etc.
+Reset {
+	#>printf("User reset\n");<#
+	pend task1;
 
-#define USER_RESET
-
-void user_reset() {
-	printf("User reset\n");
-	<#pend task1;#>
+	#> 
 	while (1) {
-		// sleep(1);
+		// RTFM_SLEEP(SEC(1)); // (watch you CPU monitor)
 	}
-	printf("User reset exit\n");
+	<#	
 }
-<#
 
 Task task1 1 {
 	#>printf("task1\n");<#

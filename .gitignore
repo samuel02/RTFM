@@ -2,7 +2,8 @@
 ## PT core
 #################
 autogen.c
-makefile
+PTCORE/Debug/makefile
+PTCORE/makefile
 *.mk
 affinity
 *.native
@@ -24,6 +25,9 @@ affinity
 _build/
 bin/
 
+*.html
+*.css
+
 #################
 ## Sublime Project Files
 #################
@@ -36,7 +40,7 @@ bin/
 #################
 
 *.pydevproject
-.project
+.project*
 .metadata
 bin/
 tmp/
@@ -49,6 +53,7 @@ local.properties
 .classpath
 .settings/
 .loadpath
+.paths
 
 # GCC
 *.o

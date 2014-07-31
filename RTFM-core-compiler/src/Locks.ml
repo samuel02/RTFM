@@ -33,10 +33,12 @@ let rec entry ll = match ll with
     
     
 let string_of_entry e = "Entry points :" ^ String.concat ", " e ^ nl  
-
-let dot_of_dep dep =
-  "digraph RTFM {" ^ nl ^ string_of_dep dep ^ "}"   
-        
+  
+let dot_of_dep dep p =
+  "digraph RTFM {" ^ nl ^ string_of_dep dep ^ nl 
+    ^ "{ rank=source; " ^ String.concat "; " (entry p) ^ "; }" ^ nl  
+    ^ "}" 
+    
 (*
    
    
@@ -128,7 +130,7 @@ let dot_of_dep dep =
    in
    travelentries e (dep, count)
  *)
-  
+    
 let rec successors n = function
   [] 				-> []
   | (s, t) :: edges ->
@@ -155,28 +157,30 @@ let tsort edges entries =
         in 
         sort path v' nodes
   in
-  sort [] [] entries
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
+  try
+    Some (sort [] [] entries)
+  with
+    | Cyclic msg -> p_stderr (msg); None 
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      

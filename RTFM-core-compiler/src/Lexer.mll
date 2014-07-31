@@ -11,6 +11,7 @@
    | ISR
    | TASK
    | FUNC
+   | RESET
    | ID of string
    | INTVAL of int
    | BOOLVAL of bool
@@ -41,7 +42,7 @@ let id 		= ['A'-'Z' 'a'-'z' '_']['0'-'9' 'A'-'Z' 'a'-'z' '_']*
 let digits  = ['0'-'9']+
 let enter_c = "#>"
 let exit_c	= "<#"
-let params	= ('(' [^ '*' ')'] [^ ')']* ')') | '(' ')'   
+let params	= ( [^ '*' ')'] [^ ')']* )?   
   
 (* lexing rules *)  
 rule lex = parse
@@ -54,6 +55,7 @@ rule lex = parse
   | "ISR"		{ ISR }
   | "Task"		{ TASK }
   | "Func"		{ FUNC }
+  | "Reset"     { RESET }
   | '{'			{ LCP }
   | '}'			{ RCP }
   (*
@@ -70,7 +72,7 @@ rule lex = parse
   | newline		{ next_line lexbuf; lex lexbuf }				(* new line *)
   | "//" 		{ set_info lexbuf; comment lexbuf } 			(* single line comment *) 
   | "(*"		{ set_info lexbuf; comments 0 lexbuf } 			(* nested comment *) 
-  | params as p { PARAMS (p) } 									(* must come after comment *)
+  | '(' (params as p) ')'  { PARAMS (p) } 						    (* must come after comment *)
   | eof         { EOF }
   | _			{ raise Parser.Error }
     
