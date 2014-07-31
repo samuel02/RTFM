@@ -1,7 +1,7 @@
 (**
 Example of commenting for OCaml Doc (ocamldoc).
 
-The file contains code that creates a pretty print of ltring lists.
+The file contains code that creates a pretty print of string lists.
 
 @author Emil Fresk
 *)
@@ -119,8 +119,8 @@ Makes a formated list.
 *)
 let rec make_formated_list str_lst size_lst =
   match str_lst with
-  | [] -> []
-  | hd :: tl -> (make_formated_line hd size_lst) :: (make_formated_list tl size_lst)
+    | [] -> []
+    | hd :: tl -> (make_formated_line hd size_lst) :: (make_formated_list tl size_lst)
   
 (**
 Prints a list with header.
