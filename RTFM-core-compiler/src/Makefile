@@ -87,6 +87,7 @@ application: rtfm_core
 	$(OCAML_TARGETDIR)$(OCAML_TARGET) $(APPLICATION_SRC) -o $(APPLICATION_TARGETDIR)$(C_TARGET) $(DOTFLAGS) 
 
 docs:
+	$(V0) echo $(quote) Generating documentation example... $(quote)
 	$(V0) $(DOCBUILD) $(DOCFLAGS) CommentingExample.ml
 
 ex1: rtfm_core
