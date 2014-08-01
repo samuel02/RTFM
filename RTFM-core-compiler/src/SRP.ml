@@ -54,6 +54,9 @@ let ceiling p =
     | [] -> rm
     | Isr (_, id, p, s) :: l	-> let rm' = ceil_of_stmts p rm s [id] in
         tops rm' l
+    | Reset (s) :: l -> let rm' = ceil_of_stmts 0 rm s ["Reset"] in
+        tops rm' l
+            
     | _ :: l -> tops rm l
   in
   (* prog *)

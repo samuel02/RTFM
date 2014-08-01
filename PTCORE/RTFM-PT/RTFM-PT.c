@@ -3,8 +3,9 @@
  * Pthread run-time system implementation for RTFM-core
  * (C) 2014 Per Lindgren, Marcus Lindner (WINAPI)
  *
- * DEBUG		enable internal debugging of the run-time
- * DEBUG_RT
+ * DEBUG		enable tracing of RTFM_RT calls (Application <-> RTFM_RT)
+ * DEBUG_RT		enable tracing of POSIX calls   (RTFM <-> pthreads library)
+ * OSX			when defined the _GNU_SOURCE is not defined (which is OK under OSX)
  *
  * Linux
  *  Ctrl-z to escape to terminal
@@ -26,7 +27,7 @@
 #endif
 
 #ifdef DEBUG_RT
-#define DPT(fmt, ...) {fprintf(stderr, "\t\t\t\t\t\t\t\t"fmt"\n", ##__VA_ARGS__);}
+#define DPT(fmt, ...) {fprintf(stderr, "\t\t\t\t\t\t\t\t\t"fmt"\n", ##__VA_ARGS__);}
 #else
 #define DPT(fmt, ...)
 #endif

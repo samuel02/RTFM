@@ -55,18 +55,18 @@ params:
   plist = separated_list(COMMA, expr)                        { plist }
     
 expr:                                                        
+  | PEND ID                                                  { PendExp ([$2]) }
+  | PEND ID DOT ID                                           { PendExp ($2::[$4]) }
   | ID                                                       { IdExp ($1) }
   | ID LP params RP                                          { CallExp ([$1], $3) }
   | ID DOT ID LP params RP                                   { CallExp ($1::[$3], $5) }
-	| PEND ID                                                  { PendExp ([$2]) }
-	| PEND ID DOT ID                                           { PendExp ($2::[$4]) }
   | INTVAL                                                   { IntExp ($1) }
   | CHARVAL                                                  { CharExp ($1) }
   | BOOLVAL                                                  { BoolExp ($1) }
     
         
 stmt:
-  | expr SC																										 { ExpStmt ($1) }
+  | expr SC																									 { ExpStmt ($1) }
   | pType ID ASSIGN expr SC                                  { MPVar ($1, $2, $4) }  
   | ID ASSIGN expr SC                                        { Assign ($1, $3) }
   | RETURN expr SC                                           { Return ($2) }
