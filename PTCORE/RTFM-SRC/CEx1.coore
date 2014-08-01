@@ -23,6 +23,6 @@ class Root<> {
   
   Reset {
     int s := a.m(1);
-    
+    Pend a.q;    
   } 
 }
