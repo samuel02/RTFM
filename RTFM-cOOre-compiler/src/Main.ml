@@ -1,7 +1,8 @@
 open Common
 open AST
 open Env
-open CGen
+open CoreGen
+open Dot
 
 open Error
 open Cmd
@@ -23,6 +24,20 @@ let main () =
     | Some p ->
         if opt.verbose then p_stderr ("Parsing succeeded:" ^ nl);
         if opt.d_ast then p_stderr (string_of_prog p);
+        
+        (* check cyclic *)
+        cyclic p;
+        
+        (* dot for task/resource structure *)
+        if opt.dotout then begin
+          let dots = (d_of_p p) in
+          if opt.verbose then p_stderr dots;
+          let ocd = open_out opt.dotfile in 
+          begin
+            p_oc ocd dots;
+            close_out ocd;
+          end;  
+        end;
         let oc = open_out opt.outfile in
         p_oc oc (c_of_Prog p);
   

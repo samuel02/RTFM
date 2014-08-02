@@ -1,0 +1,51 @@
+(*
+Reset {
+    #>printf("User reset\n");<#
+    pend task1;
+    pend task2;
+}
+
+Task task1 1 {
+    #>printf("task1\n");<#
+    claim R1 {
+        #>printf("task1 R1 claimed\n");<#
+        #>RTFM_SLEEP(SEC(1));<#
+        claim R2 {
+            #>printf("task1 R2 claimed\n");<#
+        }
+    }
+}
+
+Task task2 1 {
+    #>printf("task2\n");<#
+    claim R2 {
+        #>printf("task2 R2 claimed\n");<#
+        #>RTFM_SLEEP(SEC(1));<#
+        claim R1 {
+            #>printf("task2 R1 claimed\n");<#
+        }
+    }
+}
+*)
+
+
+class R<void () other_fun> { 
+    void fun() {
+        other_fun();
+    } 
+    
+    Task task 1 {
+        fun();
+    }    
+}
+
+
+class Root<> { 
+    R<r2.fun> r1;
+    R<r1.fun> r2;
+    
+    Reset {
+        Pend r1.task; // task1
+        Pend t2.task; // task2
+    } 
+}

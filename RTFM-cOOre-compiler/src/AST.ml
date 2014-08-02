@@ -1,4 +1,4 @@
-(* AST *)
+(* RTFM-cOOre/AST *)
 open Common
 
 type id = string

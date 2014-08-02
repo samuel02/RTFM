@@ -1,3 +1,5 @@
+(* RTFM-cOOre/Parser.mly *)
+
 %token <string> ID
 %token <int> INTVAL
 %token <bool> BOOLVAL
@@ -59,6 +61,7 @@ expr:
   | PEND ID DOT ID                                           { PendExp ($2::[$4]) }
   | ID                                                       { IdExp ($1) }
   | ID LP params RP                                          { CallExp ([$1], $3) }
+  | ID DOT ID                                                { IdExp ($1 ^ "." ^ $3) }
   | ID DOT ID LP params RP                                   { CallExp ($1::[$3], $5) }
   | INTVAL                                                   { IntExp ($1) }
   | CHARVAL                                                  { CharExp ($1) }

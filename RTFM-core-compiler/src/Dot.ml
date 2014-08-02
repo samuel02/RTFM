@@ -1,4 +1,4 @@
-(* Dot *)
+(* RTFM-core/Dot *)
 open Common
 open AST
 open SRP
@@ -107,6 +107,7 @@ let d_of_p p rml =
       | Halt  				-> DotHalt (i)
       | _					-> raise (RtfmError("Enable not implemented"))      
   in
+  
   (* parse the program entry points *)
   let mytop = function 
     | Isr (t, id, prio, sl) -> DIsr (t, id, prio, Ds ("", (List.map (stmts id) sl) ) )
@@ -114,6 +115,7 @@ let d_of_p p rml =
     | Reset (sl)            -> DReset (Ds ("", (List.map (stmts "User_Reset") sl ) ) )
     | _                     -> raise UnMatched 
   in
+  
   (* leftmost column is the prio/priority ceiling legend *)
   let dot_of pl = 
     let def = function

@@ -1,4 +1,4 @@
-(* CGen *)
+(* CoreGen *)
 open Common
 open AST
 open Env
@@ -10,7 +10,7 @@ let rec c_defs_of_classDef ce path argl cd =
   
   let rec c_of_expr = function
     | IdExp (id)       -> p ^ id
-    | CallExp (m, el)  -> p ^ String.concat "_" m ^ string_par c_of_expr el
+    | CallExp (m, el)  -> c_e ^ " sync " ^p ^ String.concat "_" m ^ string_par c_of_expr el ^ "; " ^ e_c
     | PendExp (il)     -> c_e ^ " pend " ^ p ^ String.concat "_" il ^ "; " ^ e_c 
     | IntExp (i)       -> string_of_int i
     | CharExp (c)      -> ecit ^ String.make 1 c ^ ecit

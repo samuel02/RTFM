@@ -1,4 +1,4 @@
-(* Cmd *)
+(* RTFM-core/Cmd *)
 open Common
   
 let usage = 

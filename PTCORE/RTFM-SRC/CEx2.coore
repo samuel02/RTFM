@@ -1,21 +1,35 @@
-
-class A <> {
-    int s := 0;
-    int p := 1;
+(*
+Reset {
+    #>printf("User reset\n");<#
     
-    int m() {
-        return 7;
+    #>
+    while (1) {
+        <#pend task1;#>
+        RTFM_SLEEP(SEC(1));
     }
-        
-    Task t 3 {
-        s := p;
-    }
+    <#
 }
 
-class Root<> {
-  A<> a;
-  
-  Reset {
-    Pend a.t;    
-  } 
+Task task1 1 {
+    #>printf("task1\n");<#
+    pend task2;
+}
+
+Task task2 1 {
+    #>printf("task2\n");<#  
+}
+
+*)
+
+class Root<> { 
+    Task task1 1 {
+        Pend task2;
+    }
+    
+    Task task2 1 {
+    }      
+
+    Reset {
+        Pend task1;
+    } 
 }

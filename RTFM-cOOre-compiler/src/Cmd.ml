@@ -1,4 +1,4 @@
-(* Cmd *)
+(* RTFM-cOOre/Cmd *)
 open Common
 
 let usage =
@@ -15,6 +15,7 @@ let usage =
 	^ "-D               Enable : Generate output for debugging (default disbaled)" ^ nl
 	^ nl
 	^ "Additional options:" ^ nl
+  ^ "-gv_obj file.gv  Enable : Object structure in gv format (default disabled)" ^ nl  
 	^ "-d_ast           Enable : Dump internal AST (default disabled)" ^ nl
 	^ nl
 	^ "All file paths are relative to the current directory" ^ nl
@@ -43,6 +44,7 @@ let speclist =
 	[
 	("-i", Arg.Set_string f_infile, "\t\t: infile.coore");
 	("-o", Arg.Set_string f_outfile, "\t\t: outfile (default <infile>.core)");
+  ("-gv_obj", Arg.Set_string f_dotfile,  "\t: graphviz file (default none)");
 	
 	("-v", Arg.Set o_verbose, "\t\t: verbose mode");
 	("-D", Arg.Set o_debug, "\t\t: debug mode");
@@ -87,6 +89,14 @@ let cmd =
 		opt.verbose <- ! o_verbose;
 		
 		(* additional options *)
+    opt.dotout <- (not (String.compare (!f_dotfile) "" == 0));
+    
+    let gv_ext = ".gv" in
+    let gv_ext_err = "Bad Graphviz extension (.gv expected) " in
+    if opt.dotout then begin
+      opt.dotfile <- !f_dotfile;
+      check_ext opt.dotfile gv_ext gv_ext_err
+    end;
 		opt.d_ast <- !d_ast;
 	with
 	| Arg.Bad msg -> p_stderr ("Command line error: " ^ msg); exit (-1);

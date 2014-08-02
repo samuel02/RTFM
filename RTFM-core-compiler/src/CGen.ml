@@ -1,4 +1,4 @@
-(* CGen *)
+(* RTFM-core/CGen *)
 open Common
 open AST
 open IsrCGen
