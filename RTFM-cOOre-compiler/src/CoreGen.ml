@@ -9,12 +9,13 @@ let rec c_defs_of_classDef ce path argl cd =
   let r = "RES_" ^ p in
   
   let rec c_of_expr = function
-    | IdExp (id)       -> p ^ id
+    | IdExp (idl)      -> p ^ String.concat "_" idl
     | CallExp (m, el)  -> c_e ^ " sync " ^p ^ String.concat "_" m ^ string_par c_of_expr el ^ "; " ^ e_c
     | PendExp (il)     -> c_e ^ " pend " ^ p ^ String.concat "_" il ^ "; " ^ e_c 
     | IntExp (i)       -> string_of_int i
     | CharExp (c)      -> ecit ^ String.make 1 c ^ ecit
     | BoolExp (b)      -> string_of_bool b
+    | RT_Rand (e)      -> "RT_rand(" ^ c_of_expr e ^ ")" 
   in
   
   let c_t_of_mPArg = function
@@ -26,17 +27,20 @@ let rec c_defs_of_classDef ce path argl cd =
   in
   
   let c_of_stmt ti = function
-    | ExpStmt (e)     -> ti ^ tab ^ c_of_expr e
-    | MPVar (t, i, e) -> ti ^ tab ^ string_of_pType t ^ " " ^ p ^ i ^ " = " ^ c_of_expr e
-    | Assign (i, e)   -> ti ^ tab ^ p ^ i ^ " = " ^ c_of_expr e
-    | Return (e)      -> ti ^ tab ^ "return " ^ c_of_expr e
+    | ExpStmt (e)       -> ti ^ tab ^ c_of_expr e
+    | MPVar (t, i, e)   -> ti ^ tab ^ string_of_pType t ^ " " ^ p ^ i ^ " = " ^ c_of_expr e
+    | Assign (i, e)     -> ti ^ tab ^ p ^ i ^ " = " ^ c_of_expr e
+    | Return (e)        -> ti ^ tab ^ "return " ^ c_of_expr e
+    | RT_Sleep (e)      -> ti ^ tab ^ "RT_sleep(" ^ c_of_expr e ^ ")" 
+    | RT_Printf (s, el) -> ti ^ tab ^ "RT_printf(" ^ String.concat ", " ((ec ^ s ^ ec) :: List.map c_of_expr el) ^ ")"
+  
   in
   
   (* method prototypes *)
   let c_mp_of_classDecl =
     function
     | CMDecl (t, i, al, _) -> string_of_pType t ^ " " ^ p ^ i ^ string_par c_t_of_mPArg al
-    | CTDecl (i, pr, sl) -> "// task " ^ p ^ i ^ "()"
+    | CTDecl (i, pr, sl)   -> "// task " ^ p ^ i ^ "()"
     | _ -> raise (UnMatched)
   in
   

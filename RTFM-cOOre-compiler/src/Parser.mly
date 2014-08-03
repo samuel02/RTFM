@@ -1,10 +1,15 @@
 (* RTFM-cOOre/Parser.mly *)
 
 %token <string> ID
-%token <int> INTVAL
-%token <bool> BOOLVAL
-%token <char> CHARVAL
-%token TASK ISR RESET PEND CLASS RETURN ASSIGN COMMA INT CHAR BOOL BYTE VOID LT GT LP RP LCP RCP DOT SC EOF
+%token <int>    INTVAL
+%token <bool>   BOOLVAL
+%token <char>   CHARVAL
+%token <string> STRVAL
+%token TASK ISR RESET PEND CLASS RETURN 
+%token RT_SLEEP RT_PRINTF RT_RAND
+%token ASSIGN COMMA LT GT LP RP LCP RCP DOT SC
+%token INT CHAR BOOL BYTE VOID 
+%token EOF
   
 %{
   open AST 
@@ -59,18 +64,22 @@ params:
 expr:                                                        
   | PEND ID                                                  { PendExp ([$2]) }
   | PEND ID DOT ID                                           { PendExp ($2::[$4]) }
-  | ID                                                       { IdExp ($1) }
+  | ID                                                       { IdExp ([$1]) }
   | ID LP params RP                                          { CallExp ([$1], $3) }
-  | ID DOT ID                                                { IdExp ($1 ^ "." ^ $3) }
+  | ID DOT ID                                                { IdExp ($1::[$3]) }
   | ID DOT ID LP params RP                                   { CallExp ($1::[$3], $5) }
   | INTVAL                                                   { IntExp ($1) }
   | CHARVAL                                                  { CharExp ($1) }
   | BOOLVAL                                                  { BoolExp ($1) }
-    
+  | RT_RAND LP expr RP SC                                    { RT_Rand ($3) }
+     
         
 stmt:
   | expr SC																									 { ExpStmt ($1) }
   | pType ID ASSIGN expr SC                                  { MPVar ($1, $2, $4) }  
   | ID ASSIGN expr SC                                        { Assign ($1, $3) }
   | RETURN expr SC                                           { Return ($2) }
+  | RT_SLEEP LP expr RP SC                                   { RT_Sleep ($3) }
+  | RT_PRINTF LP STRVAL COMMA params RP SC                   { RT_Printf ($3, $5) }
+  | RT_PRINTF LP STRVAL RP SC                                { RT_Printf ($3, []) }
     

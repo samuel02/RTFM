@@ -1,25 +1,10 @@
-(*
-Reset {
-    #>printf("User reset\n");<#
-    pend task1;
-
-    #> 
-    while (1) {
-        // RTFM_SLEEP(SEC(1)); // (watch you CPU monitor)
-    }
-    <#  
-}
-
-Task task1 1 {
-    #>printf("task1\n");<#
-}
-*)
-
 class Root<> { 
-    Task taks1 1 {
+    Task task1 1 {
+        RT_printf("task1\n");
     }      
 
     Reset {
+        RT_printf("User reset\n");
         Pend task1;
     } 
 }

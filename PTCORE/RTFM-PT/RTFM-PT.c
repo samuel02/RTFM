@@ -91,23 +91,23 @@ void s_wait(sem_t *s) {
 
 /* RTFM_API */
 void RTFM_lock(int f, int r) {
-	DP("Claim   :%s->%s", entry_names[f], res_names[r]);
+	DP("Claim    :%s->%s", entry_names[f], res_names[r]);
 	DPT("RTFM_lock   :pthread_mutex_lock(&res_mutex[%d])", r);
 	m_lock(&res_mutex[r]);
 	DPT("RTFM_lock   :pthread_mutex_locked(&res_mutex[%d])", r);
-	DP("Claimed :%s->%s", entry_names[f], res_names[r]);
+	DP("Claimed  :%s->%s", entry_names[f], res_names[r]);
 
 }
 
 void RTFM_unlock(int f, int r) {
-	DP("Release :%s<-%s", entry_names[f],res_names[r]);
+	DP("Release  :%s<-%s", entry_names[f],res_names[r]);
 	DPT("RTFM_unlock :pthread_mutex_unlock(res_mutex[%d])", r)
 	m_unlock(&res_mutex[r]);
 }
 
 void RTFM_pend(int f, int t) {
 	int lcount;
-	DP("Pend    :%s->%s", entry_names[f], entry_names[t]);
+	DP("Pend     :%s->%s", entry_names[f], entry_names[t]);
 
 	DPT("RTFM_pend   :pthread_mutex_lock(&pend_count_mutex[%d])", t);
 	m_lock(&pend_count_mutex[t]);
@@ -134,7 +134,7 @@ void *thread_handler(void *id_ptr) {
 	DPT("thread      :Working thread %d started : Task %s", id, entry_names[id]);
 
 	while (1) {
-		DP("Task blocked (awaiting invocation): %s", entry_names[id]);
+		DP("Task wait:%s", entry_names[id]);
 		DPT("thread      :sem_wait(pend_sem[%d])", id);
 		s_wait(pend_sem[id]);
 		// consume the semaphore (decrement it's value)
@@ -148,7 +148,7 @@ void *thread_handler(void *id_ptr) {
 		m_unlock(&pend_count_mutex[id]);
 
 		DPT("thread      :entry_func[%d](%d)", id, id);
-		DP("Task invocation: %s", entry_names[id]);
+		DP("Task run :%s", entry_names[id]);
 		entry_func[id](id); // dispatch the task
 	}
 	return NULL;
@@ -166,7 +166,8 @@ void dump_priorities() {
 
 int main() {
 	fprintf(stderr, "RTFM-RT Per Lindgren (C) 2014 \n");
-	fprintf(stderr, "Executing %s : RTFM-RT Options : ", CORE_FILE_INFO);
+	fprintf(stderr, "%s", CORE_FILE_INFO);
+	fprintf(stderr, "RTFM-RT run-time options : ");
 #ifdef DEBUG
 	fprintf(stderr, "-DEBUG ");
 #endif

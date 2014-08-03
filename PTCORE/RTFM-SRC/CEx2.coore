@@ -1,35 +1,15 @@
-(*
-Reset {
-    #>printf("User reset\n");<#
-    
-    #>
-    while (1) {
-        <#pend task1;#>
-        RTFM_SLEEP(SEC(1));
-    }
-    <#
-}
-
-Task task1 1 {
-    #>printf("task1\n");<#
-    pend task2;
-}
-
-Task task2 1 {
-    #>printf("task2\n");<#  
-}
-
-*)
-
-class Root<> { 
+class Root<> {
     Task task1 1 {
+        RT_printf("task 1\n");
         Pend task2;
     }
     
     Task task2 1 {
-    }      
+        RT_printf("task 2\n");
+    }
 
     Reset {
+        RT_printf("User reset\n");
         Pend task1;
     } 
 }

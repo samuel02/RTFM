@@ -4,12 +4,14 @@ open Common
 type id = string
 
 type expr =
-	| IdExp of id
+	| IdExp   of id list
 	| CallExp of id list * expr list
 	| PendExp of id list
-	| IntExp of int
+	| IntExp  of int
 	| CharExp of char
 	| BoolExp of bool
+  | RT_Rand of expr
+
 
 type pType =
 	| Int
@@ -22,11 +24,13 @@ type mPArg =
 	| MPArg    of pType * id
 
 type stmt =
-	| ExpStmt  of expr
-	| MPVar    of pType * id * expr
-	| Assign   of id * expr
-	| Return   of expr
-
+	| ExpStmt   of expr
+	| MPVar     of pType * id * expr
+	| Assign    of id * expr
+	| Return    of expr
+  | RT_Sleep  of expr
+  | RT_Printf of string * expr list
+ 
 type classArg =
 	| CPArg    of pType * id
 	| CMArg    of pType * pType list * id
@@ -50,13 +54,14 @@ let string_pp m l  = " <" ^ String.concat ", " (mymap m l) ^ "> "
 let string_cur m l = " {" ^ String.concat ", " (mymap m l) ^ "} "
 
 let rec string_of_expr = function
-	| IdExp (id) 		  -> id
+	| IdExp (idl) 		 -> String.concat "." idl
 	| CallExp (m, el) -> String.concat "." m ^ string_par string_of_expr el
 	| PendExp (il) 		-> "pend " ^ String.concat "." il
 	| IntExp (i) 			-> string_of_int i
 	| CharExp (c) 		-> ecit ^ String.make 1 c ^ ecit
 	| BoolExp (b) 		-> string_of_bool b
-
+  | RT_Rand (e)     -> "RT_rand(" ^ string_of_expr e ^ ")"
+  
 let string_of_pType = function
 	| Int  -> "int"
 	| Char -> "char"
@@ -68,11 +73,13 @@ let string_of_mPArg = function
 	| MPArg (t, i) -> string_of_pType t ^ " " ^ i
 
 let string_of_stmt = function
-	| ExpStmt (e)			-> tab ^ tab ^ string_of_expr e
-	| MPVar (t, i, e) -> tab ^ tab ^ string_of_pType t ^ " " ^ i ^ " := " ^ string_of_expr e
-	| Assign (i, e) 	-> tab ^ tab ^ i ^ " := " ^ string_of_expr e
-	| Return (e) 			-> tab ^ tab ^ "return " ^ string_of_expr e
-
+	| ExpStmt (e)			  -> tab ^ tab ^ string_of_expr e
+	| MPVar (t, i, e)   -> tab ^ tab ^ string_of_pType t ^ " " ^ i ^ " := " ^ string_of_expr e
+	| Assign (i, e) 	  -> tab ^ tab ^ i ^ " := " ^ string_of_expr e
+	| Return (e) 			  -> tab ^ tab ^ "return " ^ string_of_expr e
+  | RT_Sleep (e)      -> tab ^ tab ^ "RT_sleep(" ^ string_of_expr e ^ ")"
+  | RT_Printf (s, el) -> tab ^ tab ^ "RT_printf(" ^ String.concat ", " (s :: List.map string_of_expr el) ^ ")"
+  
 let string_of_classArg = function
 	| CPArg (t, i) 			-> string_of_pType t ^ " " ^ i
 	| CMArg (t, tl, i ) -> string_of_pType t ^ " " ^ i ^ string_par string_of_pType tl

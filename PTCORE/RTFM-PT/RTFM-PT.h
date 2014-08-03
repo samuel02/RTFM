@@ -13,17 +13,16 @@
 typedef void (*ENTRY_FUNC)(int);
 void user_reset(int);
 
-#define FALSE 			false
-#define TRUE 			true
+#define FALSE 				false
+#define TRUE 				true
 
 void RTFM_lock(int, int);
 void RTFM_unlock(int, int);
 void RTFM_pend(int, int);
 
-#define RTFM_rand(x)    ( rand() % x )
-#define RTFM_sleep(x) 	( sleep( x ) )
-#define RTFM_sec(x)		( x )
-
-#define Task			void
-#define ISR				void
+#define RT_rand(x)      	( rand() % x )
+#define RT_sleep(x) 		( sleep( x ) )
+#define RT_printf(...) 		{ printf( __VA_ARGS__ ); }
+#define Task				void
+#define ISR					void
 #endif /* RTFM_PT_H_ */
