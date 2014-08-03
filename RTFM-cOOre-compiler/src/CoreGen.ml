@@ -46,7 +46,16 @@ let rec c_defs_of_classDef ce path argl cd =
   
   let c_of_classArg cal arg = match cal with
     | CPArg (t, i)      -> "const " ^ string_of_pType t ^ " " ^ p ^ i ^ " = " ^ arg
-    | CMArg (t, tl, i ) -> string_of_pType t ^ " (* const " ^ p ^ i ^ ")" ^ string_par string_of_pType tl ^ " = " ^ arg
+    | CMArg (t, tl, i ) ->  
+      let nri = ref 0 in 
+      let argin t = nri := !nri + 1; "i" ^ string_of_int !nri ^ " " ^ string_of_pType t 
+      in 
+      let nro = ref 0 in 
+      let argout t = nro := !nro + 1; "i" ^ string_of_int !nro   
+      in   
+      c_e ^ "Func " ^ string_of_pType t ^ " " ^ p ^ i ^ string_par argin tl ^ " { sync " ^ arg ^ string_par argout tl ^ "; }" ^ e_c
+      
+      
   in
   
   (* state initialization *)
