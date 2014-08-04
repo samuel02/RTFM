@@ -1,4 +1,7 @@
+(* RTFM-cOOre/Main *)
+
 open Common
+open Options
 open AST
 open Env
 open CoreGen

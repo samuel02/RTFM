@@ -1,4 +1,5 @@
 (* RTFM-cOOre/AST *)
+
 open Common
 
 type id = string
@@ -54,7 +55,7 @@ let string_pp m l  = " <" ^ String.concat ", " (mymap m l) ^ "> "
 let string_cur m l = " {" ^ String.concat ", " (mymap m l) ^ "} "
 
 let rec string_of_expr = function
-	| IdExp (idl) 		 -> String.concat "." idl
+	| IdExp (idl) 	  -> String.concat "." idl
 	| CallExp (m, el) -> String.concat "." m ^ string_par string_of_expr el
 	| PendExp (il) 		-> "pend " ^ String.concat "." il
 	| IntExp (i) 			-> string_of_int i

@@ -1,8 +1,11 @@
 (* RTFM-core/CGen *)
 open Common
+open Options
 open AST
 open IsrCGen
 open SRP
+
+let deb s = if opt.debug then "// RTFM-core : " ^ s ^ nl else ""
 
 let pend id = match opt.target with
   | RTFM_KERNEL -> "RTFM_pend(IRQ_NR_" ^ id ^ ");"
@@ -15,7 +18,7 @@ let c_of_p topl v r =
     | RTFM_PT ->
         "enum resources {" ^ String.concat "," ((List.map fst rl) @ ["RES_NR"]) ^ "};" ^ nl ^
         "char* res_names[] = {" ^ String.concat "," (List.map quote (List.map fst rl)) ^ "};" ^ nl ^
-        "int ceilings[RES_NR] = {" ^ String.concat ", " (List.map string_of_int (List.map snd rl)) ^ "};"
+        "int ceilings[RES_NR] = {" ^ String.concat ", " (List.map string_of_int (List.map snd rl)) ^ "};" ^ nl ^ nl
   
   in
   let c_prio_of_top topl = match opt.target with
@@ -43,11 +46,10 @@ let c_of_p topl v r =
           | _ -> ""
         in
         let user_reset = "user_reset" in
-        
-        "enum entry_nr {" ^ String.concat ", " ((user_reset ^ "_nr") :: ((c topl "_nr" ) @ ["ENTRY_NR"])) ^ "};" ^ nl ^
-        "int entry_prio[] = {" ^ String.concat ", " ("0" :: (prio topl)) ^ "};" ^ nl ^
-        String.concat "" (List.map proto topl) ^
-        "ENTRY_FUNC entry_func[] = {" ^ String.concat ", " (user_reset:: (c topl "")) ^ "};" ^ nl ^
+        "enum entry_nr {" ^ String.concat ", " ((user_reset ^ "_nr") :: ((c topl "_nr" ) @ ["ENTRY_NR"])) ^ "};" ^ nl ^ nl ^
+        "int entry_prio[] = {" ^ String.concat ", " ("0" :: (prio topl)) ^ "};" ^ nl ^ nl ^
+        String.concat "" (List.map proto topl) ^ nl ^
+        "ENTRY_FUNC entry_func[] = {" ^ String.concat ", " (user_reset:: (c topl "")) ^ "};" ^ nl ^ nl ^
         "char* entry_names[] = {" ^ (String.concat ", " (List.map quote (user_reset:: (c topl "")))) ^ "};" ^ nl
   
   in
@@ -88,7 +90,7 @@ let c_of_p topl v r =
     | [] -> nl
     | t :: l ->
         let st = match t with
-          | TopC (c) -> "// top level code " ^ nl ^ c
+          | TopC (c) -> deb ("top level code ") ^ c
           (* | TopPend (id) -> pend id *)
           | Isr (b, id, p, sl) ->
               ( match opt.target with
@@ -102,35 +104,43 @@ let c_of_p topl v r =
                 | RTFM_PT -> t ^ " " ^ id ^ (if String.compare par "" == 0 then "(int RTFM_id" else "(int RTFM_id, ") ^ par ^ ") " ^ "{" ^ nl ^ stmt sl ^ "}"
               )
           | Reset (sl) ->
-          
               ( match opt.target with
                 | RTFM_KERNEL -> "void user_reset() {" ^ nl ^ stmt sl ^ "}"
                 | RTFM_PT -> "void user_reset(int RTFM_id) {" ^ nl ^ stmt sl ^ "}"
               )
         in
         st ^ nl ^ top l ^ nl
-  in      
-  let info = "const char* CORE_FILE_INFO = \"Compiled with : " ^ String.escaped (string_of_opt opt) ^ "\";" ^ nl      
+  
+  in
+  let func_prot = function
+    | Func (t, id, par, sl) ->
+        (
+          match opt.target with
+          | RTFM_KERNEL -> t ^ " " ^ id ^ "(" ^ par ^ ");" 
+          | RTFM_PT -> t ^ " " ^ id ^ (if String.compare par "" == 0 then "(int RTFM_id" else "(int RTFM_id, ") ^ par ^ ");" 
+        )
+    | _ -> raise (UnMatched)
+  in
+  let info = "const char* CORE_FILE_INFO = \"Compiled with : " ^ String.escaped (string_of_opt opt) ^ "\";" ^ nl
   in
   match opt.target with
   | RTFM_KERNEL ->
-      "// RTFM-core for RTFM-KERNEL" ^ nl 
-      ^ info ^ nl
-      ^ "// Resource Ceiling Bindings" ^ nl ^ c_of_r r ^ nl
-      ^ "// Defintions for IRQ_NR" ^ nl ^ isrv_to_c_isr_nr v ^ nl
-      ^ "// Defintions for IRQ_PRI" ^ nl ^ c_prio_of_top topl ^ nl
+      "// RTFM-core for RTFM-KERNEL" ^ nl ^
+      info ^ nl ^
+      deb ("Resource Ceiling Bindings") ^ c_of_r r ^
+      deb ("Defintions for IRQ_NR") ^ isrv_to_c_isr_nr v ^
+      deb ("Defintions for IRQ_PRI") ^ c_prio_of_top topl ^
       
-      ^ "// Initiate interrupt priorities" ^ nl ^ c_init_prio_of_prog topl ^ nl
-      ^ "// RTFM-Application " ^ nl
-      ^ top topl ^ nl
+      deb ("Initiate interrupt priorities") ^ c_init_prio_of_prog topl ^
+      deb ("// RTFM-Application ") ^
+      top topl ^ nl
   
   | RTFM_PT	->
-      "// RTFM-core for RTFM-PT" ^ nl 
-      ^ info ^ nl 
-      ^ "// RTFM-Resources" ^ nl ^ c_of_r r ^ nl
-      ^ "// RTFM-Entry points" ^ nl ^ c_prio_of_top topl ^ nl
-      ^ "// RTFM-Application " ^ nl
-      ^ top topl ^ nl
-      
-        
-        
+      "// RTFM-core for RTFM-PT" ^ nl ^
+      info ^ nl ^
+      deb ("Resources and ceilings") ^ c_of_r r ^
+      deb ("Entry points") ^ c_prio_of_top topl ^
+      deb ("Prototypes") ^
+      myconcat nl (mymap func_prot topl) ^ 
+      deb ("Application") ^
+      top topl ^ nl

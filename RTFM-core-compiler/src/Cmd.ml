@@ -1,5 +1,6 @@
 (* RTFM-core/Cmd *)
 open Common
+open Options
   
 let usage = 
   "The RTFM-core compiler v1.0, Per Lindgren (c) 2014" ^ nl ^ nl
