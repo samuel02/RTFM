@@ -1,4 +1,4 @@
-(* RTFM-cOOre/Error *)
+(* RTFM-common/Error *)
 
 open Lexing
 open Common

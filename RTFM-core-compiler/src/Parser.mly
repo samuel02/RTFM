@@ -1,9 +1,11 @@
+(* RTFM-core/Parser.mly *)
+
 %token <string> ID
 %token <int> INTVAL
 %token <bool> BOOLVAL
 %token <string> CCODE
 %token <string> PARAMS
-%token ISR TASK FUNC RESET PEND AFTER SYNC ENABLE CLAIM HALT SC LCP RCP (* LP RP *) EOF
+%token ISR TASK FUNC RESET PEND AFTER SYNC ENABLE CLAIM HALT SC LCP RCP EOF
 
 %{
   open AST 

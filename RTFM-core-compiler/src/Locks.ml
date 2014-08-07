@@ -1,4 +1,5 @@
-(* Locks.ml *)
+(* RTFM-core/Locks *)
+
 open Common
 open AST
 open SRP

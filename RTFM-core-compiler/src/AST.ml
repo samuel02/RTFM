@@ -1,25 +1,25 @@
-(* AST *)
+(* RTFM-core/AST *)
+
 open Common
    
 type stmt =
-  | Claim of string * stmt list
-  | Pend of string	
+  | Claim     of string * stmt list
+  | Pend      of string	
   | PendAfter of string * int
-  | Sync of string * string
-  | Enable of bool	
+  | Sync      of string * string
+  | Enable    of bool	
   | Halt
-  | ClaimC of string
-  
-    
+  | ClaimC    of string
+ 
 type isr_type = 
   | HARD
   | SOFT
     
 type top =
-  | TopC of string
-  | Isr of isr_type * string * int * stmt list
-  | Func of string * string * string * stmt list
-  | Reset of stmt list
+  | TopC      of string
+  | Isr       of isr_type * string * int * stmt list
+  | Func      of string * string * string * stmt list
+  | Reset     of stmt list
     
 type prog =
   | Prog of top list

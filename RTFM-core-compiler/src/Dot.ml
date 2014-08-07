@@ -1,4 +1,5 @@
 (* RTFM-core/Dot *)
+
 open Common
 open Options
 open AST
