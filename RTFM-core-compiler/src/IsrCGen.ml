@@ -18,30 +18,30 @@ let isrv_to_c vl =
 let assign_vectors v p =
   (* isr *)
   let rec isrs v ils b = match ils with
-    | [] 					-> v
+    | []          -> v
     (* first assign the named vectors b == true *)
-    | Isr (SOFT, _, _, _) :: l	when b -> isrs v l b
-    | Isr (HARD, id, p, s) :: l	when b ->
+    | Isr (SOFT, _, _, _) :: l  when b -> isrs v l b
+    | Isr (HARD, id, p, s) :: l when b ->
       (* apply for all Isr's *) 
       (* assign id *)
       let rec assignv il =
         match il with
-          | [] -> failwith("No matching Isr entry for " ^ id ^ nl ^ isrv_to_c il)
+          | []     -> failwith("No matching Isr entry for " ^ id ^ nl ^ isrv_to_c il)
           | (vty, vid) :: l when 
             compare id vid = 0 && ((vty == F) || (vty == O)) -> (U, vid) :: l
           | e :: l -> e :: assignv l
       in
       assignv (isrs v l b)
     (* then assign the unnamed vectors b == false *)
-    | Isr (HARD, _, _, _) :: l	when (not b) -> isrs v l b
+    | Isr (HARD, _, _, _) :: l  when (not b) -> isrs v l b
     | Isr (SOFT, id, p, s) :: l when (not b) ->
       (* apply for all Isr's *) 
       (* assign id *)
       let rec assignv il =
         match il with
-          | [] -> failwith("No free Isr entry for " ^ id ^ nl ^ isrv_to_c il)
+          | []            -> failwith("No free Isr entry for " ^ id ^ nl ^ isrv_to_c il)
           | (F, vid) :: l -> (U, id) (* ^ tab ^ "(* optionally used for " ^ vid ^ " *)") *) :: l
-          | e :: l -> e :: assignv l
+          | e :: l        -> e :: assignv l
       in
       assignv (isrs v l b)
     | _ :: l  -> isrs v l b        
@@ -69,14 +69,14 @@ let wf_of_v v =
 let isrv_lookup id vl = 
   let rec isri i id vl =
     match vl with
-      | [] -> raise (RtfmError ("Lookup of Isr or Task failed " ^ id))
+      | []            -> raise (RtfmError ("Lookup of Isr or Task failed " ^ id))
       | (_, vid) :: l -> if (compare id vid) = 0 then i else isri (i+1) id l
   in
   isri 0 id vl 
     
 let isrv_to_c_isr_nr vl =
   let rec isrv i vl = match vl with
-    | [] -> ""
+    | []  -> ""
     | (vty, vid) :: l -> match vty with
       | U -> "#define " ^ "IRQ_NR_" ^ vid ^ " " ^ string_of_int i ^ nl ^ isrv (i + 1) l
       | _ -> isrv (i + 1) l
@@ -85,9 +85,9 @@ let isrv_to_c_isr_nr vl =
 (* interrupts are labeled -14..-1 for core interrupts, >= 0 for vendor defined interrupts *) 
     
 let rec task_vector p = match p with
-  | [] 						-> []
-  | Isr (_ , id, _, s) :: l	-> (U, id) :: task_vector l 
-  | _ :: l					-> task_vector l
+  | []                      -> []
+  | Isr (_ , id, _, s) :: l -> (U, id) :: task_vector l 
+  | _ :: l                  -> task_vector l
 
 
     

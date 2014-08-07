@@ -46,7 +46,7 @@ let cycle_of_p ce p =
         
         let cd = myass o ce in
         cycle_of_cd (po :: path) cd
-    | _ -> () (* unit value *)
+    | _                -> () (* unit value *)
   
   and cycle_of_cd path = function
     | ClassDef (i, cal, cdl) ->

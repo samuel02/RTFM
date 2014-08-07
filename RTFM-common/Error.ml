@@ -4,15 +4,15 @@ open Lexing
 open Common
 
 type comment_info = {
-  mutable ci_lnum	: int;
-  mutable ci_cnum	: int;
-  mutable ci_bol	: int;
+  mutable ci_lnum : int;
+  mutable ci_cnum : int;
+  mutable ci_bol  : int;
 }
 
 let ci = {
   ci_lnum = 0;
-  ci_cnum	= 0;
-  ci_bol	= 0;
+  ci_cnum = 0;
+  ci_bol  = 0;
 }
 
 let next_line lexbuf = Lexing.new_line lexbuf

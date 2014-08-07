@@ -1,17 +1,17 @@
 (* RTFM-Common/Common *)
 
 (* characters and strings *)
-let tab 	= "\t"
-let tabc 	= '\t'
+let tab   = "\t"
+let tabc  = '\t'
   
-let nl 		= "\n"
-let nlc 	= '\n'
+let nl    = "\n"
+let nlc   = '\n'
   
-let enl		= "\\n" 
+let enl   = "\\n" 
   
-let op 		= " {" ^ nl
+let op    = " {" ^ nl
   
-let cl 		= "}"
+let cl    = "}"
   
 let ec    = "\""  
 
@@ -50,9 +50,9 @@ let submatch s i m =
   let rec subm s i m r = 
     try 
       match String.get s (i mod size) with
-        | c when c == m 	  -> r
-        | c when c == tabc 	-> subm s (i + 1) m (r ^ " ") 
-        | c 				        -> subm s (i + 1) m (r ^ String.make 1 c) 
+        | c when c == m     -> r
+        | c when c == tabc  -> subm s (i + 1) m (r ^ " ") 
+        | c                 -> subm s (i + 1) m (r ^ String.make 1 c) 
     with
       _ -> r (* outside string, should never happen *)
   in
@@ -64,7 +64,7 @@ type target =
     
 let string_of_target = function
   | RTFM_KERNEL -> "RTFM_KERNEL"
-  | RTFM_PT		  -> "RTFM_PT"
+  | RTFM_PT     -> "RTFM_PT"
     
 type backend =
   | GCC
@@ -72,7 +72,7 @@ type backend =
   | CLANG
     
 let string_of_backend = function
-  | GCC		-> "GCC"
-  | CCOMP	-> "CCOMP"
-  | CLANG	-> "CLANG"
+  | GCC     -> "GCC"
+  | CCOMP   -> "CCOMP"
+  | CLANG   -> "CLANG"
     

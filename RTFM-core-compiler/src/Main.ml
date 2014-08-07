@@ -57,8 +57,8 @@ let main () =
               p_stderr (nl ^ "After assignments Vector table " ^ nl ^ isrv_to_c nv);
             end;
             match wf_of_v nv with
-              | false 	-> p_stderr (nl ^ "Error in Vector table!" ^ nl);
-              | true 	-> 
+              | false   -> p_stderr (nl ^ "Error in Vector table!" ^ nl);
+              | true    -> 
                 (* generate c code *)
                 p_oc oc (c_of_p p nv rm); 
                 (* generate vector table in case of CompCert *)
@@ -90,7 +90,7 @@ let main () =
               let ocl = open_out opt.ldotfile in 
               begin
                 p_oc ocl (dot_of_dep dep p);
-              	close_out ocl;
+                close_out ocl;
               end; 
             end;  
             let ts = (tsort dep e) in
@@ -101,9 +101,9 @@ let main () =
   (* exception handling *)            
   with 
     | Lexer.SyntaxError msg -> p_stderr (msg ^ parse_err_msg lexbuf);
-    | RtfmError msg 		-> p_stderr msg;
-    | Failure msg 			-> p_stderr msg; 
-    | Parser.Error 			-> p_stderr ("Parser error." ^ parse_err_msg lexbuf);
+    | RtfmError msg         -> p_stderr msg;
+    | Failure msg           -> p_stderr msg; 
+    | Parser.Error          -> p_stderr ("Parser error." ^ parse_err_msg lexbuf);
     
       exit (-1);;    
 (* exit 0;; *)

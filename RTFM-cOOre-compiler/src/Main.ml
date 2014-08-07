@@ -23,7 +23,7 @@ let main () =
     let res = Parser.prog Lexer.lex lexbuf in
     
     match res with
-    | None -> p_stderr ("Not accepted!" ^ nl); exit (-1);
+    | None   -> p_stderr ("Not accepted!" ^ nl); exit (-1);
     | Some p ->
         if opt.verbose then p_stderr ("Parsing succeeded:" ^ nl);
         if opt.d_ast then p_stderr (string_of_prog p);
@@ -47,9 +47,9 @@ let main () =
   (* exception handling *)
   with
   | Lexer.SyntaxError msg -> p_stderr (msg ^ parse_err_msg lexbuf);
-  | RtfmError msg -> p_stderr msg;
-  | Failure msg -> p_stderr msg;
-  | Parser.Error -> p_stderr ("Parser error." ^ parse_err_msg lexbuf);
+  | RtfmError msg         -> p_stderr msg;
+  | Failure msg           -> p_stderr msg;
+  | Parser.Error          -> p_stderr ("Parser error." ^ parse_err_msg lexbuf);
       
       exit (-1);;
 (* exit 0;; *)

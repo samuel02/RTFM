@@ -41,7 +41,7 @@ classDecl:
   | pType ID ASSIGN expr SC                                  { CPVar ($1, $2, $4) }  
   | ID LT params GT ID  SC                                   { COVar ($1, $3, $5) }
   | pType ID LP mArgs RP LCP stmt* RCP                       { CMDecl ($1, $2, $4, $7) }
-	| TASK ID INTVAL LCP stmt* RCP														 { CTDecl ($2, $3, $5) }
+  | TASK ID INTVAL LCP stmt* RCP                             { CTDecl ($2, $3, $5) }
   | ISR ID INTVAL LCP stmt* RCP                              { CTDecl ($2, $3, $5) }
   | RESET LCP stmt* RCP                                      { CRDecl ($3) }
     
@@ -55,7 +55,7 @@ pType:
   | INT                                                      { Int }
   | CHAR                                                     { Char }
   | BOOL                                                     { Bool }
-	| BYTE																										 { Byte }
+  | BYTE                                                     { Byte }
   | VOID                                                     { Void }  
      
 params:
@@ -75,7 +75,7 @@ expr:
      
         
 stmt:
-  | expr SC																									 { ExpStmt ($1) }
+  | expr SC                                                  { ExpStmt ($1) }
   | pType ID ASSIGN expr SC                                  { MPVar ($1, $2, $4) }  
   | ID ASSIGN expr SC                                        { Assign ($1, $3) }
   | RETURN expr SC                                           { Return ($2) }
