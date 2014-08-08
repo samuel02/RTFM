@@ -16,7 +16,15 @@ open Error
 open Cmd
 open Lexing
 
-let rec parse_prog infile =
+let rec parse_prog path inf =
+  let addpath name =
+    try
+    let lastSlash = String.rindex name '/'  in
+    String.sub name 0 (lastSlash + 1)
+    with _ -> ""
+  in  
+  let infile = path ^ inf in
+  let npath = path ^ addpath inf in
   p_stderr ("Processing : " ^ infile ^ nl);
   let inBuff =
     try Some (open_in infile)
@@ -36,7 +44,7 @@ let rec parse_prog infile =
             | Prog (mName, mIncl, mTops) ->
                 if opt.verbose then p_stderr ("Parsing of " ^ infile ^ " succeeded:" ^ nl);
                 if opt.d_ast then p_stderr (string_of_prog p);
-                mTops @ List.concat (List.map parse_prog mIncl)
+                mTops @ List.concat (List.map (parse_prog npath) mIncl)
       (* exception handling *)
       with
       | Lexer.SyntaxError msg -> p_stderr ("Parser error." ^ msg ^ parse_err_msg lexbuf); raise (RtfmError("Exit"))
@@ -48,7 +56,7 @@ let main () =
   
   let oc = open_out opt.outfile in
   try
-    let mTops = parse_prog opt.infile in
+    let mTops = parse_prog "" opt.infile in
     let rm = ceiling mTops in
     if opt.verbose then begin
       p_stderr ("Resource ceilings:" ^ nl ^ string_of_r rm );
