@@ -1,3 +1,6 @@
+(* Copyright Per Lindgren 2014, see the file "LICENSE" *)
+(* for the full license governing this code.           *)
+
 (* RTFM-common/Error *)
 
 open Lexing
