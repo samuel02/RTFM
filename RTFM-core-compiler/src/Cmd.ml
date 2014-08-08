@@ -50,7 +50,7 @@ let f_outfile   = ref ""
 let f_dotfile   = ref ""
 let f_ldotfile  = ref ""
     
-let d_ast   = ref false  
+let d_ast       = ref false  
   
 let speclist = 
   [

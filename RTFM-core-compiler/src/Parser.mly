@@ -1,11 +1,12 @@
 (* RTFM-core/Parser.mly *)
 
 %token <string> ID
-%token <int> INTVAL
-%token <bool> BOOLVAL
+%token <int>    INTVAL
+%token <bool>   BOOLVAL
+%token <string> STRINGVAL
 %token <string> CCODE
 %token <string> PARAMS
-%token ISR TASK FUNC RESET PEND AFTER SYNC ENABLE CLAIM HALT SC LCP RCP EOF
+%token MODULE INCLUDE ISR TASK FUNC RESET PEND AFTER SYNC ENABLE CLAIM HALT SC LCP RCP EOF
 
 %{
   open AST 
@@ -18,8 +19,12 @@
 %%
 
 prog:
-  | top* EOF                        { Some (Prog ($1)) }
+  | MODULE ID use* top* EOF         { Some (Prog ($2,$3, $4)) }
+  | use* top* EOF                   { Some (Prog ("",$1, $2)) }
   
+use:
+  | INCLUDE STRINGVAL                      { $2 }
+    
 top:
   | CCODE                           { TopC ($1) }
   | ISR ID INTVAL LCP stmt* RCP     { Isr (HARD, $2, $3, $5) }

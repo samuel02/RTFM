@@ -2,6 +2,8 @@
 {
  (* tokens and dependenceies *)   
  type token =
+   | MODULE
+   | INCLUDE
    | PEND
    | AFTER
    | SYNC
@@ -17,6 +19,7 @@
    | BOOLVAL of bool
    | CCODE of string
    | PARAMS of string
+   | STRINGVAL of string
    | SC
    | LCP
    | RCP
@@ -33,6 +36,8 @@
 (* regular expressions (regexps) *)
 let white   = [' ' '\t']+
 let newline = '\n'
+let cite    = '\"'
+let str     = [^ '"']* 
 let id      = ['A'-'Z' 'a'-'z' '_']['0'-'9' 'A'-'Z' 'a'-'z' '_']*  
 let digits  = ['0'-'9']+
 let enter_c = "#>"
@@ -41,6 +46,8 @@ let params  = ( [^ '*' ')'] [^ ')']* )?
   
 (* lexing rules *)  
 rule lex = parse
+  | "module"             { MODULE }
+  | "include"            { INCLUDE }
   | "pend"               { PEND }
   | "after"              { AFTER }
   | "sync"               { SYNC }
@@ -56,7 +63,8 @@ rule lex = parse
   | ';'                  { SC } 
   | "true"               { BOOLVAL (true) }
   | "false"              { BOOLVAL (false) }
-  | digits as            i  { INTVAL (int_of_string i) }
+  | digits as i          { INTVAL (int_of_string i) }
+  | cite (str as s) cite { STRINGVAL (s) }
   | enter_c              { set_info lexbuf; c (Buffer.create 100) lexbuf }
   | id as s              { ID (s) }
   | white                { lex lexbuf }                         (* white space *)

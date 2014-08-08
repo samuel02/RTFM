@@ -20,9 +20,9 @@ type top =
   | Isr       of isr_type * string * int * stmt list
   | Func      of string * string * string * stmt list
   | Reset     of stmt list
-    
+   
 type prog =
-  | Prog      of top list
+  | Prog      of string * string list * top list
     
 (* pretty printing *)
     
@@ -31,7 +31,7 @@ let string_of_isr_type it = match it with
   | SOFT -> "Task"
   
 (* prog *)
-let string_of_p p = 
+let string_of_prog p = 
   (* stmts *)
   let rec stmts t sl = match sl with
     | []      -> t
@@ -59,9 +59,14 @@ let string_of_p p =
     | Halt                  -> "Halt "
     | ClaimC (c)            -> "#> CCODE <#"
   in
-  (* prog *)
-  "Prog:" ^ nl ^ tops p    
-    
+  
+
+  match p with
+  | Prog (mName, mIncl, mTop) ->
+      "Module:" ^ mName ^ nl ^
+      "Use :" ^ String.concat "," mIncl ^ nl ^
+      "Prog:" ^ nl ^ tops mTop
+      
 let rec prio_to_string r = match r with
   | []            -> ""
   | (id, p) :: l  -> "Isr " ^ id ^ ", priority " ^ string_of_int p ^ nl ^ prio_to_string l
