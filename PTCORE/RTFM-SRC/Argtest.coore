@@ -1,0 +1,19 @@
+
+class T<> {
+    Task t (int i, int j) {
+    }
+}
+
+class Root<> { 
+
+    Task task (int i, int j) {
+    	
+    }
+ 
+    T<> t;
+       
+    Reset {
+        Async 1 task(1, 2);
+        Async 1 t.t(1,2);
+    } 
+}

@@ -18,9 +18,9 @@ let dep_of_p p =
       
   (* tops *)
   and tops il = match il with
-    | []                        -> []
-    | Isr (_, id, p, s) :: l    -> (stmts id s) @ tops l  
-    | _ :: l                    -> tops l 
+    | []                           -> []
+    | Isr (p, id, s) :: l          -> (stmts id s) @ tops l  
+    | _ :: l                       -> tops l 
   in
   (* prog *)
   tops p 
@@ -31,9 +31,9 @@ let string_of_dep dep =
     
     
 let rec entry ll = match ll with
-  | []                      -> []
-  | Isr (_, id, _, _) :: l  -> id :: entry l 
-  | _ :: l                  -> entry l
+  | []                         -> []
+  | Isr (_, id, _) :: l     -> id :: entry l 
+  | _ :: l                     -> entry l
     
     
 let string_of_entry e = "Entry points :" ^ String.concat ", " e ^ nl  

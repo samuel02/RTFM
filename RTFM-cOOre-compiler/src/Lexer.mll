@@ -8,8 +8,11 @@
  type token =
   | CLASS
   | TASK
+  | ISR
+  
   | RESET
   | PEND
+  | ASYNC
   | RETURN
   | RT_SLEEP
   | RT_PRINTF
@@ -60,6 +63,7 @@ rule lex = parse
   | "Task"                { TASK }                                (* RTFM-core related *)
   | "ISR"                 { ISR }
   | "Pend"                { PEND }
+  | "Async"               { ASYNC }
   | "Reset"               { RESET } 
 
   | "RT_sleep"            { RT_SLEEP }                            (* RT specifics *)

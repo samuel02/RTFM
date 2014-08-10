@@ -8,7 +8,7 @@
 %token <bool>   BOOLVAL
 %token <char>   CHARVAL
 %token <string> STRVAL
-%token TASK ISR RESET PEND CLASS RETURN 
+%token TASK ISR RESET PEND ASYNC CLASS RETURN 
 %token RT_SLEEP RT_PRINTF RT_RAND
 %token ASSIGN COMMA LT GT LP RP LCP RCP DOT SC
 %token INT CHAR BOOL BYTE VOID 
@@ -44,8 +44,8 @@ classDecl:
   | pType ID ASSIGN expr SC                                  { CPVar ($1, $2, $4) }  
   | ID LT params GT ID  SC                                   { COVar ($1, $3, $5) }
   | pType ID LP mArgs RP LCP stmt* RCP                       { CMDecl ($1, $2, $4, $7) }
-  | TASK ID INTVAL LCP stmt* RCP                             { CTDecl ($2, $3, $5) }
-  | ISR ID INTVAL LCP stmt* RCP                              { CTDecl ($2, $3, $5) }
+  | TASK ID LP mArgs RP LCP stmt* RCP                        { CTDecl ($2, $4, $7) }
+  | ISR INTVAL ID LCP stmt* RCP                              { CIDecl ($2, $3, $5) }
   | RESET LCP stmt* RCP                                      { CRDecl ($3) }
     
 mArgs:
@@ -65,6 +65,8 @@ params:
   plist = separated_list(COMMA, expr)                        { plist }
     
 expr:                                                        
+  | ASYNC INTVAL ID LP params RP                             { AsyncExp ($2, [$3], $5) }
+  | ASYNC INTVAL ID DOT ID LP params RP                      { AsyncExp ($2, $3::[$5], $7) }
   | PEND ID                                                  { PendExp ([$2]) }
   | PEND ID DOT ID                                           { PendExp ($2::[$4]) }
   | ID                                                       { IdExp ([$1]) }

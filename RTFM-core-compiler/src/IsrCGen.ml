@@ -23,8 +23,8 @@ let assign_vectors v p =
   let rec isrs v ils b = match ils with
     | []          -> v
     (* first assign the named vectors b == true *)
-    | Isr (SOFT, _, _, _) :: l  when b -> isrs v l b
-    | Isr (HARD, id, p, s) :: l when b ->
+    | Task (_, _, _, _) :: l  when b -> isrs v l b
+    | Isr (p, id, s) :: l when b ->
       (* apply for all Isr's *) 
       (* assign id *)
       let rec assignv il =
@@ -36,8 +36,8 @@ let assign_vectors v p =
       in
       assignv (isrs v l b)
     (* then assign the unnamed vectors b == false *)
-    | Isr (HARD, _, _, _) :: l  when (not b) -> isrs v l b
-    | Isr (SOFT, id, p, s) :: l when (not b) ->
+    | Isr ( _, _, _) :: l  when (not b) -> isrs v l b
+    | Task (p, id, _, s) :: l when (not b) ->
       (* apply for all Isr's *) 
       (* assign id *)
       let rec assignv il =
@@ -88,9 +88,9 @@ let isrv_to_c_isr_nr vl =
 (* interrupts are labeled -14..-1 for core interrupts, >= 0 for vendor defined interrupts *) 
     
 let rec task_vector p = match p with
-  | []                      -> []
-  | Isr (_ , id, _, s) :: l -> (U, id) :: task_vector l 
-  | _ :: l                  -> task_vector l
+  | []                         -> []
+  | Isr (_, id, s) :: l        -> (U, id) :: task_vector l 
+  | _ :: l                     -> task_vector l
 
 
     
