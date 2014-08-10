@@ -330,7 +330,7 @@ int main() {
 	DPT("user_reset(user_reset_nr);");
 	user_reset(user_reset_nr);
 	while (1)
-		;
+		sleep(1);
 	/* code for cleanup omitted, we trust POSIX (Linux/OSX )to do the cleaning */
 }
 

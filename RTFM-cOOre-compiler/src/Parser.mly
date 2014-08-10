@@ -66,7 +66,7 @@ expr:
     
         
 stmt:
-  | expr SC																										 { ExpStmt ($1) }
+  | expr SC																									 { ExpStmt ($1) }
   | pType ID ASSIGN expr SC                                  { MPVar ($1, $2, $4) }  
   | ID ASSIGN expr SC                                        { Assign ($1, $3) }
   | RETURN expr SC                                           { Return ($2) }

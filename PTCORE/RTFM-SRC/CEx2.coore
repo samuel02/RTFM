@@ -1,0 +1,20 @@
+
+class A <> {
+    int m(int c) {
+        d := cb(1, 'c');
+        return d;
+    }
+    
+    Task q 3 {
+        c := b;
+        a.Task();
+    }
+}
+
+class Root<> {
+  A<> a;
+  
+  Reset {
+    
+  } 
+}

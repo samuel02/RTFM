@@ -1,0 +1,36 @@
+// RTFM-cOOre, Per Lindgren (C) 2014
+#>
+// generating RTFM-core code for Root:Root
+// method prototypes for Root:Root
+
+// class instance parameters for Root:Root
+
+// class instance variables for Root:Root
+
+// generating RTFM-core code for A:Root_a
+// method prototypes for A:Root_a
+int Root_a_m (int) ;
+// task Root_a_q();
+
+// class instance parameters for A:Root_a
+
+// class instance variables for A:Root_a
+
+// methods declarations for A:Root_a
+int Root_a_m (int Root_a_c) {
+	Root_a_d = Root_a_cb (1, 'c') ;
+	return Root_a_d;
+}
+<# Task Root_a_q 3 { #>
+	Root_a_c = Root_a_b;
+<# } #>
+
+
+// methods declarations for Root:Root
+<# Reset { #>
+	int Root_j = 5;
+<# } #>
+
+
+<#
+
