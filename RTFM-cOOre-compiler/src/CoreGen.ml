@@ -68,11 +68,11 @@ let rec c_defs_of_classDef ce path argl cd =
         ^ c_e ^ " } " ^ e_c
         
     | CTDecl (i, al, sl)     -> 
-      let c_data_of_mPArg = function
-        | MPArg (t, i) -> string_of_pType t ^ " " ^ i 
+      let c_data_of_mPArg path = function
+        | MPArg (t, i) -> string_of_pType t ^ " " ^ path ^ "_" ^ i 
         
         in
-        c_e ^ " " ^ "Task " ^ p ^ i ^ string_par c_data_of_mPArg al ^ " { "  ^ nl ^ 
+        c_e ^ " " ^ "Task " ^ p ^ i ^ string_par (c_data_of_mPArg path) al ^ " { "  ^ nl ^ 
         claim_stmts sl ^
         c_e ^ " } " ^ e_c 
   
