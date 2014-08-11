@@ -10,6 +10,7 @@ open SRP
 open IsrVector
 open IsrCGen
 open CGenPT 
+open CGenK
 open Dot
 open Locks
 open Error
@@ -96,7 +97,7 @@ let main () =
           | false -> p_stderr (nl ^ "Error in Vector table!" ^ nl);
           | true ->
           (* generate c code *)
-              p_oc oc (c_of_p mTops nv rm);
+              p_oc oc (ck_of_p mTops nv rm);
               (* generate vector table in case of CompCert *)
               if opt.backend = CCOMP then p_oc oc (isrv_to_c_isr_nr nv);
               
@@ -111,7 +112,7 @@ let main () =
     (* generate c code *)
         let tasks = task_vector meTops in
         p_stderr ("Tasks : " ^ String.concat ", " (List.map snd tasks) ^ nl );
-        p_oc oc (c_of_p meTops tasks rm);
+        p_oc oc (crt_of_p meTops tasks rm);
         
         (* comupte cyclic dependencies *)
         let dep = dep_of_p meTops in

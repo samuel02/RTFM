@@ -7,7 +7,8 @@ open Common
 open Options
 open AST
 
-let deb s = if opt.debug then "// RTFM-core : " ^ s ^ nl else ""
+let deb s = if opt.debug then "// RTFM-core: " ^ s ^ nl else ""
+
 let def_par par = 
   let part = String.trim par in
   if mycompare part "" then "(int RTFM_id)" else "(int RTFM_id," ^ part ^ ")"
@@ -16,7 +17,7 @@ let pass_par par =
   let part = String.trim par in
   if mycompare part "" then "(RTFM_id)" else "(RTFM_id," ^ part ^ ")"
 
-let c_of_p topl v r =
+let crt_of_p topl v r =
   let quote x = "\"" ^ x ^ "\"" in
   let c_of_r rl =
     "enum resources {" ^ mycon "," ((List.map fst rl) @ ["RES_NR"]) ^ "};" ^ nl ^
@@ -111,8 +112,8 @@ let c_of_p topl v r =
       "void " ^ id  ^ def_par par ^ "{ // function implementation for the task" ^ nl ^ 
       (stmts "") sl ^ 
       "}"
-     | Reset (sl)            -> "void user_reset(int RTFM_id) {" ^ nl ^ (stmts "reset") sl ^ "}"
-     | _                     -> raise (UnMatched)
+    | Reset (sl)            -> "void user_reset(int RTFM_id) {" ^ nl ^ (stmts "reset") sl ^ "}"
+    | _                     -> raise (UnMatched)
       
   in
   let info = "const char* CORE_FILE_INFO = \"Compiled with : " ^ String.escaped (string_of_opt opt) ^ "\";" ^ nl
