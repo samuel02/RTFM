@@ -15,20 +15,15 @@ let rec c_defs_of_classDef ce path argl cd =
   let r = "RES_" ^ p in
   
   let rec c_of_expr = function
-    | IdExp (idl)      -> p ^ String.concat "_" idl
-    | CallExp (m, el)  -> c_e ^ " sync " ^p ^ String.concat "_" m ^ string_par c_of_expr el ^ "; " ^ e_c
-    | PendExp (il)     -> c_e ^ " pend " ^ p ^ String.concat "_" il ^ "; " ^ e_c 
-    | IntExp (i)       -> string_of_int i
-    | CharExp (c)      -> ecit ^ String.make 1 c ^ ecit
-    | BoolExp (b)      -> string_of_bool b
-    | RT_Rand (e)      -> "RT_rand(" ^ c_of_expr e ^ ")" 
+    | IdExp (idl)           -> p ^ String.concat "_" idl
+    | CallExp (m, el)       -> c_e ^ " sync " ^ p ^ String.concat "_" m ^ string_par c_of_expr el ^ "; " ^ e_c
+    | AsyncExp (pr, il, el) -> c_e ^ " async " ^ string_of_int pr ^ " " ^ p ^ String.concat "_" il ^ string_par c_of_expr el ^ "; " ^ e_c      
+    | PendExp _             -> raise (RtfmError ("PendExp not implemented"))
+    | IntExp (i)            -> string_of_int i
+    | CharExp (c)           -> ecit ^ String.make 1 c ^ ecit
+    | BoolExp (b)           -> string_of_bool b
+    | RT_Rand (e)           -> "RT_rand(" ^ c_of_expr e ^ ")" 
   in
-  
-  (*
-  let c_t_of_mPArg = function
-    | MPArg (t, _)     -> string_of_pType t
-  in
-  *)
   
   let c_of_mPArg = function
     | MPArg (t, i) -> string_of_pType t ^ " " ^ p ^ i
@@ -42,15 +37,6 @@ let rec c_defs_of_classDef ce path argl cd =
     | RT_Sleep (e)      -> ti ^ tab ^ "RT_sleep(" ^ c_of_expr e ^ ")" 
     | RT_Printf (s, el) -> ti ^ tab ^ "RT_printf(" ^ String.concat ", " ((ec ^ s ^ ec) :: List.map c_of_expr el) ^ ")"
   in
-  
-  (* method prototypes *)
-  (*
-  let c_mp_of_classDecl = function
-    | CMDecl (t, i, al, _) -> string_of_pType t ^ " " ^ p ^ i ^ string_par c_t_of_mPArg al
-    | CTDecl (i, pr, sl)   -> "// task " ^ p ^ i ^ "()"
-    | _ -> raise (UnMatched)
-  in
-  *)
   
   let c_of_classArg cal arg = match cal with
     | CPArg (t, i)      -> "const " ^ string_of_pType t ^ " " ^ p ^ i ^ " = " ^ arg
@@ -76,16 +62,24 @@ let rec c_defs_of_classDef ce path argl cd =
         ^ tab ^ c_e ^ " } " ^ e_c ^ nl
     in
     function
-    | CMDecl (t, i, al, sl) ->
+    | CMDecl (t, i, al, sl)  ->
         c_e ^ " Func " ^ string_of_pType t ^ " " ^ p ^ i ^ string_par c_of_mPArg al ^ "{" ^ nl
         ^ claim_stmts sl
         ^ c_e ^ " } " ^ e_c
-    | CTDecl (i, pr, sl)    -> c_e ^ " " ^ "Task " ^ p ^ i ^ " " ^ string_of_int pr ^ " {" ^ nl
-        ^ claim_stmts sl
-        ^ c_e ^ " } " ^ e_c
-    | CRDecl (sl)           -> c_e ^ " " ^ "Reset {" ^ nl
-        ^ claim_stmts sl
-        ^ c_e ^ " } " ^ e_c
+        
+    | CTDecl (i, al, sl)     -> 
+      let c_data_of_mPArg = function
+        | MPArg (t, i) -> string_of_pType t ^ " " ^ i 
+        
+        in
+        c_e ^ " " ^ "Task " ^ p ^ i ^ string_par c_data_of_mPArg al ^ " { "  ^ nl ^ 
+        claim_stmts sl ^
+        c_e ^ " } " ^ e_c 
+  
+    | CRDecl (sl)            -> 
+        c_e ^ " " ^ "Reset {" ^ nl ^ 
+        claim_stmts sl ^
+        c_e ^ " } " ^ e_c
     | _ -> raise (UnMatched)
   in
   

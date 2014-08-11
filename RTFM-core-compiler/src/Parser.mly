@@ -5,11 +5,10 @@
 
 %token <string> ID
 %token <int>    INTVAL
-%token <bool>   BOOLVAL
 %token <string> STRINGVAL
 %token <string> CCODE
 %token <string> PARAMS
-%token MODULE INCLUDE ISR TASK FUNC RESET PEND AFTER SYNC ENABLE CLAIM HALT SC LCP RCP EOF
+%token MODULE INCLUDE ISR TASK FUNC RESET SYNC ASYNC PEND CLAIM SC LCP RCP EOF
 
 %{
   open AST 
@@ -22,25 +21,23 @@
 %%
 
 prog:
-  | MODULE ID use* top* EOF         { Some (Prog ($2,$3, $4)) }
-  | use* top* EOF                   { Some (Prog ("",$1, $2)) }
+  | MODULE ID use* top* EOF                 { Some (Prog ($2,$3, $4)) }
+  | use* top* EOF                           { Some (Prog ("",$1, $2)) }
   
 use:
-  | INCLUDE STRINGVAL                      { $2 }
+  | INCLUDE STRINGVAL                       { $2 }
     
 top:
-  | CCODE                           { TopC ($1) }
-  | ISR ID INTVAL LCP stmt* RCP     { Isr (HARD, $2, $3, $5) }
-  | TASK ID INTVAL LCP stmt* RCP    { Isr (SOFT, $2, $3, $5) }
-  | FUNC ID ID PARAMS LCP stmt* RCP { Func ($2, $3, $4, $6) } 
-  | RESET LCP stmt* RCP             { Reset ($3) }
+  | CCODE                                   { TopC ($1) }
+  | ISR INTVAL ID LCP stmt* RCP             { Isr ($2, $3, $5) }
+  | FUNC ID ID PARAMS LCP stmt* RCP         { Func ($2, $3, $4, $6) } 
+  | TASK ID PARAMS LCP stmt* RCP            { TaskDef ($2, $3, $5) }
+  | RESET LCP stmt* RCP                     { Reset ($3) }
               
 stmt:
-  | CCODE                           { ClaimC ($1) }
-  | CLAIM ID LCP stmt* RCP          { Claim ($2, $4) }
-  | PEND ID SC                      { Pend ($2) }             
-  | PEND ID AFTER INTVAL SC         { PendAfter ($2, $4) }
-  | SYNC ID PARAMS SC               { Sync ($2, $3) }
-  | ENABLE BOOLVAL SC               { Enable ($2) }
-  | HALT SC                         { Halt }  
+  | CCODE                                   { ClaimC ($1) }
+  | CLAIM ID LCP stmt* RCP                  { Claim ($2, $4) }
+  | PEND ID SC                              { Pend ($2) }             
+  | ASYNC INTVAL ID PARAMS SC               { Async ($2, $3, $4) }             
+  | SYNC ID PARAMS SC                       { Sync ($2, $3) }
   

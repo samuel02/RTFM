@@ -10,9 +10,8 @@
    | PEND
    | AFTER
    | SYNC
-   | ENABLE
+   | ASYNC
    | CLAIM
-   | HALT
    | ISR
    | TASK
    | FUNC
@@ -52,11 +51,10 @@ rule lex = parse
   | "module"             { MODULE }
   | "include"            { INCLUDE }
   | "pend"               { PEND }
-  | "after"              { AFTER }
+(*  | "after"              { AFTER } *)
   | "sync"               { SYNC }
-  | "enable"             { ENABLE }
+  | "async"              { ASYNC }
   | "claim"              { CLAIM }
-  | "halt"               { HALT }
   | "ISR"                { ISR }
   | "Task"               { TASK }
   | "Func"               { FUNC }
@@ -64,8 +62,6 @@ rule lex = parse
   | '{'                  { LCP }
   | '}'                  { RCP }
   | ';'                  { SC } 
-  | "true"               { BOOLVAL (true) }
-  | "false"              { BOOLVAL (false) }
   | digits as i          { INTVAL (int_of_string i) }
   | cite (str as s) cite { STRINGVAL (s) }
   | enter_c              { set_info lexbuf; c (Buffer.create 100) lexbuf }

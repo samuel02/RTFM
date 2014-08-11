@@ -57,9 +57,11 @@ let ceiling p =
   (* tops *)
   and tops rm il = match il with
     | [] -> rm
-    | Isr (_, id, p, s) :: l  -> let rm' = ceil_of_stmts p rm s [id] in
+    | Isr (p, id, s) :: l   -> let rm' = ceil_of_stmts p rm s [id] in
         tops rm' l
-    | Reset (s) :: l          -> let rm' = ceil_of_stmts 0 rm s ["Reset"] in
+    | Task (p, id, _, s) :: l   -> let rm' = ceil_of_stmts p rm s [id] in
+        tops rm' l
+    | Reset (s) :: l        -> let rm' = ceil_of_stmts 0 rm s ["Reset"] in
         tops rm' l
             
     | _ :: l -> tops rm l
@@ -75,9 +77,9 @@ let pl topl rl =
     | e :: l                        -> e :: (add (p, id) l)
   
   and top pl t = match t with
-    | []                      -> pl
-    | Isr (ty, id, p, _) :: l -> let pl' = add (p, string_of_isr_type ty ^ " " ^ id ) pl in top pl' l
-    | _ :: l                  -> top pl l
+    | []                           -> pl
+    | Isr (p, id,  _) :: l         -> let pl' = add (p, id ) pl in top pl' l
+    | _ :: l                       -> top pl l
   
   and res pl rl = match rl with
     | []           -> pl

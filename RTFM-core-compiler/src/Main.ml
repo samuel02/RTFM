@@ -9,7 +9,7 @@ open AST
 open SRP
 open IsrVector
 open IsrCGen
-open CGen
+open CGenPT 
 open Dot
 open Locks
 open Error
@@ -57,11 +57,21 @@ let main () =
   let oc = open_out opt.outfile in
   try
     let mTops = parse_prog "" opt.infile in
-    let rm = ceiling mTops in
+    
+    if opt.d_ast then p_stderr (string_of_tops mTops);
+    
+    
+    let pnt = TaskGen.tasks_of_p mTops in
+    
+    p_stderr ("Tasks created:" ^ nl ^ string_of_tops pnt);
+    let meTops = pnt @ mTops in
+           
+    let rm = ceiling meTops in
     if opt.verbose then begin
       p_stderr ("Resource ceilings:" ^ nl ^ string_of_r rm );
       p_stderr ("Tasks/ISRs per priority: " ^ nl^ string_of (pl mTops rm) );
     end;
+    
     
     (* dot for task/resource structure *)
     if opt.dotout then begin
@@ -99,13 +109,13 @@ let main () =
     
     | RTFM_PT ->
     (* generate c code *)
-        let tasks = task_vector mTops in
+        let tasks = task_vector meTops in
         p_stderr ("Tasks : " ^ String.concat ", " (List.map snd tasks) ^ nl );
-        p_oc oc (c_of_p mTops tasks rm);
+        p_oc oc (c_of_p meTops tasks rm);
         
         (* comupte cyclic dependencies *)
-        let dep = dep_of_p mTops in
-        let e = entry mTops in
+        let dep = dep_of_p meTops in
+        let e = entry meTops in
         if (opt.verbose) then begin
           p_stderr (string_of_dep dep);
           p_stderr (string_of_entry e);
@@ -115,7 +125,7 @@ let main () =
         if (opt.ldotout) then begin
           let ocl = open_out opt.ldotfile in
           begin
-            p_oc ocl (dot_of_dep dep mTops);
+            p_oc ocl (dot_of_dep dep meTops);
             close_out ocl;
           end;
         end;
@@ -125,7 +135,8 @@ let main () =
                 "Deadlock free execution can be guaranteed " ^ nl ^
                 "Topological order obtained: " ^ (String.concat ", " top) ^ nl
               )
-        | None -> p_stderr "Exiting";
+        | None -> p_stderr "Exiting";  
+          
   (* exception handling *)
   with
   | RtfmError msg -> p_stderr msg;
