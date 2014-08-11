@@ -14,6 +14,7 @@ class Root<> {
        
     Reset {
         Async 1 task(1, 2);
-        Async 1 t.t(1,2);
+        Async 3 task(1, 2);
+        Async 2 t.t(1,2);
     } 
 }
