@@ -1,4 +1,8 @@
-(* Locks.ml *)
+(* Copyright Per Lindgren 2014, see the file "LICENSE" *)
+(* for the full license governing this code.           *)
+
+(* RTFM-core/Locks *)
+
 open Common
 open AST
 open SRP
@@ -7,16 +11,16 @@ open SRP
 let dep_of_p p = 
   (* stmts *)
   let rec stmts cr sl = match sl with
-    | [] 					-> []
-    | Claim (id, s) :: l 	-> (cr, id) :: stmts id s @ stmts id l
-    | Sync (sid, _) :: l 	-> (stmts cr (lookup sid p)) @ stmts cr l 
-    | _ :: l 				-> stmts cr l 
+    | []                    -> []
+    | Claim (id, s) :: l    -> (cr, id) :: stmts id s @ stmts id l
+    | Sync (sid, _) :: l    -> (stmts cr (lookup sid p)) @ stmts cr l 
+    | _ :: l                -> stmts cr l 
       
   (* tops *)
   and tops il = match il with
-    | [] 						-> []
-    | Isr (_, id, p, s) :: l	-> (stmts id s) @ tops l  
-    | _ :: l 					-> tops l 
+    | []                        -> []
+    | Isr (_, id, p, s) :: l    -> (stmts id s) @ tops l  
+    | _ :: l                    -> tops l 
   in
   (* prog *)
   tops p 
@@ -27,9 +31,9 @@ let string_of_dep dep =
     
     
 let rec entry ll = match ll with
-  | []						-> []
-  | Isr (_, id, _, _) :: l	-> id :: entry l 
-  | _ :: l					-> entry l
+  | []                      -> []
+  | Isr (_, id, _, _) :: l  -> id :: entry l 
+  | _ :: l                  -> entry l
     
     
 let string_of_entry e = "Entry points :" ^ String.concat ", " e ^ nl  
@@ -45,8 +49,8 @@ let dot_of_dep dep p =
    let rec hull dep =
    let rec iter ll  = 
    match ll with
-   | [] 			-> ([],[])
-   | (a,b) :: l 	-> 
+   | []             -> ([],[])
+   | (a,b) :: l     -> 
    try
    let c = List.assoc b ll in
    if (a = c) then 
@@ -71,12 +75,12 @@ let dot_of_dep dep p =
    
    let rec add i ll = 
    match ll with
-   | [] 		-> [(i, 1)]
+   | []         -> [(i, 1)]
    | (a, b)::l -> if i = a then (a, b + 1) :: l else (a, b) :: add i l
    
    let rec sub i ll = 
    match ll with
-   | [] 		-> raise (RtfmError("Internal error, sub " ^ i))
+   | []         -> raise (RtfmError("Internal error, sub " ^ i))
    | (a, b)::l -> 
    if i = a then 
    if b = 0 then 
@@ -89,8 +93,8 @@ let dot_of_dep dep p =
    let count dep =
    let rec coun ll nr =
    match ll with
-   | [] 			-> nr
-   | (a, b) :: l	-> coun l (add b nr)
+   | []             -> nr
+   | (a, b) :: l    -> coun l (add b nr)
    in        
    coun dep []      
    
@@ -102,8 +106,8 @@ let dot_of_dep dep p =
    let topsort e dep count =
    (* traverses graphs starting from entry point, resulting in (reamin, count) *)
    let rec travelgraph f (remain, count) noncon = match remain with
-   | [] 			-> (noncon, count)
-   | (a, b) :: l 	-> p_stderr ("f: (a, b) " ^ f ^ " : " ^ a ^ ", " ^ b ^ nl);
+   | []             -> (noncon, count)
+   | (a, b) :: l    -> p_stderr ("f: (a, b) " ^ f ^ " : " ^ a ^ ", " ^ b ^ nl);
    if (f = a) then begin
    p_stderr ("f=a" ^ nl ) ;
    let (ncount, iszero) = sub b count in 
@@ -124,15 +128,15 @@ let dot_of_dep dep p =
    and travelentries el (remain, count) = 
    p_stderr ("te : remain " ^ nl ^ string_of_dep remain ^ nl ^ " te: count " ^ string_of_count count);
    match el with
-   | []		-> (remain, count)
-   | f :: l 	-> p_stderr (" f " ^ f ^ nl); travelentries l (travelgraph f (remain, count) [])  
+   | []     -> (remain, count)
+   | f :: l     -> p_stderr (" f " ^ f ^ nl); travelentries l (travelgraph f (remain, count) [])  
    
    in
    travelentries e (dep, count)
  *)
     
 let rec successors n = function
-  [] 				-> []
+  []                -> []
   | (s, t) :: edges ->
     if s = n then
       t :: successors n edges
@@ -143,8 +147,8 @@ exception Cyclic of string
   
 let tsort edges entries =
   let rec sort path visited = function
-    []			-> visited
-    | n::nodes 	->
+    []          -> visited
+    | n::nodes  ->
       if List.mem n path then 
         raise (Cyclic ("Potential deadlock involving " ^ n )) 
       else
@@ -161,26 +165,3 @@ let tsort edges entries =
     Some (sort [] [] entries)
   with
     | Cyclic msg -> p_stderr (msg); None 
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      

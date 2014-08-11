@@ -1,11 +1,15 @@
 /*
- * RTFM-RT.c
- * WIN32 run-time system for RTFM-core
- * (C) 2014 Per Lindgren, Marcus Lindner
- */
+* RTFM-RT.h
+* WIN32 run-time for RTFM-core
+* (C) 2014 Per Lindgren, Marcus Lindner
+*/
+
 #include <stdio.h>
 #include <windows.h>
 #include <stdio.h>
+
+#define DEBUG
+#define DEBUG_RT
 
 #ifdef DEBUG
 #define DP(fmt, ...) {fprintf(stderr, "\t\t"fmt"\n", ##__VA_ARGS__);}
@@ -21,8 +25,8 @@
 #define DPT(fmt, ...)
 #endif
 
-#include "RTFM-WIN.h"
-#include "../autogen.c"
+#include "RTFM-RT.h"
+#include "autogen.x"
 
 /* data structures for the threads and semaphores */
 HANDLE			res_mutex[RES_NR];
@@ -34,23 +38,24 @@ void error(char* s) {
 }
 
 /* RTFM_API */
-void RTFM_lock(int r) {
-	DP("Claim     :%s", res_names[r]);
+void RTFM_lock(int f, int r) {
+	DP("Claim   :%s->%s", entry_names[f], res_names[r]);
 	if (WaitForSingleObject(
 		res_mutex[r],		// handle to semaphore
 		INFINITE			// block forever
 		)) error("WaitForSingleObject: Mutex");
+	DP("Claimed :%s->%s", entry_names[f], res_names[r]);
 }
 
-void RTFM_unlock(int r) {
-	DP("Release   :%s", res_names[r]);
+void RTFM_unlock(int f, int r) {
+	DP("Release :%s<-%s", entry_names[f], res_names[r]);
 	if (!ReleaseMutex(
 			res_mutex[r]	// handle to semaphore
 	)) error("ReleaseMutex");
 }
 
-void RTFM_pend(int t) {
-	DP("Pend      :%s", entry_names[t]);
+void RTFM_pend(int f, int t) {
+	DP("Pend    :%s->%s", entry_names[f], entry_names[t]);
 	BOOL b = ReleaseSemaphore(
 		pend_sem[t],		// handle to semaphore
 		1,					// increase count by one
@@ -69,7 +74,8 @@ DWORD WINAPI MyThreadFunction(LPVOID lpParam) {
 			pend_sem[id],	// handle to semaphore
 			INFINITE		// block forever
 			)) error("WaitForSingleObject: Sempahore");
-		entry_func[id]();	// dispatch the task
+		DP("Inovke  :%s", entry_names[id]);
+		entry_func[id](id);	// dispatch the task
 	}
 	return 0L;
 }
@@ -102,8 +108,7 @@ int main() {
 	}
 
 	HANDLE hThreadArray[ENTRY_NR];
-	
-	for (i = 0; i < ENTRY_NR; i++) {
+	for (i = 1; i < ENTRY_NR; i++) {
 		if (!(pend_sem[i] = CreateSemaphore(
 			NULL,					// default security attributes
 			0,						// initial count
@@ -123,10 +128,7 @@ int main() {
 		DPT("thread %d created\n", i)
 	}
 	
-#ifdef USER_RESET
-	user_reset();
-#endif
-
+	user_reset(0);
 	while (1)
 		;
 }

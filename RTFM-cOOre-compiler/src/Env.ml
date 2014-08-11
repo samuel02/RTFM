@@ -1,4 +1,8 @@
-(* Env *)
+(* Copyright Per Lindgren 2014, see the file "LICENSE" *)
+(* for the full license governing this code.           *)
+
+(* RTFM-cOOre/Env *)
+
 open Common
 open AST
   

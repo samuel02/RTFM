@@ -1,13 +1,18 @@
+(* Copyright Per Lindgren 2014, see the file "LICENSE" *)
+(* for the full license governing this code.           *)
+
+(* RTFM-core/IsrVector *)
+
 type isr_type =
-  | K (* reserved by the RTFM kernel 			         	*)
-  | R (* reserved by ARM                                    *) 
-  | O (* overridable but has default implementation 		*)
-  | F (* free to use by the application 					*)
-  | U (* used by the application 							*)
+  | K (* reserved by the RTFM kernel                *)
+  | R (* reserved by ARM                            *) 
+  | O (* overridable but has default implementation *)
+  | F (* free to use by the application             *)
+  | U (* used by the application                    *)
     
 let isr_vector = [
     (* Core Level - CM3 *)
-    (K, "&_vStackTop"); 						   (* The initial stack pointer *)
+    (K, "&_vStackTop");                             (* The initial stack pointer *)
     (K, "ResetISR");                               (* The reset handler *)
     (O, "NMI_Handler");                            (* The NMI handler *)
     (O, "HardFault_Handler");                      (* The hard fault handler *)

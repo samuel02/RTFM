@@ -3,8 +3,9 @@
  * Pthread run-time system implementation for RTFM-core
  * (C) 2014 Per Lindgren, Marcus Lindner (WINAPI)
  *
- * DEBUG		enable internal debugging of the run-time
- * DEBUG_RT
+ * DEBUG		enable tracing of RTFM_RT calls (Application <-> RTFM_RT)
+ * DEBUG_RT		enable tracing of POSIX calls   (RTFM <-> pthreads library)
+ * OSX			when defined the _GNU_SOURCE is not defined (which is OK under OSX)
  *
  * Linux
  *  Ctrl-z to escape to terminal
@@ -26,7 +27,7 @@
 #endif
 
 #ifdef DEBUG_RT
-#define DPT(fmt, ...) {fprintf(stderr, "\t\t\t\t\t\t\t\t"fmt"\n", ##__VA_ARGS__);}
+#define DPT(fmt, ...) {fprintf(stderr, "\t\t\t\t\t\t\t\t\t"fmt"\n", ##__VA_ARGS__);}
 #else
 #define DPT(fmt, ...)
 #endif
@@ -35,9 +36,9 @@
 #define _GNU_SOURCE
 #endif
 
-#include <unistd.h>		// sleep etc.
-#include <stdio.h>		// printf etc.
-#include <stdlib.h>		// rand etc.
+#include <unistd.h>			// sleep etc.
+#include <stdio.h>			// printf etc.
+#include <stdlib.h>			// rand etc.
 #include "RTFM-PT.h"
 
 #include "../Application/autogen.c"
@@ -90,63 +91,64 @@ void s_wait(sem_t *s) {
 
 /* RTFM_API */
 void RTFM_lock(int f, int r) {
-	DP("Claim   :%s->%s", entry_names[f], res_names[r]);
-	DPT("pthread_mutex_lock(&res_mutex[%d])", r);
+	DP("Claim    :%s->%s", entry_names[f], res_names[r]);
+	DPT("RTFM_lock   :pthread_mutex_lock(&res_mutex[%d])", r);
 	m_lock(&res_mutex[r]);
-	DPT("pthread_mutex_locked(&res_mutex[%d])", r);
-	DP("Claimed :%s->%s", entry_names[f], res_names[r]);
+	DPT("RTFM_lock   :pthread_mutex_locked(&res_mutex[%d])", r);
+	DP("Claimed  :%s->%s", entry_names[f], res_names[r]);
 
 }
 
 void RTFM_unlock(int f, int r) {
-	DP("Release :%s<-%s", entry_names[f],res_names[r]);
-	DPT("pthread_mutex_unlock(res_mutex[%d])", r)
+	DP("Release  :%s<-%s", entry_names[f],res_names[r]);
+	DPT("RTFM_unlock :pthread_mutex_unlock(res_mutex[%d])", r)
 	m_unlock(&res_mutex[r]);
 }
 
 void RTFM_pend(int f, int t) {
 	int lcount;
-	DP("Pend    :%s->%s", entry_names[f], entry_names[t]);
+	DP("Pend     :%s->%s", entry_names[f], entry_names[t]);
 
-	DPT("pthread_mutex_lock(&pend_count_mutex[%d])", t);
+	DPT("RTFM_pend   :pthread_mutex_lock(&pend_count_mutex[%d])", t);
 	m_lock(&pend_count_mutex[t]);
 	{   // inside lock of the counter
 		lcount = pend_count[t];
 		if (lcount == 0)
+			DPT("RTFM_pend   :pend_count[%d]++", t);
 			pend_count[t]++; // may not be atomic, hence needs a lock
 	}
-	DPT("pthread_mutex_unlock(&pend_count_mutex[%d])", t);
+	DPT("RTFM_pend   :pthread_mutex_unlock(&pend_count_mutex[%d])", t);
 	m_unlock(&pend_count_mutex[t]);
 
 	if (lcount == 0) { // just a single outstanding semaphore/mimic the single buffer pend of interrupt hardware
-		DPT("pend_sem[%d], Post :semaphore posted %s", t, entry_names[t])
+		DPT("RTFM_pend   :pend_sem[%d], Post :semaphore posted %s", t, entry_names[t])
 		s_post(pend_sem[t]);
 	} else {
-		DPT("Post :semaphore discarded, already outstanding");
+		DPT("RTFM_pend   :Post :semaphore discarded, already outstanding");
 	}
 }
 
 /* run-time system implementation */
 void *thread_handler(void *id_ptr) {
 	int id = *((int *) id_ptr);
-	DPT("Working thread %d started : Task %s", id, entry_names[id]);
+	DPT("thread      :Working thread %d started : Task %s", id, entry_names[id]);
 
 	while (1) {
-		DP("Task blocked (awaiting invocation): %s", entry_names[id]);
-		DPT("sem_wait(pend_sem[%d])", id);
+		DP("Task wait:%s", entry_names[id]);
+		DPT("thread      :sem_wait(pend_sem[%d])", id);
 		s_wait(pend_sem[id]);
 		// consume the semaphore (decrement it's value)
-		DPT("pthread_mutex_lock(&pend_count_mutex[%d])", id);
+		DPT("thread      :pthread_mutex_lock(&pend_count_mutex[%d])", id);
 		m_lock(&pend_count_mutex[id]);
 		{   // inside lock of the counter
-			DPT("pend_count[%d]--", id);
+			DPT("thread      :pend_count[%d]--", id);
 			pend_count[id]--; // may not be atomic, hence needs a lock
 		}
-		DPT("pthread_mutex_unlock(&pend_count_mutex[%d])", id);
+		DPT("thread      :pthread_mutex_unlock(&pend_count_mutex[%d])", id);
 		m_unlock(&pend_count_mutex[id]);
 
-		DPT("entry_func[%d](%d)", id, id);
-		DP("Task invocation: %s", entry_names[id]);
+		DPT("thread      :entry_func[%d](%d)", id, id);
+		DP("Task run :%s", entry_names[id]);
 		entry_func[id](id); // dispatch the task
 	}
 	return NULL;
@@ -154,17 +156,18 @@ void *thread_handler(void *id_ptr) {
 
 void dump_priorities() {
 	int i;
-	printf("\nResource ceilings:\n");
+	fprintf(stderr, "\nResource ceilings:\n");
 	for (i = 0; i < RES_NR; i++)
-		printf("Res %d \t ceiling %d\n", i,  ceilings[i]);
-	printf("\nTask priorities:\n");
+		fprintf(stderr, "Res %d \t ceiling %d\n", i,  ceilings[i]);
+	fprintf(stderr, "\nTask priorities:\n");
 	for (i = 0; i < ENTRY_NR; i++)
-		printf("Task %d \tpriority %d \n",i, entry_prio[i]);
+		fprintf(stderr, "Task %d \tpriority %d \n",i, entry_prio[i]);
 }
 
 int main() {
 	fprintf(stderr, "RTFM-RT Per Lindgren (C) 2014 \n");
-	fprintf(stderr, "Executing %s : RTFM-RT Options : ", CORE_FILE_INFO);
+	fprintf(stderr, "%s", CORE_FILE_INFO);
+	fprintf(stderr, "RTFM-RT run-time options : ");
 #ifdef DEBUG
 	fprintf(stderr, "-DEBUG ");
 #endif
@@ -182,7 +185,7 @@ int main() {
 	int s, i;
 
 	DF(
-		printf("POSIX priorities: np_min %d, p_max %d\n\n", p_min, p_max );
+		fprintf(stderr, "POSIX priorities: np_min %d, p_max %d\n\n", p_min, p_max );
 		dump_priorities();
 	);
 
@@ -193,13 +196,13 @@ int main() {
 		entry_prio[i] = min(p_max, entry_prio[i] + p_min);
 
 	DF(
-		printf("\nAfter re-mapping priorities to POSIX priorities.\n");
+		fprintf(stderr, "\nAfter re-mapping priorities to POSIX priorities.\n");
 		dump_priorities();
 	);
 
 	/* Resource management */
 	pthread_mutexattr_t mutexattr;
-	DPT("pthread_mutexattr_init(&mutexattr)");
+	DPT("main        :pthread_mutexattr_init(&mutexattr)");
 	if ((s = pthread_mutexattr_init(&mutexattr)))
 		handle_error_en(s, "pthread_mutexattr_init");
 	/*
@@ -210,7 +213,7 @@ int main() {
 	 *
 	 * RTFM: Essentially this implements the system ceiling of SRP.
 	 */
-	DPT("pthread_mutexattr_setprotocol(&mutexattr, PTHREAD_PRIO_PROTECT)");
+	DPT("main        :pthread_mutexattr_setprotocol(&mutexattr, PTHREAD_PRIO_PROTECT)");
 	if ((s = pthread_mutexattr_setprotocol(&mutexattr, PTHREAD_PRIO_PROTECT)))
 		handle_error_en(s, "pthread_mutexattr_setprotocol");
 
@@ -227,7 +230,7 @@ int main() {
 		 * The values of prioceiling will be within the maximum range of priorities defined under the SCHED_FIFO
 		 * scheduling policy.
 		 */
-		DPT("pthread_mutexattr_setprioceiling(&mutexattr, ceilings[%d]=%d)", i, ceilings[i]);
+		DPT("main        :pthread_mutexattr_setprioceiling(&mutexattr, ceilings[%d]=%d)", i, ceilings[i]);
 		if ((s = pthread_mutexattr_setprioceiling(&mutexattr, ceilings[i])))
 			handle_error_en(s, "pthread_mutexattr_setprioceiling");
 
@@ -236,7 +239,7 @@ int main() {
 		 * same as passing the address of a default mutex attributes object.
 		 * Upon successful initialisation, the state of the mutex becomes initialised and unlocked.
 		 */
-		DPT("pthread_mutex_init(res_mutex[%d])", i);
+		DPT("main        :pthread_mutex_init(res_mutex[%d])", i);
 		if ((s = pthread_mutex_init(&res_mutex[i], &mutexattr)))
 			handle_error_en(s, "pthread_mutex_init");
 	}
@@ -245,7 +248,7 @@ int main() {
 	int id[ENTRY_NR]; // unique identifier for each thread
 
 	pthread_attr_t attr;
-	DPT("pthread_attr_init(&attr)");
+	DPT("main        :pthread_attr_init(&attr)");
 	if ((s = pthread_attr_init(&attr)))
 		handle_error_en(s, "pthread_attr_init");
 
@@ -255,7 +258,7 @@ int main() {
 	 * the thread that has been on the list the longest time, and the tail is the thread that has
 	 * been on the list the shortest time.
 	 */
-	DPT("pthread_attr_setschedpolicy(&attr, SCHED_FIFO)");
+	DPT("main        :pthread_attr_setschedpolicy(&attr, SCHED_FIFO)");
 	if ((s = pthread_attr_setschedpolicy(&attr, SCHED_FIFO)))
 		handle_error_en(s, "pthread_attr_setschedpolicy");
 
@@ -263,14 +266,14 @@ int main() {
 	 * Specifies that the scheduling policy and associated attributes are to be set to the
 	 * corresponding values from this attribute object.
 	 */
-	DPT("pthread_attr_setinheritsched(&attr, PTHREAD_EXPLICIT_SCHED)");
+	DPT("main        :pthread_attr_setinheritsched(&attr, PTHREAD_EXPLICIT_SCHED)");
 	if ((s = pthread_attr_setinheritsched(&attr, PTHREAD_EXPLICIT_SCHED)))
 		handle_error_en(s, "pthread_attr_setinheritsched");
 
 	/*
 	 * Reset the mutex attr, alternatively compute the real pending ceiling
 	 */
-	DPT("pthread_mutexattr_init(&mutexattr)");
+	DPT("main        :pthread_mutexattr_init(&mutexattr)");
 	if ((s = pthread_mutexattr_init(&mutexattr)))
 			handle_error_en(s, "pthread_mutexattr_init");
 
@@ -282,52 +285,52 @@ int main() {
 		 * The named semaphore named name is removed.
 		 */
 		if ((s = sem_unlink(entry_names[i]))) {
-			DPT("Warning sem_unlinked failed, the named semaphore did not exist\n")
+			DPT("main        :Warning sem_unlinked failed, the named semaphore did not exist\n")
 		}
 		/*
 		 * The named semaphore named name is initialized and opened as specified by
 		 * the argument oflag and a semaphore descriptor is returned to the calling process.
 		 */
-		DPT("sem_open(entry_names[%d], O_CREAT, O_RDWR, 0",i)
+		DPT("main        :sem_open(entry_names[%d], O_CREAT, O_RDWR, 0",i)
 		pend_sem[i] = sem_open(entry_names[i], O_CREAT, O_RDWR, 0);
 		if (pend_sem[i] == SEM_FAILED)
 			handle_error_en(errno, "sem_open");
 
-		DPT("pthread_mutex_init(pend_count_mutex[%d], &mutexattr))", i);
+		DPT("main        :pthread_mutex_init(pend_count_mutex[%d], &mutexattr))", i);
 		if ((s = pthread_mutex_init(&pend_count_mutex[i], &mutexattr)))
 			handle_error_en(s, "pthread_mutex_init");
 
 		/* pend_count_mutex initialization*/
-		DPT("pthread_mutexattr_setprioceiling(&mutexattr, entry_prio[%d]=%d)", i, entry_prio[i]);
+		DPT("main        :pthread_mutexattr_setprioceiling(&mutexattr, entry_prio[%d]=%d)", i, entry_prio[i]);
 		if ((s = pthread_mutexattr_setprioceiling(&mutexattr, entry_prio[i])))
 			handle_error_en(s, "pthread_mutexattr_setprioceiling");
 
 
 		/* pthread initialization */
 		param.sched_priority = entry_prio[i];
-		DPT("pthread_attr_setschedparam(&attr, &param)");
+		DPT("main        :pthread_attr_setschedparam(&attr, &param)");
 		if ((s = pthread_attr_setschedparam(&attr, &param)))
 			handle_error_en(s, "pthread_attr_setschedparam");
 
 		id[i] = i;
-		DPT("pthread_create(&thread[%d], &attr, thread_handler, &id[%d])", i, i);
+		DPT("main        :pthread_create(&thread[%d], &attr, thread_handler, &id[%d])", i, i);
 		if ((s = pthread_create(&thread[i], &attr, thread_handler, &id[i])))
 			handle_error_en(s, "pthread_create\n");
 	}
 
 	/* Set the main thread at lowest priority (this is the thread that will be our (possibly non-terminating) background task, performed at Reset */
-	DPT("pthread_self()");
+	DPT("main        :pthread_self()");
 	pthread_t this_thread = pthread_self();
 	param.sched_priority = p_min;
 
-    DPT("pthread_setschedparam(this_thread, SCHED_FIFO, &param)");
+    DPT("main        :pthread_setschedparam(this_thread, SCHED_FIFO, &param)");
 	if ((s = pthread_setschedparam(this_thread, SCHED_FIFO, &param)))
 		handle_error_en(s, "pthread_setschedparam\n");
 
 	sleep(1); /* let the setup be done until continuing */
 
 	printf("-----------------------------------------------------------------------------------------------------------------------\n");
-	DPT("user_reset(user_reset_nr);");
+	DPT("main        :user_reset(user_reset_nr);");
 	user_reset(user_reset_nr);
 	while (1)
 		sleep(1);

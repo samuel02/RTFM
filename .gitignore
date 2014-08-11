@@ -9,6 +9,19 @@ affinity
 *.native
 
 #################
+## core Compiler
+#################
+RTFM-core-compiler/src/Common.ml
+RTFM-core-compiler/src/Error.ml
+
+#################
+## cOOre Compiler
+#################
+RTFM-cOOre-compiler/src/Common.ml
+RTFM-cOOre-compiler/src/Error.ml
+
+
+#################
 ## OCaml
 #################
 *.annot

@@ -1,5 +1,10 @@
-(* Cmd *)
+(* Copyright Per Lindgren 2014, see the file "LICENSE" *)
+(* for the full license governing this code.           *)
+
+(* RTFM-core/Cmd *)
+
 open Common
+open Options
   
 let usage = 
   "The RTFM-core compiler v1.0, Per Lindgren (c) 2014" ^ nl ^ nl
@@ -33,22 +38,22 @@ let usage =
     ^ nl
     ^ "Options summary:"
     
-let o_gcc		    = ref false
-let o_ccomp		  = ref false
-let o_clang		  = ref false
+let o_gcc       = ref false
+let o_ccomp     = ref false
+let o_clang     = ref false
   
-let o_km3		    = ref false
-let o_ptl		    = ref false  
+let o_km3       = ref false
+let o_ptl       = ref false  
   
 let o_verbose   = ref false
-let o_debug		  = ref false
+let o_debug     = ref false
   
-let f_infile	  = ref ""
-let f_outfile 	= ref ""
-let f_dotfile 	= ref ""
-let f_ldotfile 	= ref ""
+let f_infile    = ref ""
+let f_outfile   = ref ""
+let f_dotfile   = ref ""
+let f_ldotfile  = ref ""
     
-let d_ast		= ref false  
+let d_ast       = ref false  
   
 let speclist = 
   [
@@ -57,17 +62,17 @@ let speclist =
     ("-gv_task", Arg.Set_string f_dotfile,  "\t\t: graphviz file (default none)");
     ("-gv_res", Arg.Set_string f_ldotfile,"\t: graphviz file (default none)");
     
-    ("-gcc", Arg.Set o_gcc, 		  "\t\t: for gcc (default)");
-    ("-ccomp", Arg.Set o_ccomp, 		"\t: for ccomp");
-    ("-clang", Arg.Set o_clang, 		"\t: for clang");
+    ("-gcc", Arg.Set o_gcc,       "\t\t: for gcc (default)");
+    ("-ccomp", Arg.Set o_ccomp,     "\t: for ccomp");
+    ("-clang", Arg.Set o_clang,     "\t: for clang");
     
-    ("-rt", Arg.Set o_ptl,  		  "\t\t: for Pthread Linux (default)");
-    ("-km3", Arg.Set o_km3, 		  "\t\t: for ARM Cortex M3");
+    ("-rt", Arg.Set o_ptl,        "\t\t: for Pthread Linux (default)");
+    ("-km3", Arg.Set o_km3,       "\t\t: for ARM Cortex M3");
     
-    ("-v", Arg.Set o_verbose, 		  "\t\t: verbose mode");
-    ("-D", Arg.Set o_debug, 		  "\t\t: debug mode");
+    ("-v", Arg.Set o_verbose,       "\t\t: verbose mode");
+    ("-D", Arg.Set o_debug,       "\t\t: debug mode");
   
-    ("-d_ast", Arg.Set d_ast, 		    "\t: dump AST");   
+    ("-d_ast", Arg.Set d_ast,         "\t: dump AST");   
   ]
     
 (* check if e is a file extension of s *)    
@@ -112,7 +117,7 @@ let cmd =
     opt.target <- if (!o_km3) then RTFM_KERNEL else RTFM_PT;
     
     (* general options *)
-    opt.debug 	<- ! o_debug;
+    opt.debug   <- ! o_debug;
     opt.verbose <- ! o_verbose;
     
     (* additional options *)

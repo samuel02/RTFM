@@ -1,20 +1,16 @@
 
-class A <> {
-    int m(int c) {
-        d := cb(1, 'c');
-        return d;
-    }
-    
-    Task q 3 {
-        c := b;
-        a.Task();
-    }
-}
-
 class Root<> {
-  A<> a;
-  
-  Reset {
+    Task task1 1 {
+        RT_printf("task 1\n");
+        Pend task2;
+    }
     
-  } 
+    Task task2 1 {
+        RT_printf("task 2\n");
+    }
+
+    Reset {
+        RT_printf("User reset\n");
+        Pend task1;
+    } 
 }

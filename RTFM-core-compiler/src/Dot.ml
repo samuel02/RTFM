@@ -1,5 +1,10 @@
-(* Dot *)
+(* Copyright Per Lindgren 2014, see the file "LICENSE" *)
+(* for the full license governing this code.           *)
+
+(* RTFM-core/Dot *)
+
 open Common
+open Options
 open AST
 open SRP
   
@@ -22,9 +27,9 @@ type dtop =
 (* strip from leading ws and end at internal nl *)
 let strip str = 
   let printable c = match c with
-    | 'a'..'z' | 'A'..'Z' | '0' .. '9' | '/' | '*' | '+' | '-' | '%' | '$' | '&' | '=' | '<' | '>' | '(' | ')' | '[' | ']'   	
+    | 'a'..'z' | 'A'..'Z' | '0' .. '9' | '/' | '*' | '+' | '-' | '%' | '$' | '&' | '=' | '<' | '>' | '(' | ')' | '[' | ']'    
       -> c
-    | _ 	-> ' ' 
+    | _   -> ' ' 
   in String.trim (String.map printable str)
     
 (* create a record entry *)    
@@ -37,12 +42,12 @@ let d_of_ds d =
     "  <TR><TD port=\"L"^ string_of_int i ^ "\" align=\"LEFT\">" ^ dbg ^ s ^ "</TD></TR>"  
   in
   let st = match d with
-    | DotClaim (i, _, _, s, _)  -> record_line i ("claim " ^ s) 
-    | DotSync (i, _, s)         -> record_line i ("sync " ^ s) 
-    | DotPend (i, _, s)         -> record_line i ("pend " ^ s)
-    | DotPendAfter (i, _, s, ti)-> record_line i ("pendAfter " ^ string_of_int ti ^ " " ^ s)
-    | DotHalt   (i)             -> record_line i ("halt ")
-    | DotC (i, s)               -> record_line i ("#&gt; " ^ strip (String.sub s 0 (min 8 (String.length s))) ^ "...&lt;#")  
+    | DotClaim (i, _, _, s, _)   -> record_line i ("claim " ^ s) 
+    | DotSync (i, _, s)          -> record_line i ("sync " ^ s) 
+    | DotPend (i, _, s)          -> record_line i ("pend " ^ s)
+    | DotPendAfter (i, _, s, ti) -> record_line i ("pendAfter " ^ string_of_int ti ^ " " ^ s)
+    | DotHalt   (i)              -> record_line i ("halt ")
+    | DotC (i, s)                -> record_line i ("#&gt; " ^ strip (String.sub s 0 (min 8 (String.length s))) ^ "...&lt;#")  
   in
   st 
     
@@ -57,14 +62,14 @@ let d_of_dt rl d =
       ^ "</TABLE>>] [shape = none, style=filled, fillcolor =  " ^ c ^ ", margin = 0] " ^ nl 
       in
   let rec d_of_ds_rec id d = match d with
-    | DotClaim (i, cr, ft, s, (Ds (t, l)))	-> (
+    | DotClaim (i, cr, ft, s, (Ds (t, l)))  -> (
                                                  (record t "tan1") l ^ nl 
                                                  ^ ft ^ ":L" ^ string_of_int i ^ ":e -> " ^ t ^ ":n [dir = both, arrowtail = dot, arrowhead = none]" ^ nl
                                                  ^ "{ rank=same; " ^ ec ^ "P" ^ string_of_int (List.assoc cr rl) ^ ec ^ "; " ^ ec ^ t ^ ec ^ "; }" ^ nl 
                                                  ^ String.concat nl (List.map (d_of_ds_rec id) l) ^ nl
                                               )
-    | DotSync (i, ft, id)				 	-> ft ^ ":L" ^ string_of_int i ^ ":e -> " ^ id ^ ":n [arrowhead = none, arrowtail = none]" ^ nl 
-    | DotPend (i, ft, id)				  	-> ft ^ ":L" ^ string_of_int i ^ ":e -> " ^ (* "ISR_" ^ *) id ^ ":n [dir = both, arrowtail = invempty, arrowhead = none, style=dotted]" ^ nl 
+    | DotSync (i, ft, id)                   -> ft ^ ":L" ^ string_of_int i ^ ":e -> " ^ id ^ ":n [arrowhead = none, arrowtail = none]" ^ nl 
+    | DotPend (i, ft, id)                   -> ft ^ ":L" ^ string_of_int i ^ ":e -> " ^ (* "ISR_" ^ *) id ^ ":n [dir = both, arrowtail = invempty, arrowhead = none, style=dotted]" ^ nl 
     | _ -> ""
       
   in      
@@ -77,14 +82,14 @@ let d_of_dt rl d =
     | SOFT -> "" (* default ellipse *)
   in
   match d with
-    | DIsr (ty, id, prio, (Ds (t, l)))	-> (
+    | DIsr (ty, id, prio, (Ds (t, l)))  -> (
                                              (record (id) "lightblue") l ^ cs id l
                                              ^ "{ rank=same; " ^ ec ^ "P" ^ string_of_int prio ^ ec ^ "; " ^ ec ^ id ^ ec ^ "; }" ^ nl 
                                              ^ "ISR_" ^ id ^ " [style=filled, fillcolor = tan3, label=" ^ name_of_isr ty id prio ^ node_of_isr ty ^ "]" ^ nl 
                                              ^ "{ rank=same; ISR; ISR_" ^ id  ^ " ; }" ^ nl
                                              ^ "ISR_" ^ id ^ " -> " ^ id ^ ":nw [arrowhead = none]"^ nl
                                           )
-    | DFunc (t, id, (Ds (i, l))) 		-> (record  (id) "lightgrey") l ^ nl ^ cs id l
+    | DFunc (t, id, (Ds (i, l)))        -> (record  (id) "lightgrey") l ^ nl ^ cs id l
     | DReset (Ds (t, l))                -> (
                                             let id = "User_Reset" in (record (id) "yellow") l ^ nl ^ cs id l ^ nl
                                               ^ "{ rank=source; " ^ id ^ "  ; }" ^ nl 
@@ -99,21 +104,23 @@ let d_of_p p rml =
     if opt.debug then p_stderr ("--- generating unique label " ^ string_of_int !label ^ " ----"^ nl ); 
     let i = !label in
     match s with
-      | Claim (cr, cs) 		-> let de = cr ^ "_" ^ t in DotClaim (i, cr, t, de, Ds (de , List.map (stmts de) cs))
-      | Sync (sid, _) 		-> DotSync (i, t, sid) 
-      | Pend (pid) 			-> DotPend (i, t, pid)
+      | Claim (cr, cs)      -> let de = cr ^ "_" ^ t in DotClaim (i, cr, t, de, Ds (de , List.map (stmts de) cs))
+      | Sync (sid, _)       -> DotSync (i, t, sid) 
+      | Pend (pid)          -> DotPend (i, t, pid)
       | PendAfter (pid, ti) -> DotPendAfter (i, t, pid, ti)
-      | ClaimC (s) 			-> DotC (i, s)
-      | Halt  				-> DotHalt (i)
-      | _					-> raise (RtfmError("Enable not implemented"))      
+      | ClaimC (s)          -> DotC (i, s)
+      | Halt                -> DotHalt (i)
+      | _                   -> raise (RtfmError("Enable not implemented"))      
   in
+  
   (* parse the program entry points *)
   let mytop = function 
     | Isr (t, id, prio, sl) -> DIsr (t, id, prio, Ds ("", (List.map (stmts id) sl) ) )
-    | Func (t, id, _, sl) 	-> DFunc (t, id, Ds ("", (List.map (stmts id) sl) ) )
+    | Func (t, id, _, sl)   -> DFunc (t, id, Ds ("", (List.map (stmts id) sl) ) )
     | Reset (sl)            -> DReset (Ds ("", (List.map (stmts "User_Reset") sl ) ) )
     | _                     -> raise UnMatched 
   in
+  
   (* leftmost column is the prio/priority ceiling legend *)
   let dot_of pl = 
     let def = function

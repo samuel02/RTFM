@@ -1,7 +1,14 @@
+(* Copyright Per Lindgren 2014, see the file "LICENSE" *)
+(* for the full license governing this code.           *)
+
+(* RTFM-cOOre/Main *)
+
 open Common
+open Options
 open AST
 open Env
-open CGen
+open CoreGen
+open Dot
 
 open Error
 open Cmd
@@ -19,19 +26,33 @@ let main () =
     let res = Parser.prog Lexer.lex lexbuf in
     
     match res with
-    | None -> p_stderr ("Not accepted!" ^ nl); exit (-1);
+    | None   -> p_stderr ("Not accepted!" ^ nl); exit (-1);
     | Some p ->
         if opt.verbose then p_stderr ("Parsing succeeded:" ^ nl);
         if opt.d_ast then p_stderr (string_of_prog p);
+        
+        (* check cyclic *)
+        cyclic p;
+        
+        (* dot for task/resource structure *)
+        if opt.dotout then begin
+          let dots = (d_of_p p) in
+          if opt.verbose then p_stderr dots;
+          let ocd = open_out opt.dotfile in 
+          begin
+            p_oc ocd dots;
+            close_out ocd;
+          end;  
+        end;
         let oc = open_out opt.outfile in
         p_oc oc (c_of_Prog p);
   
   (* exception handling *)
   with
   | Lexer.SyntaxError msg -> p_stderr (msg ^ parse_err_msg lexbuf);
-  | RtfmError msg -> p_stderr msg;
-  | Failure msg -> p_stderr msg;
-  | Parser.Error -> p_stderr ("Parser error." ^ parse_err_msg lexbuf);
+  | RtfmError msg         -> p_stderr msg;
+  | Failure msg           -> p_stderr msg;
+  | Parser.Error          -> p_stderr ("Parser error." ^ parse_err_msg lexbuf);
       
       exit (-1);;
 (* exit 0;; *)
