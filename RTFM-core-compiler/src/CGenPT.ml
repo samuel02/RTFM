@@ -11,11 +11,11 @@ let deb s = if opt.debug then "// RTFM-core: " ^ s ^ nl else ""
 
 let def_par par = 
   let part = String.trim par in
-  if mycompare part "" then "(int RTFM_id)" else "(int RTFM_id," ^ part ^ ")"
+  if mycompare part "" then "(int RTFM_id)" else "(int RTFM_id, " ^ part ^ ")"
 
 let pass_par par = 
   let part = String.trim par in
-  if mycompare part "" then "(RTFM_id)" else "(RTFM_id," ^ part ^ ")"
+  if mycompare part "" then "(RTFM_id)" else "(RTFM_id, " ^ part ^ ")"
 
 let crt_of_p topl v r =
   let quote x = "\"" ^ x ^ "\"" in
@@ -72,11 +72,19 @@ let crt_of_p topl v r =
        let nr = !nr_ref in
         nr_ref := nr + 1;
         match Env.lookup_task id topl with 
-        | TaskDef (_, _, sl) -> 
+        | TaskDef (id, al, sl) -> 
           let idp = path ^ "_" ^ id ^ if nr > 0 then string_of_int nr else "" in
+          let sl = Str.split (Str.regexp ",") al in
+          let arg a = Str.split (Str.regexp "[ /t]+") a in
+          let argl = List.map arg sl in
+          let arga ar = match ar with
+          | a :: b :: [] -> " arg_" ^ idp ^ "." ^ b
+          | _ -> failwith("Error parsing argument of task" ^ id)
+          in 
+          let args = mycon "," (List.map arga argl) in
           "ARG_" ^ id ^ " arg_" ^ idp ^ "; // instance for argument" ^ nl ^
           "void " ^ idp ^ "(int RTFM_id) {" ^ nl ^
-          tab ^ id ^ pass_par par ^ "; // (inlined) call to the async function" ^ nl ^
+          tab ^ id ^ pass_par args ^ "; // (inlined) call to the async function" ^ nl ^
           "}"
         | _                  -> raise (RtfmError("Lookup failed in Env.lookup_task id topl"))
       )

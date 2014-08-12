@@ -17,8 +17,9 @@ let isrv_to_c vl =
                                ) ^ nl ^ isr_to_c l
   in
   "void (* const g_pfnVectors[])(void) {" ^ nl ^ isr_to_c vl ^ "}" ^ nl
-    
-let assign_vectors v p =
+
+(*        
+let assign_vector v p =
   (* isr *)
   let rec isrs v ils b = match ils with
     | []          -> v
@@ -27,9 +28,8 @@ let assign_vectors v p =
     | Isr (p, id, s) :: l when b ->
       (* apply for all Isr's *) 
       (* assign id *)
-      let rec assignv il =
-        match il with
-          | []     -> failwith("No matching Isr entry for " ^ id ^ nl ^ isrv_to_c il)
+      let rec assignv = function
+          | []     -> failwith("No matching Isr entry for " ^ id )
           | (vty, vid) :: l when 
             compare id vid = 0 && ((vty == F) || (vty == O)) -> (U, vid) :: l
           | e :: l -> e :: assignv l
@@ -40,9 +40,8 @@ let assign_vectors v p =
     | Task (p, id, _, s) :: l when (not b) ->
       (* apply for all Isr's *) 
       (* assign id *)
-      let rec assignv il =
-        match il with
-          | []            -> failwith("No free Isr entry for " ^ id ^ nl ^ isrv_to_c il)
+      let rec assignv = function
+          | []            -> failwith("No free Isr entry for " ^ id )
           | (F, vid) :: l -> (U, id) (* ^ tab ^ "(* optionally used for " ^ vid ^ " *)") *) :: l
           | e :: l        -> e :: assignv l
       in
@@ -52,14 +51,71 @@ let assign_vectors v p =
   in 
   (* prog *)
   isrs (isrs v p true) p false 
-    
-let second (_, b) = b
+*)
+
+let assign_isr v p =
+  (* isr *)
+  let rec isrs v ils = match ils with
+    | []                   -> v
+    | Isr (_, id, _) :: l  ->
+      let rec assignv = function
+          | []     -> failwith("No matching Isr entry for " ^ id )
+          | (vty, vid) :: l when compare id vid = 0 && ((vty == F) || (vty == O)) -> (U, vid) :: l
+          | e :: l -> e :: assignv l
+      in
+      assignv (isrs v l)
+    | _ :: l  -> isrs v l
+  in isrs v p
   
+
+let assign_task v p =
+  (* task *)
+  let rec tasks v ils = match ils with
+    | [] -> v 
+    | Task (_, id, _, s) :: l ->
+      let rec assignv = function
+          | []            -> failwith("No free Isr entry for " ^ id )
+          | ((F, vid),_) :: l -> ((U, id), (id, vid)) (* ^ tab ^ "(* optionally used for " ^ vid ^ " *)") *) :: l
+          | e :: l        -> e :: assignv l
+      in
+      assignv (tasks v l)
+    | _ :: l  -> tasks v l         
+      
+  in 
+  (* prog *)
+  let pair (t,s) = ((t,s), (s,s)) in
+  tasks (List.map pair (assign_isr v p )) p  
+
+let assign_vectors v p = 
+  List.map fst (assign_task v p)
+  
+let assign_tasks v p = 
+  List.map snd (assign_task v p)
+ 
+(*
+let assign_vector v p =
+  (* task *)
+  let rec tasks v ils = match ils with
+    | [] -> v 
+    | Task (_, id, _, s) :: l ->
+      let rec assignv = function
+          | []            -> failwith("No free Isr entry for " ^ id )
+          | (F, vid) :: l -> (U, id) (* ^ tab ^ "(* optionally used for " ^ vid ^ " *)") *) :: l
+          | e :: l        -> e :: assignv l
+      in
+      assignv (tasks v l)
+    | _ :: l  -> tasks v l         
+      
+  in 
+  (* prog *)
+  tasks (assign_isr v p ) p          
+*)
+                         
 let wf_of_v v =
   let rec wf vl = match vl with
     | [] -> true
     | (vty, vid) :: l -> 
-      let idl = List.map second l in
+      let idl = List.map snd l in
       if List.mem vid idl then begin
         if not ((String.compare vid "0") == 0) then begin  
           p_stderr ("Warning, duplicate entries in vector table " ^ vid ^ nl);
@@ -90,6 +146,7 @@ let isrv_to_c_isr_nr vl =
 let rec task_vector p = match p with
   | []                         -> []
   | Isr (_, id, s) :: l        -> (U, id) :: task_vector l 
+  | Task (_, id, _, _) :: l    -> (U, id) :: task_vector l
   | _ :: l                     -> task_vector l
 
 

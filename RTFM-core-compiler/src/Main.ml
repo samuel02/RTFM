@@ -59,8 +59,7 @@ let main () =
   try
     let mTops = parse_prog "" opt.infile in
     
-    if opt.d_ast then p_stderr (string_of_tops mTops);
-    
+    if opt.d_ast then p_stderr ("Input AST:" ^ nl ^ string_of_tops mTops);
     
     let pnt = TaskGen.tasks_of_p mTops in
     
@@ -73,7 +72,6 @@ let main () =
       p_stderr ("Tasks/ISRs per priority: " ^ nl^ string_of (pl mTops rm) );
     end;
     
-    
     (* dot for task/resource structure *)
     if opt.dotout then begin
       let dots = (d_of_p mTops rm) in
@@ -85,19 +83,25 @@ let main () =
       end;
     end;
     
+    let tasks = task_vector meTops in
+    p_stderr ("Tasks : " ^ String.concat ", " (List.map snd tasks) ^ nl );
+        
     match opt.target with
     | RTFM_KERNEL -> begin
           (* vectors *)
-          let nv = assign_vectors isr_vector mTops in
+          let nv = assign_vectors isr_vector meTops in
+          let tidm = assign_tasks isr_vector meTops in
           if opt.verbose then begin
             p_stderr (nl ^ "Original Vector table " ^ nl ^ isrv_to_c isr_vector);
             p_stderr (nl ^ "After assignments Vector table " ^ nl ^ isrv_to_c nv);
+            let pair (a, b) = a ^ "->" ^ b in
+            p_stderr (nl ^ "Task to isr_entries" ^ nl ^ String.concat ", " (List.map pair tidm));
           end;
           match wf_of_v nv with
           | false -> p_stderr (nl ^ "Error in Vector table!" ^ nl);
           | true ->
           (* generate c code *)
-              p_oc oc (ck_of_p mTops nv rm);
+              p_oc oc (ck_of_p meTops tasks rm tidm);
               (* generate vector table in case of CompCert *)
               if opt.backend = CCOMP then p_oc oc (isrv_to_c_isr_nr nv);
               
@@ -110,10 +114,7 @@ let main () =
     
     | RTFM_PT ->
     (* generate c code *)
-        let tasks = task_vector meTops in
-        p_stderr ("Tasks : " ^ String.concat ", " (List.map snd tasks) ^ nl );
         p_oc oc (crt_of_p meTops tasks rm);
-        
         (* comupte cyclic dependencies *)
         let dep = dep_of_p meTops in
         let e = entry meTops in
