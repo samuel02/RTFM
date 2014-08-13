@@ -67,7 +67,7 @@ let crt_of_p topl v r =
   and parg path nr_ref = 
     function
     | Claim (r, csl)         -> pargs path csl 
-    | Async (p, id, par)     ->
+    | Async (_, p, id, par)  ->
       (
        let nr = !nr_ref in
         nr_ref := nr + 1;
@@ -103,8 +103,8 @@ let crt_of_p topl v r =
     myconcat nl (mymap (stmt path nr_ref) sl) 
   and stmt path nr_ref = function
      | Claim (r, csl)        -> "RTFM_lock(RTFM_id, " ^ r ^ ");" ^ nl ^ (stmts path) csl ^ "RTFM_unlock(RTFM_id, " ^ r ^ ");"
-     | Pend (id)             -> "RTFM_pend(RTFM_id, " ^ id ^ "_nr);"
-     | Async (pr, id, par)   ->
+     | Pend (_, id)          -> "RTFM_pend(RTFM_id, " ^ id ^ "_nr);"
+     | Async (_, pr, id, par)   ->
       let nr = !nr_ref in
         nr_ref := nr + 1;
          let idp = path ^ "_" ^ id ^ if nr > 0 then string_of_int nr else "" in

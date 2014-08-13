@@ -104,8 +104,8 @@ let d_of_p p rml =
     match s with
       | Claim (cr, cs)         -> let de = cr ^ "_" ^ t in DotClaim (i, cr, t, de, Ds (de , List.map (stmts de) cs))
       | Sync (sid, _)          -> DotSync (i, t, sid) 
-      | Pend (pid)             -> DotPend (i, t, pid)
-      | Async (prio, id, al)   -> DotAsync (i, t, id)
+      | Pend (_, pid)          -> DotPend (i, t, pid)
+      | Async (_, prio, id, al)-> DotAsync (i, t, id)
       | ClaimC (s)             -> DotC (i, s)
          
   in

@@ -15,6 +15,6 @@ ISR 4 WDT_IRQHandler {
 Reset {
     #> printf("Hello\n");<#
     async 1 task(1, 1.2*5); 
-    pend WDT_IRQHandler;
+    pend after 100 WDT_IRQHandler;
 }
 
