@@ -72,9 +72,12 @@ let main () =
       p_stderr ("Tasks/ISRs per priority: " ^ nl^ string_of (pl mTops rm) );
     end;
     
+    let tasks = task_vector meTops in
+    p_stderr ("Tasks : " ^ String.concat ", " (List.map snd tasks) ^ nl );
+    
     (* dot for task/resource structure *)
     if opt.dotout then begin
-      let dots = (d_of_p mTops rm) in
+      let dots = (d_of_p meTops rm) in
       if opt.verbose then p_stderr dots;
       let ocd = open_out opt.dotfile in
       begin
@@ -82,9 +85,6 @@ let main () =
         close_out ocd;
       end;
     end;
-    
-    let tasks = task_vector meTops in
-    p_stderr ("Tasks : " ^ String.concat ", " (List.map snd tasks) ^ nl );
         
     match opt.target with
     | RTFM_KERNEL -> begin

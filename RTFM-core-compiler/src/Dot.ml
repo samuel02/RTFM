@@ -12,6 +12,7 @@ type dstmt =
   | DotClaim of int * string * string * string * dstmts
   | DotSync of int * string * string 
   | DotPend of int * string * string 
+  | DotAsync of int * string * string
   | DotC of int * string 
 and
   dstmts =
@@ -19,6 +20,7 @@ and
     
 type dtop =
   | DIsr of string * int * dstmts
+  | DTask of string * int * string * dstmts
   | DFunc of string * string * dstmts 
   | DReset of dstmts 
     
@@ -43,6 +45,7 @@ let d_of_ds =
     | DotClaim (i, _, _, s, _)   -> record_line i ("claim " ^ s) 
     | DotSync (i, _, s)          -> record_line i ("sync " ^ s) 
     | DotPend (i, _, s)          -> record_line i ("pend " ^ s)
+    | DotAsync (i, _, s)         -> record_line i ("async " ^ s)
     | DotC (i, s)                -> record_line i ("#&gt; " ^ strip (String.sub s 0 (min 8 (String.length s))) ^ "...&lt;#")  
     
 (* create records for the program *)    
@@ -74,19 +77,21 @@ let d_of_dt rl d =
   let node_of_isr = ", shape = box "
     
   in
+  let entrypoint col id prio t l = 
+     (record (id) "lightblue") l ^ cs id l ^ 
+    "{ rank=same; " ^ ec ^ "P" ^ string_of_int prio ^ ec ^ "; " ^ ec ^ id ^ ec ^ "; }" ^ nl ^
+     "ISR_" ^ id ^ " [style=filled, fillcolor=" ^ col ^ ", label=" ^ name_of_isr id prio ^ node_of_isr ^ "]" ^ nl ^ 
+    "{ rank=same; ISR; ISR_" ^ id  ^ " ; }" ^ nl ^ 
+    "ISR_" ^ id ^ " -> " ^ id ^ ":nw [arrowhead = none]"^ nl
+  in
   match d with
-    | DIsr (id, prio, (Ds (t, l)))  -> (
-                                             (record (id) "lightblue") l ^ cs id l
-                                             ^ "{ rank=same; " ^ ec ^ "P" ^ string_of_int prio ^ ec ^ "; " ^ ec ^ id ^ ec ^ "; }" ^ nl 
-                                             ^ "ISR_" ^ id ^ " [style=filled, fillcolor = tan3, label=" ^ name_of_isr id prio ^ node_of_isr ^ "]" ^ nl 
-                                             ^ "{ rank=same; ISR; ISR_" ^ id  ^ " ; }" ^ nl
-                                             ^ "ISR_" ^ id ^ " -> " ^ id ^ ":nw [arrowhead = none]"^ nl
-                                          )
+    | DIsr (id, prio, (Ds (t, l)))      -> entrypoint "tan3" id prio t l
+    | DTask (id, prio, _, (Ds (t, l)))  -> entrypoint "tan2" id prio t l
     | DFunc (t, id, (Ds (i, l)))        -> (record  (id) "lightgrey") l ^ nl ^ cs id l
-    | DReset (Ds (t, l))                -> (
-                                            let id = "User_Reset" in (record (id) "yellow") l ^ nl ^ cs id l ^ nl
-                                              ^ "{ rank=source; " ^ id ^ "  ; }" ^ nl 
-                                           )
+    | DReset (Ds (t, l))                -> 
+      let id = "User_Reset" in 
+      (record (id) "yellow") l ^ nl ^ cs id l ^ nl ^ "{ rank=source; " ^ id ^ "  ; }" ^ nl 
+                                           
         
 (* parse the program stmts*)
 let label = ref (0);;
@@ -100,15 +105,16 @@ let d_of_p p rml =
       | Claim (cr, cs)         -> let de = cr ^ "_" ^ t in DotClaim (i, cr, t, de, Ds (de , List.map (stmts de) cs))
       | Sync (sid, _)          -> DotSync (i, t, sid) 
       | Pend (pid)             -> DotPend (i, t, pid)
+      | Async (prio, id, al)   -> DotAsync (i, t, id)
       | ClaimC (s)             -> DotC (i, s)
-      | _                      -> raise (RtfmError("NotImplemented"))
          
   in
   (* parse the program entry points *)
   let mytop = function 
-    | Isr (prio, id, sl)       -> DIsr (id, prio, Ds ("", (List.map (stmts id) sl) ) )
-    | Func (t, id, _, sl)      -> DFunc (t, id, Ds ("", (List.map (stmts id) sl) ) )
-    | Reset (sl)               -> DReset (Ds ("", (List.map (stmts "User_Reset") sl ) ) )
+    | Isr (prio, id, sl)       -> DIsr (id, prio, Ds ("", (mymap (stmts id) sl) ) )
+    | Task (prio, id, al, sl)  -> DTask (id, prio, al, Ds ("", (mymap (stmts id) sl) ) )
+    | Func (t, id, _, sl)      -> DFunc (t, id, Ds ("", (mymap (stmts id) sl) ) )
+    | Reset (sl)               -> DReset (Ds ("", (mymap (stmts "User_Reset") sl ) ) )
     | _                        -> raise UnMatched 
 
   in
@@ -124,8 +130,8 @@ let d_of_p p rml =
       
   in
   let pd = mymap mytop p in
-  "digraph RTFM {" ^ nl 
-    ^ "ISR [shape=plaintext, label = ISR_VECTOR]" ^ nl ^ dot_of (pl p rml) (* priorities/resources to the left *)
-    ^ String.concat nl (List.map (d_of_dt rml) pd) ^ nl 
-    ^ "}"
+  "digraph RTFM {" ^ nl ^ 
+  "ISR [shape=plaintext, label = ISR_VECTOR]" ^ nl ^ dot_of (pl p rml) (* priorities/resources to the left *) ^ 
+  myconcat nl (List.map (d_of_dt rml) pd) ^  
+  "}"
     

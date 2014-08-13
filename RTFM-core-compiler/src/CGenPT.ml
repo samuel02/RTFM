@@ -1,7 +1,7 @@
 (* Copyright Per Lindgren 2014, see the file "LICENSE" for the full        *)
 (* license governing this code.                                            *)
 
-(* RTFM-core/CGen *)
+(* RTFM-core/CGenPT *)
 
 open Common
 open Options
