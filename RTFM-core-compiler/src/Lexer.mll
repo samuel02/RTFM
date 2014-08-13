@@ -2,31 +2,8 @@
 (* for the full license governing this code.           *)
 
 (* RTFM-core/Lexer.mll *)
-{
- (* tokens and dependenceies *)   
- type token =
-   | MODULE
-   | INCLUDE
-   | PEND
-   | AFTER
-   | SYNC
-   | ASYNC
-   | CLAIM
-   | ISR
-   | TASK
-   | FUNC
-   | RESET
-   | ID of string
-   | INTVAL of int
-   | BOOLVAL of bool
-   | CCODE of string
-   | PARAMS of string
-   | STRINGVAL of string
-   | SC
-   | LCP
-   | RCP
-   | EOF   
-     
+
+{    
  open Parser   
  open Lexing
  open Common
@@ -48,22 +25,27 @@ let params  = ( [^ '*' ')'] [^ ')']* )?
   
 (* lexing rules *)  
 rule lex = parse
-  | "module"             { MODULE }
+  | "module"             { MODULE }                             (* module system related *)
   | "include"            { INCLUDE }
-  | "pend"               { PEND }
-(*  | "after"              { AFTER } *)
+   
+  | "pend"               { PEND }                               (* statements *)
   | "sync"               { SYNC }
   | "async"              { ASYNC }
   | "claim"              { CLAIM }
-  | "ISR"                { ISR }
+  | "after"              { AFTER }
+  
+  | "ISR"                { ISR }                                (* top level *)
   | "Task"               { TASK }
   | "Func"               { FUNC }
   | "Reset"              { RESET }
-  | '{'                  { LCP }
+  
+  | '{'                  { LCP }                                (* delimeters *)
   | '}'                  { RCP }
   | ';'                  { SC } 
-  | digits as i          { INTVAL (int_of_string i) }
+  
+  | digits as i          { INTVAL (int_of_string i) }           (* literals/values *)
   | cite (str as s) cite { STRINGVAL (s) }
+  
   | enter_c              { set_info lexbuf; c (Buffer.create 100) lexbuf }
   | id as s              { ID (s) }
   | white                { lex lexbuf }                         (* white space *)

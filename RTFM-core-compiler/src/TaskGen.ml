@@ -21,15 +21,15 @@ let tasks_of_p topl =
     List.concat (mymap (task path nr_ref ) sl) 
   and task path nr_ref  = 
     function
-    | Claim (r, csl)        -> tasks path csl  
-    | Sync (id, par)        -> tasks (path ^ "_" ^ id) (Env.lookup_func_sl id topl) 
-    | Async (pr, id, par)   -> 
+    | Claim (r, csl)          -> tasks path csl  
+    | Sync (id, par)          -> tasks (path ^ "_" ^ id) (Env.lookup_func_sl id topl) 
+    | Async (_, pr, id, par)  -> 
       begin
         let nr = !nr_ref in
         nr_ref := nr + 1;
         newTaskDef path nr pr id par
       end
-    | _                     -> []
+    | _                       -> []
   
   and tasktop = function
     | Isr (p, id, sl)       -> tasks id sl 

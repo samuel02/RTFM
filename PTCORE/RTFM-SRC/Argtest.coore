@@ -1,6 +1,7 @@
 
 class T<> {
     Task t (int i, int j) {
+    RT_printf("%d", i); 
     }
 }
 

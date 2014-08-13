@@ -7,9 +7,9 @@ open Common
      
 type stmt =
   | Claim     of string * stmt list
-  | Pend      of string 
+  | Pend      of int * string 
   | Sync      of string * string
-  | Async     of int * string * string
+  | Async     of int * int * string * string
   | ClaimC    of string
      
 type top =
@@ -48,11 +48,11 @@ let string_of_tops tl =
       
   (* stmt *)
   and stmt t s = match s with
-    | Claim (id, s)         -> "Claim " ^ id ^ op ^ stmts (tab ^ t) s ^ cl
-    | Pend (id)             -> "Pend " ^ id  
-    | Sync (id, par )       -> "Sync " ^ id ^ "#>" ^ par ^ "<#"  
-    | Async (pr, id, par)   -> "Async @prio " ^ string_of_int pr ^ " " ^ id ^ " (" ^ par ^ ")" 
-    | ClaimC (c)            -> "#> CCODE <#"
+    | Claim (id, s)           -> "Claim " ^ id ^ op ^ stmts (tab ^ t) s ^ cl
+    | Pend (af, id)           -> "Pend after" ^ string_of_int af ^ " " ^ id  
+    | Sync (id, par )         -> "Sync " ^ id ^ "#>" ^ par ^ "<#"  
+    | Async (af, pr, id, par) -> "Async after " ^ string_of_int af ^ " @prio " ^ string_of_int pr ^ " " ^ id ^ " (" ^ par ^ ")" 
+    | ClaimC (c)              -> "#> CCODE <#"
   in
   tops tl
       

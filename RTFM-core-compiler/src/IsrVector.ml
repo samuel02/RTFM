@@ -12,7 +12,7 @@ type isr_type =
     
 let isr_vector = [
     (* Core Level - CM3 *)
-    (K, "&_vStackTop");                             (* The initial stack pointer *)
+    (K, "&_vStackTop");                            (* The initial stack pointer *)
     (K, "ResetISR");                               (* The reset handler *)
     (O, "NMI_Handler");                            (* The NMI handler *)
     (O, "HardFault_Handler");                      (* The hard fault handler *)

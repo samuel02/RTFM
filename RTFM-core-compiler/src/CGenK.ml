@@ -6,85 +6,149 @@
 open Common
 open Options
 open AST
-open IsrCGen
-open SRP
 
-let deb s = if opt.debug then "// RTFM-core : " ^ s ^ nl else ""
 
-let c_of_p topl v r =
+let deb s = if opt.debug then "// RTFM-core: " ^ s ^ nl else ""
+
+let def_par par = 
+  let part = String.trim par in
+  if mycompare part "" then "()" else "(" ^ part ^ ")"
+
+let pass_par par = 
+  let part = String.trim par in
+  if mycompare part "" then "()" else "(" ^ part ^ ")"
+
+let ck_of_p topl v r tidl =
   let quote x = "\"" ^ x ^ "\"" in
-  let c_of_r rl = String.concat nl (List.map (fun (id, prio) -> "#define " ^ id ^ " " ^ string_of_int prio) rl)
+  let c_of_r rl =
+    "enum resources {" ^ mycon "," ((List.map fst rl) @ ["RES_NR"]) ^ "};" ^ nl ^
+    "const int ceilings[] = {" ^ mycon ", " (List.map string_of_int (List.map snd rl)) ^ "};" ^ nl ^ 
+    "char* res_names[] = {" ^ mycon "," (List.map quote (List.map fst rl)) ^ "};" ^ nl 
+  
+  in
+  let c_entry_of_top topl =
+    let proto_top =
+      let tpar = function
+        | ',' -> ';' 
+        | c -> c
+      in
+      function
+      | TaskDef (id, par, _) ->
+          "// Task defintion:" ^ id ^ nl ^
+          "void " ^ id  ^ def_par par ^ "; // function prototype for the task" ^ nl ^ 
+          "typedef struct {" ^ String.map tpar par ^ ";} ARG_" ^ id ^ "; // type definition for arguments"^ nl
+      | Task (p, id, par, _) ->
+          let hw = myass id tidl in
+          "// Task instance defintion: @prio " ^ string_of_int p ^ " " ^ id ^  nl ^
+          "void " ^ hw ^ "(); // function prototype for the instance task" ^ nl 
+      | _ -> raise (UnMatched)
+    in    
+    let entries_top s = function
+      | Isr (_, id, _)     -> id ^ s
+      | Task (_, id, _, _) -> id ^ s
+      | _                  -> raise (UnMatched)  
     
-  in
-  let c_prio_of_top topl = 
-     match t with
-          | Isr (_, pri, id, _, _) -> "#define IRQ_PRI_" ^ id ^ " " ^ string_of_int pri
-          | _ -> ""
-  in
-  let proto t = match t with
-          | Isr (_, pri, id, _, _) -> "void " ^ id ^ "();" ^ nl
-          | _ -> ""
-  in
-  let user_reset = "user_reset" in
-        "enum entry_nr {" ^ String.concat ", " ((user_reset ^ "_nr") :: ((c topl "_nr" ) @ ["ENTRY_NR"])) ^ "};" ^ nl ^ nl ^
-        "int entry_prio[] = {" ^ String.concat ", " ("0" :: (prio topl)) ^ "};" ^ nl ^ nl ^
-        String.concat "" (List.map proto topl) ^ nl ^
-        "ENTRY_FUNC entry_func[] = {" ^ String.concat ", " (user_reset:: (c topl "")) ^ "};" ^ nl ^ nl ^
-        "char* entry_names[] = {" ^ (String.concat ", " (List.map quote (user_reset:: (c topl "")))) ^ "};" ^ nl
-  
-  in
-  let c_init_prio_of_prog topl =
-    let c t = match t with
-      | Isr (_, pri, id, _, _) ->
-          "    RTFM_set_priority(IRQ_NR_" ^ id ^ ", " ^ "H(IRQ_PRI_" ^ id ^ "));" ^ nl ^
-          "    RTFM_enable_irq(IRQ_NR_" ^ id ^ ");" ^ nl
-      | _ -> ""
+    in    
+    let entries_enum_top = 
+      let rec vindex n i = function
+        | [] -> failwith ("Entry not found" ^ i )
+        | (id, vid) :: l when compare id i == 0 -> n
+        | _ :: l -> vindex (n+1) i l
+      in
+      let index id = id ^ "_nr = " ^ string_of_int (vindex (-16) id tidl) in 
+      function
+      | Isr (_, id, _)     -> index id
+      | Task (_, id, _, _) -> index id
+      | _                  -> raise (UnMatched)
+      
     in
-    "void RTFM_init_priorities() {" ^ nl ^ String.concat nl (List.map c topl) ^ "}" ^ nl
+    let priorities_top = function
+      | Isr (p, _, _)      -> string_of_int p
+      | Task (p, _, _, _)  -> string_of_int p  
+      | _                  -> raise (UnMatched) 
+    in
+    let entries = mymap (entries_top "") topl in
+    
+    "enum entry_nr {" ^ mycon ", " (mymap entries_enum_top topl) ^ "};" ^ nl ^
+    "const int entry_vi[] = {" ^ mycon ", " (mymap (entries_top "_nr") topl ) ^ "};" ^ nl ^  
+    "const int entry_prio[] = {" ^ mycon ", " (mymap priorities_top topl) ^ "};" ^ nl ^ 
+    "// const char* entry_names[] = {" ^ mycon ", " (mymap quote entries) ^ "};" ^ nl ^ nl ^
+    mycon nl (mymap proto_top topl) ^ nl ^
+    "// ENTRY_FUNC entry_func[] = {" ^ mycon ", " entries ^ "};" ^ nl ^ nl
+      
+  in
+  let rec pargs path sl = 
+    let nr_ref = ref 0 in
+    mycon nl (mymap (parg path nr_ref) sl) 
+  and parg path nr_ref = 
+    function
+    | Claim (r, csl)         -> pargs path csl 
+    | Async (_, p, id, par)  ->
+      (
+       let nr = !nr_ref in
+        nr_ref := nr + 1;
+        match Env.lookup_task id topl with 
+        | TaskDef (id, al, sl) -> 
+          let idp = path ^ "_" ^ id ^ if nr > 0 then string_of_int nr else "" in
+          let hw = myass idp tidl in
+          let sl = Str.split (Str.regexp ",") al in
+          let arg a = Str.split (Str.regexp "[ /t]+") a in
+          let argl = List.map arg sl in
+          let arga ar = match ar with
+          | a :: b :: [] -> " arg_" ^ idp ^ "." ^ b
+          | _ -> failwith("Error parsing argument of task" ^ id)
+          in 
+          let args = mycon "," (List.map arga argl) in
+          "ARG_" ^ id ^ " arg_" ^ idp ^ "; // instance for argument" ^ nl ^
+          "void " ^ hw ^ "() {" ^ nl ^
+          tab ^ id ^ pass_par args ^ "; // (inlined) call to the async function" ^ nl ^
+          "}"
+        | _                  -> raise (RtfmError("Lookup failed in Env.lookup_task id topl"))
+      )
+     | Sync (id, par)        -> pargs (path ^ "_" ^ id) (Env.lookup_func_sl id topl)  
+     | _                     -> ""
+  
+  and ptop = function
+     | Isr (p, id, sl)       -> pargs id sl
+     | Task (p, id, _, sl)   -> pargs id sl
+     | Reset (sl)            -> pargs "reset" sl 
+     | _                     -> raise (UnMatched)
   
   in
-  let rec stmt sl = match sl with
-    | [] -> nl
-    | s :: l -> let st = match s with
-          | Claim ( r, csl ) -> "RTFM_lock(" ^ r ^ ");" ^ nl ^ stmt csl ^ "RTFM_unlock(" ^ r ^ ");"
-              
-          | Pend ( id, p ) -> "RTFM_pend(IRQ_NR_" ^ id ^ ");"
-          | PendAfter ( id, p, t) -> "RTFM_pend_after(IRQ_NR_^" ^ id ^ ", " ^ string_of_int t ^ ");" 
-          | Sync ( id, par ) -> id ^ "(" ^ par ^ ");"
-          | ClaimC (c) -> c
-        in
-        st ^ nl ^ stmt l
-  in
-  let rec top tl = match tl with
-    | [] -> nl
-    | t :: l ->
-        let st = match t with
-          | TopC (c) -> deb ("top level code ") ^ c
-          (* | TopPend (id) -> pend id *)
-          | Isr (b, p, id, _, sl) ->"void " ^ id ^ "() {" ^ nl ^ stmt sl ^ "}"
-          | Func (t, id, par, sl) -> t ^ " " ^ id ^ "(" ^ par ^ ") " ^ "{" ^ nl ^ stmt sl ^ "}"
-             
-          | Reset (sl) -> "void user_reset() {" ^ nl ^ stmt sl ^ "}"
-             
-        in
-        st ^ nl ^ top l ^ nl
+  let rec stmts path sl = 
+    let nr_ref = ref 0 in
+    myconcat nl (mymap (stmt path nr_ref) sl) 
+  and stmt path nr_ref = function
+     | Claim (r, csl)           -> "RTFM_lock(" ^ r ^ ");" ^ nl ^ (stmts path) csl ^ "RTFM_unlock(" ^ r ^ ");"
+     | Pend (_, id)             -> "RTFM_pend(" ^ id ^ "_nr);"
+     | Async (_, pr, id, par)   ->
+      let nr = !nr_ref in
+        nr_ref := nr + 1;
+         let idp = path ^ "_" ^ id ^ if nr > 0 then string_of_int nr else "" in
+       "arg_" ^ idp ^ " = (ARG_" ^ id ^ "){" ^ par ^ "}; " ^ nl ^
+       "RTFM_pend(" ^ idp ^ "_nr);"       
+     | Sync ( id, par )      -> stmts (path ^ "_" ^ id) (SRP.lookup id topl)
+     | ClaimC (c)            -> String.trim c
   
-  in
-  let func_prot = function
-    | Func (t, id, par, sl) -> t ^ " " ^ id ^ "(" ^ par ^ ");" 
-    | _ -> raise (UnMatched)
+  and top = function
+    | TopC (c)               -> deb ("top level code ") ^ c
+    | Isr (p, id, sl)        -> "void " ^ id ^ "() {" ^ nl ^ (stmts id) sl ^ "}"
+    | TaskDef (id, par, sl)  -> 
+      "void " ^ id  ^ def_par par ^ "{ // function implementation for the task" ^ nl ^ 
+      (stmts "") sl ^ 
+      "}"
+    | Reset (sl)            -> "void user_reset() {" ^ nl ^ (stmts "reset") sl ^ "}"
+    | _                     -> raise (UnMatched)
+      
   in
   let info = "const char* CORE_FILE_INFO = \"Compiled with : " ^ String.escaped (string_of_opt opt) ^ "\";" ^ nl
+  
   in
-  
-      "// RTFM-core for RTFM-KERNEL" ^ nl ^
-      info ^ nl ^
-      deb ("Resource Ceiling Bindings") ^ c_of_r r ^
-      deb ("Defintions for IRQ_NR") ^ isrv_to_c_isr_nr v ^
-      deb ("Defintions for IRQ_PRI") ^ c_prio_of_top topl ^
-      
-      deb ("Initiate interrupt priorities") ^ c_init_prio_of_prog topl ^
-      deb ("// RTFM-Application ") ^
-      top topl ^ nl
-  
-  
+  "// RTFM-core for RTFM-PT" ^ nl ^
+  info ^ nl ^ 
+  deb ("Resources and ceilings") ^ c_of_r r ^
+  deb ("Entry points") ^ c_entry_of_top topl  ^ 
+  deb ("Argument instances") ^ 
+  myconcat nl (mymap ptop topl) ^ nl ^
+  deb ("Application") ^ 
+  myconcat nl (mymap top topl)  
