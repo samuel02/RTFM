@@ -6,19 +6,19 @@
 open Common
      
 type stmt =
-  | Claim     of string * stmt list
-  | Pend      of int * string 
-  | Sync      of string * string
-  | Async     of int * int * string * string
-  | ClaimC    of string
+  | Claim     of string * stmt list                     (* res_id, stmts                    *)
+  | Pend      of int * string                           (* prio, task_id                    *)
+  | Sync      of string * string                        (* func_id, par_c                   *)
+  | Async     of int * int * string * string            (* after, prio, task_id, par_c      *)
+  | ClaimC    of string                                 (* code_c                           *)
      
 type top =
-  | TopC      of string
-  | Isr       of int * string * stmt list
-  | Task      of int * string * string * stmt list
-  | Func      of string * string * string * stmt list
-  | TaskDef   of string * string * stmt list
-  | Reset     of stmt list
+  | TopC      of string                                 (* code_c                           *)
+  | Isr       of int * string * stmt list               (* prio, vec_id, stmts              *)
+  | Task      of int * string * string * stmt list      (* prio, vec_id, par_c, stmts       *)
+  | Func      of string * string * string * stmt list   (* rtype_c, func_id, arg_c, stmts   *)
+  | TaskDef   of string * string * stmt list            (* task_id, arg_c, stms             *)
+  | Reset     of stmt list                              (* stmts                            *)
    
 type prog =
   | Prog      of string * string list * top list

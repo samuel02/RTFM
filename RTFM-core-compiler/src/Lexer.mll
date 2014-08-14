@@ -33,6 +33,7 @@ rule lex = parse
   | "async"              { ASYNC }
   | "claim"              { CLAIM }
   | "after"              { AFTER }
+  | "prio"               { PRIO }
   
   | "ISR"                { ISR }                                (* top level *)
   | "Task"               { TASK }
