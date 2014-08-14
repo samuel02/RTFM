@@ -154,8 +154,5 @@ let ck_of_p topl v r tidl =
   info ^ nl ^ 
   deb ("Resources and ceilings") ^ c_of_r r ^
   deb ("Entry points") ^ c_entry_of_top topl  ^ 
-  deb ("Argument instances") ^ 
-  myconcat nl (mymap ptop topl) ^ nl ^
-  deb ("Application") ^ 
-  myconcat nl (mymap c_top topl) ^   
-  myconcat nl (mymap top topl)  
+  deb ("Argument instances") ^ myconcat nl (mymap ptop topl) ^ nl ^
+  deb ("Application") ^ myconcat nl (mymap c_top topl) ^ myconcat nl (mymap top topl)  
