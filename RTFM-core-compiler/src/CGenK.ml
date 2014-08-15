@@ -99,10 +99,12 @@ let ck_of_p topl v r tidl =
           | _ -> failwith("Error parsing argument of task" ^ id)
           in 
           let args = mycon "," (List.map arga argl) in
+          
           "ARG_" ^ id ^ " arg_" ^ idp ^ "; // instance for argument" ^ nl ^
           "void " ^ hw ^ "() {" ^ nl ^
-          tab ^ id ^ pass_par args ^ "; // (inlined) call to the async function" ^ nl ^
+          tab ^ idp ^ pass_par args ^ "; // (inlined) call to the async function" ^ nl ^
           "}"
+          
         | _                  -> raise (RtfmError("Lookup failed in Env.lookup_task id topl"))
       )
      | Sync (id, par)        -> pargs (path ^ "_" ^ id) (Env.lookup_func_sl id topl)  
@@ -131,24 +133,26 @@ let ck_of_p topl v r tidl =
      | ClaimC (c)            -> String.trim c
   
   and top = function
-    | TopC (c)               -> deb ("top level code ") ^ c
     | Isr (p, id, sl)        -> "void " ^ id ^ "() {" ^ nl ^ (stmts id) sl ^ "}"
-    | TaskDef (id, par, sl)  -> 
+    | Task (p, id, par, sl)  -> 
       "void " ^ id  ^ def_par par ^ "{ // function implementation for the task" ^ nl ^ 
-      (stmts "") sl ^ 
+      (stmts id) sl ^ 
       "}"
-    | Reset (sl)            -> "void user_reset() {" ^ nl ^ (stmts "reset") sl ^ "}"
-    | _                     -> raise (UnMatched)
-      
+    | Reset (sl)             -> "void user_reset() {" ^ nl ^ (stmts "reset") sl ^ "}"
+    | _                      -> raise (UnMatched)
+  
+  in 
+  let c_top = function
+    | TopC (c)               -> deb ("top level code ") ^ c  
+    | _                      -> raise (UnMatched)
+           
   in
   let info = "const char* CORE_FILE_INFO = \"Compiled with : " ^ String.escaped (string_of_opt opt) ^ "\";" ^ nl
   
   in
-  "// RTFM-core for RTFM-PT" ^ nl ^
+  "// RTFM-core for RTFM-Kernel" ^ nl ^
   info ^ nl ^ 
   deb ("Resources and ceilings") ^ c_of_r r ^
   deb ("Entry points") ^ c_entry_of_top topl  ^ 
-  deb ("Argument instances") ^ 
-  myconcat nl (mymap ptop topl) ^ nl ^
-  deb ("Application") ^ 
-  myconcat nl (mymap top topl)  
+  deb ("Argument instances") ^ myconcat nl (mymap ptop topl) ^ nl ^
+  deb ("Application") ^ myconcat nl (mymap c_top topl) ^ myconcat nl (mymap top topl)  

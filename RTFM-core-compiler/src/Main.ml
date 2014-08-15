@@ -95,7 +95,7 @@ let main () =
             p_stderr (nl ^ "Original Vector table " ^ nl ^ isrv_to_c isr_vector);
             p_stderr (nl ^ "After assignments Vector table " ^ nl ^ isrv_to_c nv);
             let pair (a, b) = a ^ "->" ^ b in
-            p_stderr (nl ^ "Task to isr_entries" ^ nl ^ String.concat ", " (List.map pair tidm));
+            p_stderr (nl ^ "Task to isr_entries" ^ nl ^ String.concat nl (List.map pair tidm));
           end;
           match wf_of_v nv with
           | false -> p_stderr (nl ^ "Error in Vector table!" ^ nl);

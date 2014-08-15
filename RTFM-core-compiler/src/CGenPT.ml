@@ -114,15 +114,18 @@ let crt_of_p topl v r =
      | ClaimC (c)            -> String.trim c
   
   and top = function
-    | TopC (c)               -> deb ("top level code ") ^ c
     | Isr (p, id, sl)        -> "void " ^ id ^ "(int RTFM_id) {" ^ nl ^ (stmts id) sl ^ "}"
     | TaskDef (id, par, sl)  -> 
       "void " ^ id  ^ def_par par ^ "{ // function implementation for the task" ^ nl ^ 
-      (stmts "") sl ^ 
+      (stmts id) sl ^ 
       "}"
     | Reset (sl)            -> "void user_reset(int RTFM_id) {" ^ nl ^ (stmts "reset") sl ^ "}"
     | _                     -> raise (UnMatched)
-      
+
+  in 
+  let c_top = function
+    | TopC (c)               -> deb ("top level code ") ^ c  
+    | _                      -> raise (UnMatched)    
   in
   let info = "const char* CORE_FILE_INFO = \"Compiled with : " ^ String.escaped (string_of_opt opt) ^ "\";" ^ nl
   
@@ -131,7 +134,5 @@ let crt_of_p topl v r =
   info ^ nl ^ 
   deb ("Resources and ceilings") ^ c_of_r r ^
   deb ("Entry points") ^ c_entry_of_top topl  ^ 
-  deb ("Argument instances") ^ 
-  myconcat nl (mymap ptop topl) ^ nl ^
-  deb ("Application") ^ 
-  myconcat nl (mymap top topl)  
+  deb ("Argument instances") ^  myconcat nl (mymap ptop topl) ^ nl ^
+  deb ("Application") ^  myconcat nl (mymap c_top topl) ^ myconcat nl (mymap top topl)  

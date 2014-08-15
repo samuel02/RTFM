@@ -10,13 +10,13 @@ open AST
 (* Traverse each top level ISR/Task and transform async's to tasks *)
 
 let tasks_of_p topl =
-  let newTaskDef path nr pr id par = 
+  let rec newTaskDef path nr pr id par = 
     let idp = path ^ "_" ^ id ^ if nr > 0 then string_of_int nr else "" in 
+    
     match Env.lookup_task id topl with 
-        | TaskDef (_, _, sl)  -> [Task (pr, idp, par, sl)]
+        | TaskDef (_, al, sl)  -> Task (pr, idp, al, sl)::tasks idp sl
         | _                   -> [] 
-  in
-  let rec tasks path sl = 
+  and tasks path sl = 
     let nr_ref = ref 0 in
     List.concat (mymap (task path nr_ref ) sl) 
   and task path nr_ref  = 
