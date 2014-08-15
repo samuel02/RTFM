@@ -23,7 +23,7 @@ type options =
 
 let opt =
   { 
-    target   = RTFM_PT;
+    target   = RTFM_RT;
     backend  = GCC;
     verbose  = false;
     debug    = false;
