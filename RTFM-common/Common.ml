@@ -68,11 +68,11 @@ let submatch s i m =
     
 type target =
   | RTFM_KERNEL
-  | RTFM_PT
+  | RTFM_RT
     
 let string_of_target = function
   | RTFM_KERNEL -> "RTFM_KERNEL"
-  | RTFM_PT		  -> "RTFM_PT"
+  | RTFM_RT		  -> "RTFM_RT"
     
 type backend =
   | GCC
