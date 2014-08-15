@@ -114,7 +114,7 @@ let cmd =
     
     (* target *)
     if (n o_ptl) + (n o_km3)  > 1 then raise (Arg.Bad("Conflicting target options"));
-    opt.target <- if (!o_km3) then RTFM_KERNEL else RTFM_PT;
+    opt.target <- if (!o_km3) then RTFM_KERNEL else RTFM_RT;
     
     (* general options *)
     opt.debug   <- ! o_debug;

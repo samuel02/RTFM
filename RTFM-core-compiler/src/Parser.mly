@@ -21,9 +21,12 @@
 %%
 
 prog:
-  | MODULE ID use* top* EOF                 { Some (Prog ($2,$3, $4)) }
-  | use* top* EOF                           { Some (Prog ("",$1, $2)) }
-  
+  | mname use* top* EOF                     { Some (Prog ($1, $2, $3)) }
+
+mname:
+  | MODULE ID                               { $2 }
+  |                                         { "" }
+      
 use:
   | INCLUDE STRINGVAL                       { $2 }
     

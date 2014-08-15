@@ -9,7 +9,7 @@ open AST
 open SRP
 open IsrVector
 open IsrCGen
-open CGenPT 
+open CGenRT 
 open CGenK
 open Dot
 open Locks
@@ -112,7 +112,7 @@ let main () =
               end;
         end;
     
-    | RTFM_PT ->
+    | RTFM_RT ->
     (* generate c code *)
         p_oc oc (crt_of_p meTops tasks rm);
         (* comupte cyclic dependencies *)
