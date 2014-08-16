@@ -72,7 +72,7 @@ let assign_task v p =
   (* task *)
   let rec tasks v ils = match ils with
     | [] -> v 
-    | Task (_, id, _, s) :: l ->
+    | Task (_, id, pa, _, s) :: l ->
       let rec assignv = function
           | []            -> failwith("No free Isr entry for " ^ id )
           | ((F, vid),_) :: l -> ((U, id), (id, vid)) (* ^ tab ^ "(* optionally used for " ^ vid ^ " *)") *) :: l
@@ -146,7 +146,7 @@ let isrv_to_c_isr_nr vl =
 let rec task_vector p = match p with
   | []                         -> []
   | Isr (_, id, s) :: l        -> (U, id) :: task_vector l 
-  | Task (_, id, _, _) :: l    -> (U, id) :: task_vector l
+  | Task (_, id, pa, _, _) :: l    -> (U, id) :: task_vector l
   | _ :: l                     -> task_vector l
 
 

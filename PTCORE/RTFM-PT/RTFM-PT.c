@@ -49,6 +49,7 @@
 #include <semaphore.h>
 #include <fcntl.h>			// for O_CREATE etc.
 #include <time.h>			// for random seed
+#include <sys/time.h>       // gettimeofday
 
 void handle_error_en(int en, char *msg) {
 	fprintf(stderr, "en = %d, errno = %d\n", en, errno);
@@ -57,6 +58,13 @@ void handle_error_en(int en, char *msg) {
 	perror(msg);
 	exit(EXIT_FAILURE);
 }
+
+/* data structures for the timer */
+typedef struct timeval timeval_t;
+timeval_t base_line[ENTRY_NR];
+timeval_t after[ENTRY_NR];
+timeval_t after_base_line[ENTRY_NR];
+timeval_t global_base_line;
 
 /* data structures for the threads and semaphores */
 pthread_mutex_t res_mutex[RES_NR];
@@ -105,7 +113,9 @@ void RTFM_unlock(int f, int r) {
 	m_unlock(&res_mutex[r]);
 }
 
-void RTFM_pend(int f, int t) {
+const int us = 1000000;
+
+void RTFM_pend(int a, int f, int t) {
 	int lcount;
 	DP("Pend     :%s->%s", entry_names[f], entry_names[t]);
 
@@ -120,6 +130,10 @@ void RTFM_pend(int f, int t) {
 	DPT("RTFM_pend   :pthread_mutex_unlock(&pend_count_mutex[%d])", t);
 	m_unlock(&pend_count_mutex[t]);
 
+	after_base_line[t] = base_line[f]; // set the baseline for the receiver
+    after[t].tv_usec = a % us; // timer handling
+    after[t].tv_sec  = a / us;
+
 	if (lcount == 0) { // just a single outstanding semaphore/mimic the single buffer pend of interrupt hardware
 		DPT("RTFM_pend   :pend_sem[%d], Post :semaphore posted %s", t, entry_names[t])
 		s_post(pend_sem[t]);
@@ -129,6 +143,63 @@ void RTFM_pend(int f, int t) {
 }
 
 /* run-time system implementation */
+
+/* timer related, portable on Linux and OSX */
+timeval_t *time_sub(timeval_t *t1, timeval_t *t2, timeval_t *res) {
+    res->tv_sec = t1->tv_sec - t2->tv_sec;
+    res->tv_usec = t1->tv_usec - t2->tv_usec;
+    if (res->tv_usec < 0L) {
+        res->tv_sec--;
+        res->tv_usec += us;
+    }
+    return res;
+}
+
+/*
+void time_print(char *s, timeval_t *t) {
+	timeval_t rel =*time_sub(t, &global_base_line, &rel);
+    printf("%s, relative %f\n", s,  rel.tv_sec + (float)rel.tv_usec/us );
+};
+*/
+
+timeval_t *time_add(timeval_t *t1, timeval_t *t2, timeval_t *res) {
+    res->tv_sec = t1->tv_sec + t2->tv_sec;
+    res->tv_usec = t1->tv_usec + t2->tv_usec;
+    if (res->tv_usec >= us) {
+        res->tv_sec++;
+        res->tv_usec -= us;
+    }
+    return res;
+}
+
+timeval_t *time_get(timeval_t *ts) {
+	int e;
+	if ((e = gettimeofday(ts, NULL)))
+		handle_error_en(e, "gettimeofday");
+    return ts;
+}
+
+float rel_time(timeval_t *t) {
+	timeval_t rel =*time_sub(t, &global_base_line, &rel);
+	return rel.tv_sec + (float)rel.tv_usec/us;
+}
+
+float abs_time(timeval_t *t) {
+	return t->tv_sec + (float)t->tv_usec/us;
+}
+
+volatile void time_usleep(timeval_t *ts) {
+	int e;
+	int utime = ts->tv_sec*us + ts->tv_usec;
+	if (utime > 1) {
+		DPT("usleep         (%f)", (float)utime / us);
+		if ((e = usleep(utime)))
+			handle_error_en(e, "usleep");
+	} else {
+		DPT("after time expired or interval to short %d", utime);
+	}
+}
+
 void *thread_handler(void *id_ptr) {
 	int id = *((int *) id_ptr);
 	DPT("thread      :Working thread %d started : Task %s", id, entry_names[id]);
@@ -147,6 +218,18 @@ void *thread_handler(void *id_ptr) {
 		DPT("thread      :pthread_mutex_unlock(&pend_count_mutex[%d])", id);
 		m_unlock(&pend_count_mutex[id]);
 
+	    DPT("old_bl[%2d]    = %f", id, rel_time(&base_line[id]));
+	    DPT("after_bl[%2d]  = %f", id, rel_time(&after_base_line[id]));
+	    DPT("after[%2d|     = %f", id, abs_time(&after[id]));
+	    time_add(&after_base_line[id], &after[id], &base_line[id]);
+	    DPT("new_bl[%2d]    = %f", id, rel_time(&base_line[id]));
+	    timeval_t cur_time = *time_get(&cur_time);
+	    DPT("cur_time      = %f", rel_time(&cur_time));
+
+	    timeval_t offset = *time_sub(&base_line[id], &cur_time, &offset);
+	    DPT("offset        = %f", abs_time(&offset));
+	    time_usleep(&offset);
+
 		DPT("thread      :entry_func[%d](%d)", id, id);
 		DP("Task run :%s", entry_names[id]);
 		entry_func[id](id); // dispatch the task
@@ -158,10 +241,10 @@ void dump_priorities() {
 	int i;
 	fprintf(stderr, "\nResource ceilings:\n");
 	for (i = 0; i < RES_NR; i++)
-		fprintf(stderr, "Res %d \t ceiling %d\n", i,  ceilings[i]);
+		fprintf(stderr, "Res %d \t ceiling %d : %s\n", i,  ceilings[i], res_names[i]);
 	fprintf(stderr, "\nTask priorities:\n");
 	for (i = 0; i < ENTRY_NR; i++)
-		fprintf(stderr, "Task %d \tpriority %d \n",i, entry_prio[i]);
+		fprintf(stderr, "Task %d \tpriority %d : %s\n",i, entry_prio[i], entry_names[i]);
 }
 
 int main() {
@@ -328,6 +411,13 @@ int main() {
 		handle_error_en(s, "pthread_setschedparam\n");
 
 	sleep(1); /* let the setup be done until continuing */
+
+	/* set baselines */
+	time_get(&global_base_line);
+	for (i = 0; i < ENTRY_NR; i++) {
+		base_line[i] = global_base_line;
+	}
+
 
 	printf("-----------------------------------------------------------------------------------------------------------------------\n");
 	DPT("main        :user_reset(user_reset_nr);");

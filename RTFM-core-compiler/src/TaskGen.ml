@@ -10,30 +10,37 @@ open AST
 (* Traverse each top level ISR/Task and transform async's to tasks *)
 
 let tasks_of_p topl =
-  let rec newTaskDef path nr pr id par = 
+  let rec newTaskDef path nr pr id par seen = 
     let idp = path ^ "_" ^ id ^ if nr > 0 then string_of_int nr else "" in 
-    
     match Env.lookup_task id topl with 
-        | TaskDef (_, al, sl)  -> Task (pr, idp, al, sl)::tasks idp sl
+        | TaskDef (_, al, sl) -> Task (pr, idp, idp, al, sl)::tasks idp seen sl  
         | _                   -> [] 
-  and tasks path sl = 
+  and tasks path seen sl =
     let nr_ref = ref 0 in
-    List.concat (mymap (task path nr_ref ) sl) 
-  and task path nr_ref  = 
+    List.concat (mymap (task path nr_ref seen) sl) 
+  and task path nr_ref seen = 
     function
-    | Claim (r, csl)          -> tasks path csl  
-    | Sync (id, par)          -> tasks (path ^ "_" ^ id) (Env.lookup_func_sl id topl) 
+    | Claim (r, csl)          -> tasks path seen csl  
+    | Sync (id, par)          -> tasks path seen (Env.lookup_func_sl id topl) 
     | Async (_, pr, id, par)  -> 
       begin
         let nr = !nr_ref in
+        let idp id = path ^ "_" ^ id ^ if nr > 0 then string_of_int nr else "" in 
         nr_ref := nr + 1;
-        newTaskDef path nr pr id par
+        try 
+          let p = List.assoc id seen in
+          match Env.lookup_task id topl with
+          | TaskDef (_, al, sl) -> [Task (pr, idp id, p, al, sl)]  
+          | _                   -> []  
+        with _ -> 
+          newTaskDef path nr pr id par ((id, idp id)::seen)
+          
       end
     | _                       -> []
   
   and tasktop = function
-    | Isr (p, id, sl)       -> tasks id sl 
-    | Reset (sl)            -> tasks "reset" sl
+    | Isr (p, id, sl)       -> tasks id [] sl 
+    | Reset (sl)            -> tasks "reset" [] sl 
     | _                     -> raise (UnMatched)
     
   in

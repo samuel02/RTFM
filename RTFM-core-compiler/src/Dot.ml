@@ -112,7 +112,7 @@ let d_of_p p rml =
   (* parse the program entry points *)
   let mytop = function 
     | Isr (prio, id, sl)       -> DIsr (id, prio, Ds ("", (mymap (stmts id) sl) ) )
-    | Task (prio, id, al, sl)  -> DTask (id, prio, al, Ds ("", (mymap (stmts id) sl) ) )
+    | Task (prio, id, pa, al, sl)  -> DTask (id, prio, al, Ds ("", (mymap (stmts id) sl) ) )
     | Func (t, id, _, sl)      -> DFunc (t, id, Ds ("", (mymap (stmts id) sl) ) )
     | Reset (sl)               -> DReset (Ds ("", (mymap (stmts "User_Reset") sl ) ) )
     | _                        -> raise UnMatched 

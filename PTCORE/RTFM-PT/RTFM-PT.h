@@ -18,11 +18,13 @@ void user_reset(int);
 
 void RTFM_lock(int, int);
 void RTFM_unlock(int, int);
-void RTFM_pend(int, int);
+void RTFM_pend(int, int, int);
 
 #define RT_rand(x)      	( rand() % x )
 #define RT_sleep(x) 		( sleep( x ) )
 #define RT_printf(...) 		{ printf( __VA_ARGS__ ); }
-#define Task				void
-#define ISR					void
+
+//#define Task				void
+//#define ISR					void
+
 #endif /* RTFM_PT_H_ */

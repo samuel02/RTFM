@@ -1,0 +1,13 @@
+Task task(int i, float j) {
+    #> printf("task %d %f\n", i, j);<#
+    
+	
+}
+
+
+Reset {
+    #> printf("Hello\n");<#
+    async after 2000000 prio 1 task(1, 1.2*5); 
+    async after 3000000 prio 1 task(2, 5); 
+    
+}
