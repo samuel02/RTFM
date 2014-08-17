@@ -21,7 +21,12 @@ let tasks_of_p topl =
   and task path nr_ref seen = 
     function
     | Claim (r, csl)          -> tasks path seen csl  
-    | Sync (id, par)          -> tasks (path ^ "_" ^ id) seen (Env.lookup_func_sl id topl) 
+    | Sync (id, par)          ->
+      (
+      match Env.lookup_func id topl with
+       | FuncDef (fr,fi,fp,fsl) -> Func (fr, path ^ "_" ^ id, fp, fsl) :: tasks (path ^ "_" ^ id) seen (Env.lookup_func_sl id topl) 
+       | _ -> raise (RtfmError("Failed lookup " ^ id))
+      )
     | Async (_, pr, id, par)  -> 
       begin
         let nr = !nr_ref in

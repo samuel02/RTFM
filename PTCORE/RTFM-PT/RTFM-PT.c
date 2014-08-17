@@ -41,6 +41,9 @@
 #include <stdlib.h>			// rand etc.
 #include "RTFM-PT.h"
 
+typedef struct timeval timeval_t;
+timeval_t *time_get(timeval_t *ts);
+
 #include "../Application/autogen.c"
 
 #include <pthread.h>
@@ -60,7 +63,6 @@ void handle_error_en(int en, char *msg) {
 }
 
 /* data structures for the timer */
-typedef struct timeval timeval_t;
 timeval_t base_line[ENTRY_NR];
 timeval_t after[ENTRY_NR];
 timeval_t after_base_line[ENTRY_NR];
@@ -140,6 +142,10 @@ void RTFM_pend(int a, int f, int t) {
 	} else {
 		DPT("RTFM_pend   :Post :semaphore discarded, already outstanding");
 	}
+}
+
+void RTFM_time_stamp(int id) {
+	time_get(&base_line[id]);
 }
 
 /* run-time system implementation */

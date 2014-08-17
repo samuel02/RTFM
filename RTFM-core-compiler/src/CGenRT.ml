@@ -32,15 +32,15 @@ let crt_of_p topl v r =
         | c -> c
       in
       function
-      | TaskDef (id, par, _) ->
+        | TaskDef (id, par, _) ->
           "// Task defintion:" ^ id ^ nl ^
           (* "void " ^ id  ^ def_par par ^ "; // function prototype for the task" ^ nl ^ *)
           "typedef struct {" ^ String.map tpar par ^ ";} ARG_" ^ id ^ "; // type definition for arguments"^ nl
-      | Task (p, id, pa, par, _) ->
+        | Task (p, id, pa, par, _) ->
           "// Task instance defintion: @prio " ^ string_of_int p ^ " " ^ id ^  nl ^
           "void " ^ id ^ "(int RTFM_id, " ^ par ^ "); // function prototype for the instance task" ^ nl ^ 
           "void entry_" ^ id ^ "(int RTFM_id); // function prototype for the instance task" ^ nl 
-      | _ -> raise (UnMatched)
+        | _ -> raise (UnMatched)
     in    
     let entries_top = function
       | Isr (_, id, _)     -> id
@@ -61,7 +61,7 @@ let crt_of_p topl v r =
     "char* entry_names[] = {" ^ mycon ", " (mymap quote entries) ^ "};" ^ nl ^ nl ^
     mycon nl (mymap proto_top topl) ^ nl ^
     "ENTRY_FUNC entry_func[] = {"^ mycon ", " ("user_reset" :: (List.map (prestr "entry_") (mymap entries_top topl))) ^ "};" ^ nl ^ nl
-      
+          
   in
   let rec pargs path seen sl = 
     let nr_ref = ref 0 in
@@ -90,7 +90,7 @@ let crt_of_p topl v r =
           "}"
         | _                  -> raise (RtfmError("Lookup failed in Env.lookup_task id topl"))
       )
-     | Sync (id, par)        -> pargs (path ^ "_" ^ id) seen (Env.lookup_func_sl id topl)  
+     | Sync (id, par)        -> pargs (path ^ "_" ^ id) seen (Env.lookup_func_sl id topl)
      | _                     -> ""
   
   and ptop = function
@@ -112,7 +112,8 @@ let crt_of_p topl v r =
          let idp = path ^ "_" ^ id ^ if nr > 0 then string_of_int nr else "" in
        "arg_" ^ idp ^ " = (ARG_" ^ id ^ "){" ^ par ^ "}; " ^ nl ^
        "RTFM_pend(" ^ string_of_int af ^ ", RTFM_id, " ^ idp ^ "_nr);"      
-     | Sync ( id, par )      -> stmts (path ^ "_" ^ id) (SRP.lookup id topl)
+     | Sync ( id, par )      -> (path ^ "_" ^ id) ^ pass_par par
+      
      | ClaimC (c)            -> String.trim c
   
   and top = function
@@ -121,6 +122,7 @@ let crt_of_p topl v r =
       "void " ^ id  ^ def_par par ^ "{ // function implementation for the task:"  ^ id ^ "[" ^ pa ^ "]" ^ nl ^ 
       (stmts pa) sl ^ 
       "}"
+    | Func (r, id, par, sl) -> r ^ " " ^ id ^ def_par par ^ "{" ^ nl ^ (stmts id) sl ^ "}" 
     | Reset (sl)            -> "void user_reset(int RTFM_id) {" ^ nl ^ (stmts "reset") sl ^ "}"
     | _                     -> raise (UnMatched)
 

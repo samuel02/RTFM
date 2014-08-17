@@ -33,7 +33,7 @@ use:
 top:
   | CCODE                                   { TopC ($1) }
   | ISR INTVAL ID LCP stmt* RCP             { Isr ($2, $3, $5) }
-  | FUNC ID ID PARAMS LCP stmt* RCP         { Func ($2, $3, $4, $6) } 
+  | FUNC ID ID PARAMS LCP stmt* RCP         { FuncDef ($2, $3, $4, $6) } 
   | TASK ID PARAMS LCP stmt* RCP            { TaskDef ($2, $3, $5) }
   | RESET LCP stmt* RCP                     { Reset ($3) }
               

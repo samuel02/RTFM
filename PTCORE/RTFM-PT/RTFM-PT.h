@@ -20,12 +20,12 @@ void RTFM_lock(int, int);
 void RTFM_unlock(int, int);
 void RTFM_pend(int, int, int);
 
+void RTFM_time_stamp(int);  /* set the baseline */
+
+#define RT_time_stamp()     { RTFM_time_stamp(RTFM_id); }
 #define RT_rand(x)      	( rand() % x )
 #define RT_sleep(x) 		( sleep( x ) )
 #define RT_usleep(x)        ( usleep( x ) )
 #define RT_printf(...) 		{ printf( __VA_ARGS__ ); }
-
-//#define Task				void
-//#define ISR					void
 
 #endif /* RTFM_PT_H_ */

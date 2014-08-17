@@ -35,7 +35,7 @@ let rec string_of_r r = match r with
 (* lookup id -> prog -> stmts *)
 let rec lookup id p = match p with
   | []                                                  -> failwith("Failed to lookup Func " ^ id)
-  | Func (_, fid, _, sl) :: l when (compare id fid = 0) -> sl
+  | FuncDef (_, fid, _, sl) :: l when (compare id fid = 0) -> sl
   | _ :: l                                              -> lookup id l
 
 (* ceiling *)
