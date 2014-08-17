@@ -22,6 +22,7 @@ void RTFM_pend(int, int, int);
 
 #define RT_rand(x)      	( rand() % x )
 #define RT_sleep(x) 		( sleep( x ) )
+#define RT_usleep(x)        ( usleep( x ) )
 #define RT_printf(...) 		{ printf( __VA_ARGS__ ); }
 
 //#define Task				void

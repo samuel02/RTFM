@@ -188,15 +188,19 @@ float abs_time(timeval_t *t) {
 	return t->tv_sec + (float)t->tv_usec/us;
 }
 
+// 100 this is an arbitrarily chosen constant 0.1 ms, Linus/OSX is sloppy conf. bare metal
+// the effect is that we may release the task 0.1 ms too soon, on the other hand we reduce overhead
+const int jitter = 100;
+
 volatile void time_usleep(timeval_t *ts) {
 	int e;
 	int utime = ts->tv_sec*us + ts->tv_usec;
-	if (utime > 1) {
+	if (utime > jitter) {
 		DPT("usleep         (%f)", (float)utime / us);
 		if ((e = usleep(utime)))
 			handle_error_en(e, "usleep");
 	} else {
-		DPT("after time expired or interval to short %d", utime);
+		DPT("release time expired or interval to short %d", utime);
 	}
 }
 

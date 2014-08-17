@@ -21,7 +21,7 @@ let tasks_of_p topl =
   and task path nr_ref seen = 
     function
     | Claim (r, csl)          -> tasks path seen csl  
-    | Sync (id, par)          -> tasks path seen (Env.lookup_func_sl id topl) 
+    | Sync (id, par)          -> tasks (path ^ "_" ^ id) seen (Env.lookup_func_sl id topl) 
     | Async (_, pr, id, par)  -> 
       begin
         let nr = !nr_ref in
