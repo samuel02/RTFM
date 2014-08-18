@@ -36,13 +36,17 @@
 #define _GNU_SOURCE
 #endif
 
+
+
 #include <unistd.h>			// sleep etc.
 #include <stdio.h>			// printf etc.
 #include <stdlib.h>			// rand etc.
-#include "RTFM-PT.h"
+// we are not sure the application includes the RTFM-RT
+#include <time.h>			// for random seed
+#include <sys/time.h>       // gettimeofday
 
-typedef struct timeval timeval_t;
-timeval_t *time_get(timeval_t *ts);
+#include "RTFM-PT.h"
+#include "RTFM-RT.h"
 
 #include "../Application/autogen.c"
 
@@ -51,8 +55,9 @@ timeval_t *time_get(timeval_t *ts);
 #include <string.h>
 #include <semaphore.h>
 #include <fcntl.h>			// for O_CREATE etc.
-#include <time.h>			// for random seed
-#include <sys/time.h>       // gettimeofday
+
+
+typedef struct timeval timeval_t;
 
 void handle_error_en(int en, char *msg) {
 	fprintf(stderr, "en = %d, errno = %d\n", en, errno);
@@ -63,10 +68,10 @@ void handle_error_en(int en, char *msg) {
 }
 
 /* data structures for the timer */
-timeval_t base_line[ENTRY_NR];
-timeval_t after[ENTRY_NR];
-timeval_t after_base_line[ENTRY_NR];
-timeval_t global_base_line;
+RTFM_time base_line[ENTRY_NR];
+RTFM_time after[ENTRY_NR];
+RTFM_time after_base_line[ENTRY_NR];
+RTFM_time global_base_line = 0;
 
 /* data structures for the threads and semaphores */
 pthread_mutex_t res_mutex[RES_NR];
@@ -115,9 +120,7 @@ void RTFM_unlock(int f, int r) {
 	m_unlock(&res_mutex[r]);
 }
 
-const int us = 1000000;
-
-void RTFM_pend(int a, int f, int t) {
+void RTFM_pend(RTFM_time a, int f, int t) {
 	int lcount;
 	DP("Pend     :%s->%s", entry_names[f], entry_names[t]);
 
@@ -133,8 +136,7 @@ void RTFM_pend(int a, int f, int t) {
 	m_unlock(&pend_count_mutex[t]);
 
 	after_base_line[t] = base_line[f]; // set the baseline for the receiver
-    after[t].tv_usec = a % us; // timer handling
-    after[t].tv_sec  = a / us;
+    after[t] = a; 					   // set the relative time offset
 
 	if (lcount == 0) { // just a single outstanding semaphore/mimic the single buffer pend of interrupt hardware
 		DPT("RTFM_pend   :pend_sem[%d], Post :semaphore posted %s", t, entry_names[t])
@@ -144,69 +146,51 @@ void RTFM_pend(int a, int f, int t) {
 	}
 }
 
-void RTFM_time_stamp(int id) {
-	time_get(&base_line[id]);
+
+RTFM_time RTFM_get_bl(int id) {
+	return base_line[id];
+}
+
+RTFM_time time_get();
+void  RTFM_set_bl(int id) {
+	RTFM_time new_bl = time_get();
+	DPT("RTFM_set_bl   :base_line[%d] = %f)", id, RT_time_to_float(new_bl));
+	base_line[id] = new_bl;
 }
 
 /* run-time system implementation */
 
 /* timer related, portable on Linux and OSX */
-timeval_t *time_sub(timeval_t *t1, timeval_t *t2, timeval_t *res) {
-    res->tv_sec = t1->tv_sec - t2->tv_sec;
-    res->tv_usec = t1->tv_usec - t2->tv_usec;
-    if (res->tv_usec < 0L) {
-        res->tv_sec--;
-        res->tv_usec += us;
-    }
-    return res;
-}
 
-/*
-void time_print(char *s, timeval_t *t) {
-	timeval_t rel =*time_sub(t, &global_base_line, &rel);
-    printf("%s, relative %f\n", s,  rel.tv_sec + (float)rel.tv_usec/us );
-};
-*/
-
-timeval_t *time_add(timeval_t *t1, timeval_t *t2, timeval_t *res) {
-    res->tv_sec = t1->tv_sec + t2->tv_sec;
-    res->tv_usec = t1->tv_usec + t2->tv_usec;
-    if (res->tv_usec >= us) {
-        res->tv_sec++;
-        res->tv_usec -= us;
-    }
-    return res;
-}
-
-timeval_t *time_get(timeval_t *ts) {
+RTFM_time time_get() {
 	int e;
-	if ((e = gettimeofday(ts, NULL)))
+	timeval_t ts;
+	if ((e = gettimeofday(&ts, NULL)))
 		handle_error_en(e, "gettimeofday");
-    return ts;
+    return (ts.tv_sec*RT_us + ts.tv_usec) - global_base_line;
 }
 
-float rel_time(timeval_t *t) {
-	timeval_t rel =*time_sub(t, &global_base_line, &rel);
-	return rel.tv_sec + (float)rel.tv_usec/us;
+void set_global_baseline() {
+	int e;
+	timeval_t ts;
+	if ((e = gettimeofday(&ts, NULL)))
+		handle_error_en(e, "gettimeofday");
+	global_base_line = (ts.tv_sec*RT_us + ts.tv_usec);
 }
 
-float abs_time(timeval_t *t) {
-	return t->tv_sec + (float)t->tv_usec/us;
-}
 
 // 100 this is an arbitrarily chosen constant 0.1 ms, Linus/OSX is sloppy conf. bare metal
 // the effect is that we may release the task 0.1 ms too soon, on the other hand we reduce overhead
 const int jitter = 100;
 
-volatile void time_usleep(timeval_t *ts) {
+volatile void time_usleep(RTFM_time t) {
 	int e;
-	int utime = ts->tv_sec*us + ts->tv_usec;
-	if (utime > jitter) {
-		DPT("usleep         (%f)", (float)utime / us);
-		if ((e = usleep(utime)))
+	if (t > jitter) {
+		DPT("usleep         (%f)", RT_time_to_float(t));
+		if ((e = usleep(t)))
 			handle_error_en(e, "usleep");
 	} else {
-		DPT("release time expired or interval to short %d", utime);
+		DPT("release time expired or interval to short %d (us)", t);
 	}
 }
 
@@ -228,17 +212,17 @@ void *thread_handler(void *id_ptr) {
 		DPT("thread      :pthread_mutex_unlock(&pend_count_mutex[%d])", id);
 		m_unlock(&pend_count_mutex[id]);
 
-	    DPT("old_bl[%2d]    = %f", id, rel_time(&base_line[id]));
-	    DPT("after_bl[%2d]  = %f", id, rel_time(&after_base_line[id]));
-	    DPT("after[%2d|     = %f", id, abs_time(&after[id]));
-	    time_add(&after_base_line[id], &after[id], &base_line[id]);
-	    DPT("new_bl[%2d]    = %f", id, rel_time(&base_line[id]));
-	    timeval_t cur_time = *time_get(&cur_time);
-	    DPT("cur_time      = %f", rel_time(&cur_time));
+	    DPT("old_bl[%2d]    = %f", id, RT_time_to_float(base_line[id]));
+	    DPT("after_bl[%2d]  = %f", id, RT_time_to_float(after_base_line[id]));
+	    DPT("after[%2d|     = %f", id, RT_time_to_float(after[id]));
+	    base_line[id] = RT_time_add(after_base_line[id], after[id]);
+	    DPT("new_bl[%2d]    = %f", id, RT_time_to_float(base_line[id]));
+	    RTFM_time cur_time = time_get();
+	    DPT("cur_time      = %f", RT_time_to_float(cur_time));
 
-	    timeval_t offset = *time_sub(&base_line[id], &cur_time, &offset);
-	    DPT("offset        = %f", abs_time(&offset));
-	    time_usleep(&offset);
+	    RTFM_time offset = base_line[id]- cur_time;
+	    DPT("offset        = %f", RT_time_to_float(offset));
+	    time_usleep(offset);
 
 		DPT("thread      :entry_func[%d](%d)", id, id);
 		DP("Task run :%s", entry_names[id]);
@@ -423,9 +407,9 @@ int main() {
 	sleep(1); /* let the setup be done until continuing */
 
 	/* set baselines */
-	time_get(&global_base_line);
+	set_global_baseline();
 	for (i = 0; i < ENTRY_NR; i++) {
-		base_line[i] = global_base_line;
+		base_line[i] = 0; // only for good measure
 	}
 
 
