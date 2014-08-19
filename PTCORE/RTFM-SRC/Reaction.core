@@ -1,0 +1,27 @@
+#>
+#include "../RTFM-PT/RTFM-RT.h"
+<#
+
+Task task_print() {
+    #> printf("Now !!!!\n");<#
+}
+
+Reset {
+    #> printf("RTFM-core, reaction time.\nPress enter as fast as possible when Now!!! is printed on the screen.\n");
+	
+	float at = (RT_rand(3000)+2000.0)/1000.0;      				// we randomize in ms
+	RTFM_time tat = RT_time_of_float(at);    					// convert to RT_time_t
+	printf("My after sec %f\n", RT_time_to_float(tat));
+	<#async after (RT_time_to_us(tat)) prio 3 task_print();#>; 	// delay in us
+	char c;
+	c = getc(stdin);
+	RT_set_bl();
+	RTFM_time react = RT_get_bl();
+	printf("react %f\n", RT_time_to_float(react));
+	RTFM_time diff = RT_time_sub(react, tat);
+	if (diff < 0) 
+		printf("You cheated by %f\n", RT_time_to_float(diff));
+	else
+		printf("Reaction in seconds %f\n", RT_time_to_float(diff));
+    <#
+}

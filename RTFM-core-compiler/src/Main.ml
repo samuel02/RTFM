@@ -9,7 +9,7 @@ open AST
 open SRP
 open IsrVector
 open IsrCGen
-open CGenPT 
+open CGenRT 
 open CGenK
 open Dot
 open Locks
@@ -72,9 +72,12 @@ let main () =
       p_stderr ("Tasks/ISRs per priority: " ^ nl^ string_of (pl mTops rm) );
     end;
     
+    let tasks = task_vector meTops in
+    p_stderr ("Tasks : " ^ String.concat ", " (List.map snd tasks) ^ nl );
+    
     (* dot for task/resource structure *)
     if opt.dotout then begin
-      let dots = (d_of_p mTops rm) in
+      let dots = (d_of_p meTops rm) in
       if opt.verbose then p_stderr dots;
       let ocd = open_out opt.dotfile in
       begin
@@ -82,9 +85,6 @@ let main () =
         close_out ocd;
       end;
     end;
-    
-    let tasks = task_vector meTops in
-    p_stderr ("Tasks : " ^ String.concat ", " (List.map snd tasks) ^ nl );
         
     match opt.target with
     | RTFM_KERNEL -> begin
@@ -95,7 +95,7 @@ let main () =
             p_stderr (nl ^ "Original Vector table " ^ nl ^ isrv_to_c isr_vector);
             p_stderr (nl ^ "After assignments Vector table " ^ nl ^ isrv_to_c nv);
             let pair (a, b) = a ^ "->" ^ b in
-            p_stderr (nl ^ "Task to isr_entries" ^ nl ^ String.concat ", " (List.map pair tidm));
+            p_stderr (nl ^ "Task to isr_entries" ^ nl ^ String.concat nl (List.map pair tidm));
           end;
           match wf_of_v nv with
           | false -> p_stderr (nl ^ "Error in Vector table!" ^ nl);
@@ -112,7 +112,7 @@ let main () =
               end;
         end;
     
-    | RTFM_PT ->
+    | RTFM_RT ->
     (* generate c code *)
         p_oc oc (crt_of_p meTops tasks rm);
         (* comupte cyclic dependencies *)

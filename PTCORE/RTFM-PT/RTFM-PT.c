@@ -36,10 +36,17 @@
 #define _GNU_SOURCE
 #endif
 
+
+
 #include <unistd.h>			// sleep etc.
 #include <stdio.h>			// printf etc.
 #include <stdlib.h>			// rand etc.
+// we are not sure the application includes the RTFM-RT
+#include <time.h>			// for random seed
+#include <sys/time.h>       // gettimeofday
+
 #include "RTFM-PT.h"
+#include "RTFM-RT.h"
 
 #include "../Application/autogen.c"
 
@@ -48,7 +55,9 @@
 #include <string.h>
 #include <semaphore.h>
 #include <fcntl.h>			// for O_CREATE etc.
-#include <time.h>			// for random seed
+
+
+typedef struct timeval timeval_t;
 
 void handle_error_en(int en, char *msg) {
 	fprintf(stderr, "en = %d, errno = %d\n", en, errno);
@@ -57,6 +66,12 @@ void handle_error_en(int en, char *msg) {
 	perror(msg);
 	exit(EXIT_FAILURE);
 }
+
+/* data structures for the timer */
+RTFM_time base_line[ENTRY_NR];
+RTFM_time after[ENTRY_NR];
+RTFM_time after_base_line[ENTRY_NR];
+RTFM_time global_base_line = 0;
 
 /* data structures for the threads and semaphores */
 pthread_mutex_t res_mutex[RES_NR];
@@ -105,7 +120,7 @@ void RTFM_unlock(int f, int r) {
 	m_unlock(&res_mutex[r]);
 }
 
-void RTFM_pend(int f, int t) {
+void RTFM_pend(RTFM_time a, int f, int t) {
 	int lcount;
 	DP("Pend     :%s->%s", entry_names[f], entry_names[t]);
 
@@ -120,6 +135,9 @@ void RTFM_pend(int f, int t) {
 	DPT("RTFM_pend   :pthread_mutex_unlock(&pend_count_mutex[%d])", t);
 	m_unlock(&pend_count_mutex[t]);
 
+	after_base_line[t] = base_line[f]; // set the baseline for the receiver
+    after[t] = a; 					   // set the relative time offset
+
 	if (lcount == 0) { // just a single outstanding semaphore/mimic the single buffer pend of interrupt hardware
 		DPT("RTFM_pend   :pend_sem[%d], Post :semaphore posted %s", t, entry_names[t])
 		s_post(pend_sem[t]);
@@ -128,7 +146,54 @@ void RTFM_pend(int f, int t) {
 	}
 }
 
+
+RTFM_time RTFM_get_bl(int id) {
+	return base_line[id];
+}
+
+RTFM_time time_get();
+void  RTFM_set_bl(int id) {
+	RTFM_time new_bl = time_get();
+	DPT("RTFM_set_bl   :base_line[%d] = %f)", id, RT_time_to_float(new_bl));
+	base_line[id] = new_bl;
+}
+
 /* run-time system implementation */
+
+/* timer related, portable on Linux and OSX */
+
+RTFM_time time_get() {
+	int e;
+	timeval_t ts;
+	if ((e = gettimeofday(&ts, NULL)))
+		handle_error_en(e, "gettimeofday");
+    return (ts.tv_sec*RT_sec + ts.tv_usec) - global_base_line;
+}
+
+void set_global_baseline() {
+	int e;
+	timeval_t ts;
+	if ((e = gettimeofday(&ts, NULL)))
+		handle_error_en(e, "gettimeofday");
+	global_base_line = (ts.tv_sec*RT_sec + ts.tv_usec);
+}
+
+
+// 100 this is an arbitrarily chosen constant 0.1 ms, Linus/OSX is sloppy conf. bare metal
+// the effect is that we may release the task 0.1 ms too soon, on the other hand we reduce overhead
+const int jitter = 100;
+
+volatile void time_usleep(RTFM_time t) {
+	int e;
+	if (t > jitter) {
+		DPT("usleep         (%f)", RT_time_to_float(t));
+		if ((e = usleep(t)))
+			handle_error_en(e, "usleep");
+	} else {
+		DPT("release time expired or interval to short %d (us)", t);
+	}
+}
+
 void *thread_handler(void *id_ptr) {
 	int id = *((int *) id_ptr);
 	DPT("thread      :Working thread %d started : Task %s", id, entry_names[id]);
@@ -147,6 +212,18 @@ void *thread_handler(void *id_ptr) {
 		DPT("thread      :pthread_mutex_unlock(&pend_count_mutex[%d])", id);
 		m_unlock(&pend_count_mutex[id]);
 
+	    DPT("old_bl[%2d]    = %f", id, RT_time_to_float(base_line[id]));
+	    DPT("after_bl[%2d]  = %f", id, RT_time_to_float(after_base_line[id]));
+	    DPT("after[%2d|     = %f", id, RT_time_to_float(after[id]));
+	    base_line[id] = RT_time_add(after_base_line[id], after[id]);
+	    DPT("new_bl[%2d]    = %f", id, RT_time_to_float(base_line[id]));
+	    RTFM_time cur_time = time_get();
+	    DPT("cur_time      = %f", RT_time_to_float(cur_time));
+
+	    RTFM_time offset = base_line[id]- cur_time;
+	    DPT("offset        = %f", RT_time_to_float(offset));
+	    time_usleep(offset);
+
 		DPT("thread      :entry_func[%d](%d)", id, id);
 		DP("Task run :%s", entry_names[id]);
 		entry_func[id](id); // dispatch the task
@@ -158,10 +235,10 @@ void dump_priorities() {
 	int i;
 	fprintf(stderr, "\nResource ceilings:\n");
 	for (i = 0; i < RES_NR; i++)
-		fprintf(stderr, "Res %d \t ceiling %d\n", i,  ceilings[i]);
+		fprintf(stderr, "Res %d \t ceiling %d : %s\n", i,  ceilings[i], res_names[i]);
 	fprintf(stderr, "\nTask priorities:\n");
 	for (i = 0; i < ENTRY_NR; i++)
-		fprintf(stderr, "Task %d \tpriority %d \n",i, entry_prio[i]);
+		fprintf(stderr, "Task %d \tpriority %d : %s\n",i, entry_prio[i], entry_names[i]);
 }
 
 int main() {
@@ -328,6 +405,13 @@ int main() {
 		handle_error_en(s, "pthread_setschedparam\n");
 
 	sleep(1); /* let the setup be done until continuing */
+
+	/* set baselines */
+	set_global_baseline();
+	for (i = 0; i < ENTRY_NR; i++) {
+		base_line[i] = 0; // only for good measure
+	}
+
 
 	printf("-----------------------------------------------------------------------------------------------------------------------\n");
 	DPT("main        :user_reset(user_reset_nr);");

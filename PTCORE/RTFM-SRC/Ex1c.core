@@ -1,6 +1,7 @@
 Reset {
 	#>printf("User reset\n");<#
-	async task ();
+	async task (75*2);
+	async task (75);	
 
 	#> 
 	while (1) {
@@ -9,6 +10,6 @@ Reset {
 	<#	
 }
 
-Task task () {
-	#>printf("task\n");<#
+Task task (int i) {
+	#>printf("task %d\n", i);<#
 }

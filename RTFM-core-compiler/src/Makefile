@@ -28,7 +28,7 @@ ALL_PDF = task.pdf res.pdf
 ALL_DOCUMENTATION = *.html *.css
 
 # Flags
-OCAMLFLAGS      = -use-menhir
+OCAMLFLAGS      = -use-menhir -lib str
 OCAMLCLEANFLAGS = -quiet -clean
 DIRFLAGS        = -p
 DOTFLAGS        = -gv_task task.gv -gv_res res.gv

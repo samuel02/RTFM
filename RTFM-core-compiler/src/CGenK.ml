@@ -23,7 +23,7 @@ let ck_of_p topl v r tidl =
   let c_of_r rl =
     "enum resources {" ^ mycon "," ((List.map fst rl) @ ["RES_NR"]) ^ "};" ^ nl ^
     "const int ceilings[] = {" ^ mycon ", " (List.map string_of_int (List.map snd rl)) ^ "};" ^ nl ^ 
-    "char* res_names[] = {" ^ mycon "," (List.map quote (List.map fst rl)) ^ "};" ^ nl 
+    "//const char* res_names[] = {" ^ mycon "," (List.map quote (List.map fst rl)) ^ "};" ^ nl 
   
   in
   let c_entry_of_top topl =
@@ -37,7 +37,7 @@ let ck_of_p topl v r tidl =
           "// Task defintion:" ^ id ^ nl ^
           "void " ^ id  ^ def_par par ^ "; // function prototype for the task" ^ nl ^ 
           "typedef struct {" ^ String.map tpar par ^ ";} ARG_" ^ id ^ "; // type definition for arguments"^ nl
-      | Task (p, id, par, _) ->
+      | Task (p, id, pa, par, _) ->
           let hw = myass id tidl in
           "// Task instance defintion: @prio " ^ string_of_int p ^ " " ^ id ^  nl ^
           "void " ^ hw ^ "(); // function prototype for the instance task" ^ nl 
@@ -45,7 +45,7 @@ let ck_of_p topl v r tidl =
     in    
     let entries_top s = function
       | Isr (_, id, _)     -> id ^ s
-      | Task (_, id, _, _) -> id ^ s
+      | Task (_, id, pa, _, _) -> id ^ s
       | _                  -> raise (UnMatched)  
     
     in    
@@ -58,13 +58,13 @@ let ck_of_p topl v r tidl =
       let index id = id ^ "_nr = " ^ string_of_int (vindex (-16) id tidl) in 
       function
       | Isr (_, id, _)     -> index id
-      | Task (_, id, _, _) -> index id
+      | Task (_, id, pa, _, _) -> index id
       | _                  -> raise (UnMatched)
       
     in
     let priorities_top = function
       | Isr (p, _, _)      -> string_of_int p
-      | Task (p, _, _, _)  -> string_of_int p  
+      | Task (p, _, pa, _, _)  -> string_of_int p  
       | _                  -> raise (UnMatched) 
     in
     let entries = mymap (entries_top "") topl in
@@ -83,7 +83,7 @@ let ck_of_p topl v r tidl =
   and parg path nr_ref = 
     function
     | Claim (r, csl)         -> pargs path csl 
-    | Async (p, id, par)     ->
+    | Async (_, p, id, par)  ->
       (
        let nr = !nr_ref in
         nr_ref := nr + 1;
@@ -99,10 +99,12 @@ let ck_of_p topl v r tidl =
           | _ -> failwith("Error parsing argument of task" ^ id)
           in 
           let args = mycon "," (List.map arga argl) in
+          
           "ARG_" ^ id ^ " arg_" ^ idp ^ "; // instance for argument" ^ nl ^
           "void " ^ hw ^ "() {" ^ nl ^
-          tab ^ id ^ pass_par args ^ "; // (inlined) call to the async function" ^ nl ^
+          tab ^ idp ^ pass_par args ^ "; // (inlined) call to the async function" ^ nl ^
           "}"
+          
         | _                  -> raise (RtfmError("Lookup failed in Env.lookup_task id topl"))
       )
      | Sync (id, par)        -> pargs (path ^ "_" ^ id) (Env.lookup_func_sl id topl)  
@@ -110,7 +112,7 @@ let ck_of_p topl v r tidl =
   
   and ptop = function
      | Isr (p, id, sl)       -> pargs id sl
-     | Task (p, id, _, sl)   -> pargs id sl
+     | Task (p, id, pa, _, sl)   -> pargs pa sl
      | Reset (sl)            -> pargs "reset" sl 
      | _                     -> raise (UnMatched)
   
@@ -119,9 +121,9 @@ let ck_of_p topl v r tidl =
     let nr_ref = ref 0 in
     myconcat nl (mymap (stmt path nr_ref) sl) 
   and stmt path nr_ref = function
-     | Claim (r, csl)        -> "RTFM_lock(" ^ r ^ ");" ^ nl ^ (stmts path) csl ^ "RTFM_unlock(" ^ r ^ ");"
-     | Pend (id)             -> "RTFM_pend(" ^ id ^ "_nr);"
-     | Async (pr, id, par)   ->
+     | Claim (r, csl)           -> "RTFM_lock(" ^ r ^ ");" ^ nl ^ (stmts path) csl ^ "RTFM_unlock(" ^ r ^ ");"
+     | Pend (_, id)             -> "RTFM_pend(" ^ id ^ "_nr);"
+     | Async (_, pr, id, par)   ->
       let nr = !nr_ref in
         nr_ref := nr + 1;
          let idp = path ^ "_" ^ id ^ if nr > 0 then string_of_int nr else "" in
@@ -131,24 +133,26 @@ let ck_of_p topl v r tidl =
      | ClaimC (c)            -> String.trim c
   
   and top = function
-    | TopC (c)               -> deb ("top level code ") ^ c
     | Isr (p, id, sl)        -> "void " ^ id ^ "() {" ^ nl ^ (stmts id) sl ^ "}"
-    | TaskDef (id, par, sl)  -> 
-      "void " ^ id  ^ def_par par ^ "{ // function implementation for the task" ^ nl ^ 
-      (stmts "") sl ^ 
+    | Task (p, id, pa, par, sl)  -> 
+      "void " ^ id ^ def_par par ^ "{ // function implementation for the task:" ^ id ^ "[" ^ pa ^ "]"^ nl ^ 
+      (stmts pa) sl ^ 
       "}"
-    | Reset (sl)            -> "void user_reset() {" ^ nl ^ (stmts "reset") sl ^ "}"
-    | _                     -> raise (UnMatched)
-      
+    | Reset (sl)             -> "void user_reset() {" ^ nl ^ (stmts "reset") sl ^ "}"
+    | _                      -> raise (UnMatched)
+  
+  in 
+  let c_top = function
+    | TopC (c)               -> deb ("top level code ") ^ c  
+    | _                      -> raise (UnMatched)
+           
   in
   let info = "const char* CORE_FILE_INFO = \"Compiled with : " ^ String.escaped (string_of_opt opt) ^ "\";" ^ nl
   
   in
-  "// RTFM-core for RTFM-PT" ^ nl ^
+  "// RTFM-core for RTFM-Kernel" ^ nl ^
   info ^ nl ^ 
   deb ("Resources and ceilings") ^ c_of_r r ^
   deb ("Entry points") ^ c_entry_of_top topl  ^ 
-  deb ("Argument instances") ^ 
-  myconcat nl (mymap ptop topl) ^ nl ^
-  deb ("Application") ^ 
-  myconcat nl (mymap top topl)  
+  deb ("Argument instances") ^ myconcat nl (mymap ptop topl) ^ nl ^
+  deb ("Application") ^ myconcat nl (mymap c_top topl) ^ myconcat nl (mymap top topl)  

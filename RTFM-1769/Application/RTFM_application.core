@@ -7,14 +7,14 @@ Task task(int i, float j) {
     #> printf("task %d %f\n", i, j);<#
 }
 
-ISR 4 WDT_IRQHandler {
-    #> printf("WDT_IRQHandler\n");<#
+
+Task plepps() {
     async 2 task(7*2, 4/3);
 }
 
 Reset {
     #> printf("Hello\n");<#
-    async 1 task(1, 1.2*5); 
-    pend WDT_IRQHandler;
+    async 1 plepps();
+    async 2 plepps();
 }
 

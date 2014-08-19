@@ -1,0 +1,18 @@
+// periodic process
+Task task(int i) {
+    #> printf("task %d\n", i);<#
+	async after (RT_sec * 2) prio 1 task (i+1);
+	async b();
+}
+
+Task b () {
+	claim R {
+		async prio 2 b();
+	}
+}
+
+Reset {
+    #> printf("Hello\n");<#
+    async after (RT_sec * 1) task(1);
+    //async after (RT_sec * 4) task(100);    
+}
