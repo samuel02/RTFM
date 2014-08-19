@@ -38,7 +38,7 @@ let crt_of_p topl v r =
           "typedef struct {" ^ String.map tpar par ^ ";} ARG_" ^ id ^ "; // type definition for arguments"^ nl
         | Task (p, id, pa, par, _) ->
           "// Task instance defintion: @prio " ^ string_of_int p ^ " " ^ id ^  nl ^
-          "void " ^ id ^ "(int RTFM_id, " ^ par ^ "); // function prototype for the instance task" ^ nl ^ 
+          "void " ^ id ^ def_par par ^ "; // function prototype for the instance task" ^ nl ^ 
           "void entry_" ^ id ^ "(int RTFM_id); // function prototype for the instance task" ^ nl 
         | _ -> raise (UnMatched)
     in    
@@ -111,7 +111,7 @@ let crt_of_p topl v r =
         nr_ref := nr + 1;
          let idp = path ^ "_" ^ id ^ if nr > 0 then string_of_int nr else "" in
        "arg_" ^ idp ^ " = (ARG_" ^ id ^ "){" ^ par ^ "}; " ^ nl ^
-       "RTFM_pend(" ^ string_of_int af ^ ", RTFM_id, " ^ idp ^ "_nr);"      
+       "RTFM_pend(" ^ af ^ ", RTFM_id, " ^ idp ^ "_nr);"      
      | Sync ( id, par )      -> (path ^ "_" ^ id) ^ pass_par par
       
      | ClaimC (c)            -> String.trim c

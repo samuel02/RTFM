@@ -46,8 +46,8 @@ stmt:
   | SYNC ID PARAMS SC                       { Sync ($2, $3) }
   
 after:
-  | AFTER INTVAL                            { $2 }
-  |                                         { 0 }
+  | AFTER PARAMS                            { $2 }
+  |                                         { "0" }
      
 prio:
   | PRIO INTVAL                             { $2 }

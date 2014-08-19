@@ -1,3 +1,4 @@
+// The syncronous Func emits an asynchronous task
 Task task(int i, float j) {
     #> printf("task %d %f\n", i, j);<#
 }

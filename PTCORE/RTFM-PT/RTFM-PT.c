@@ -167,7 +167,7 @@ RTFM_time time_get() {
 	timeval_t ts;
 	if ((e = gettimeofday(&ts, NULL)))
 		handle_error_en(e, "gettimeofday");
-    return (ts.tv_sec*RT_us + ts.tv_usec) - global_base_line;
+    return (ts.tv_sec*RT_sec + ts.tv_usec) - global_base_line;
 }
 
 void set_global_baseline() {
@@ -175,7 +175,7 @@ void set_global_baseline() {
 	timeval_t ts;
 	if ((e = gettimeofday(&ts, NULL)))
 		handle_error_en(e, "gettimeofday");
-	global_base_line = (ts.tv_sec*RT_us + ts.tv_usec);
+	global_base_line = (ts.tv_sec*RT_sec + ts.tv_usec);
 }
 
 

@@ -2,31 +2,19 @@
 #ifndef RTFM_RT_H_
 #define RTFM_RT_H_
 
-#define RT_us                   1000000
+#define RT_sec                  1000000
+#define RT_ms					1000
 typedef int RTFM_time;
+#define RT_time					RTFM_time
 
 // prototypes
 RTFM_time RTFM_get_bl(int id);
 void RTFM_set_bl(int id);
 
-/*
-
-RTFM_time RT_time_sub(RTFM_time t1, RTFM_time t2) {
-	return t1 - t2;
-}
-
-RTFM_time RT_time_add(RTFM_time t1, RTFM_time t2) {
-	return t1 + t2;
-}
-
-float RT_time_to_float(t) {
-	return ( ((float) t)/RT_us );
-}
-*/
 #define RT_time_sub(t1, t2)     (t1 - t2)
 #define RT_time_add(t1, t2)     (t1 + t2)
-#define RT_time_to_float(t)     ( ((float) t)/RT_us )
-#define RT_time_of_float(f)     ((RTFM_time) (f * RT_us))
+#define RT_time_to_float(t)     ( ((float) t)/RT_sec )
+#define RT_time_of_float(f)     ((RTFM_time) (f * RT_sec))
 #define RT_time_to_us(t)		(t)
 
 // Run-time API, built in functions

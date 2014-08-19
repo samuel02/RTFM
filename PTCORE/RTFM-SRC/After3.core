@@ -1,4 +1,4 @@
-
+// time stamping to get the baseline after the blocking call to getc
 Task task(char c) {
     #> printf("task %c \n", c);<#
 }
@@ -9,8 +9,8 @@ Func char f(int i) {
 	char c;
     printf("Enter character %d: ", i);
 	c = getc(stdin);
-	RT_time_stamp();
-	<# async after 1000000 task(c); #>
+	RT_set_bl();
+	<# async after (RT_sec * 1) task(c); #>
 	return c;
 <#
 }

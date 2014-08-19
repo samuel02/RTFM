@@ -9,7 +9,7 @@ type stmt =
   | Claim     of string * stmt list                             (* res_id, stmts                    *)
   | Pend      of int * string                                   (* prio, isr_id                     *)
   | Sync      of string * string                                (* func_id, par_c                   *)
-  | Async     of int * int * string * string                    (* after, prio, task_id, par_c      *)
+  | Async     of string * int * string * string                 (* expr, prio, task_id, par_c       *)
   | ClaimC    of string                                         (* code_c                           *)
      
 type top =
@@ -42,20 +42,20 @@ let string_of_tops tl =
       
   (* top *)
   and top i = match i with
-    | TopC (c)              -> "#> CCODE <#"
-    | Isr (p, id, s)        -> "Isr prio " ^ string_of_int p ^ " " ^ id ^ op ^ stmts "" s ^ cl ^ nl 
-    | Task (p, id, pa, par, s)  -> "Task prio " ^ string_of_int p ^ " " ^ id ^ "[" ^ pa ^ "] (" ^ par ^ ")" ^ op ^ stmts "" s ^ cl ^ nl 
+    | TopC (c)                 -> "#> CCODE <#"
+    | Isr (p, id, s)           -> "Isr prio " ^ string_of_int p ^ " " ^ id ^ op ^ stmts "" s ^ cl ^ nl 
+    | Task (p, id, pa, par, s) -> "Task prio " ^ string_of_int p ^ " " ^ id ^ "[" ^ pa ^ "] (" ^ par ^ ")" ^ op ^ stmts "" s ^ cl ^ nl 
     | FuncDef (t, id, par, s)  -> "Func " ^ t ^ " " ^ id ^ " " ^ par ^ op ^ stmts "" s ^ cl ^ nl
-    | Func (t, id, par, s)  -> "Func " ^ t ^ " " ^ id ^ " " ^ par ^ op ^ stmts "" s ^ cl ^ nl
-    | TaskDef (id, par, s)  -> "TaskDef " ^ id ^ " " ^ par ^ op ^ stmts "" s ^ cl ^ nl 
-    | Reset (s)             -> "Reset " ^ op ^ stmts "" s ^ cl ^ nl 
+    | Func (t, id, par, s)     -> "Func " ^ t ^ " " ^ id ^ " " ^ par ^ op ^ stmts "" s ^ cl ^ nl
+    | TaskDef (id, par, s)     -> "TaskDef " ^ id ^ " " ^ par ^ op ^ stmts "" s ^ cl ^ nl 
+    | Reset (s)                -> "Reset " ^ op ^ stmts "" s ^ cl ^ nl 
       
   (* stmt *)
   and stmt t s = match s with
     | Claim (id, s)           -> "Claim " ^ id ^ op ^ stmts (tab ^ t) s ^ cl
     | Pend (af, id)           -> "Pend after" ^ string_of_int af ^ " " ^ id  
     | Sync (id, par )         -> "Sync " ^ id ^ "#>" ^ par ^ "<#"  
-    | Async (af, pr, id, par) -> "Async after " ^ string_of_int af ^ " @prio " ^ string_of_int pr ^ " " ^ id ^ " (" ^ par ^ ")" 
+    | Async (af, pr, id, par) -> "Async after " ^ af ^ " @prio " ^ string_of_int pr ^ " " ^ id ^ " (" ^ par ^ ")" 
     | ClaimC (c)              -> "#> CCODE <#"
   in
   tops tl

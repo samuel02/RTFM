@@ -20,7 +20,7 @@ and
     
 type dtop =
   | DIsr of string * int * dstmts
-  | DTask of string * int * string * dstmts
+  | DTask of string * string * int * string * dstmts
   | DFunc of string * string * dstmts 
   | DReset of dstmts 
     
@@ -67,6 +67,7 @@ let d_of_dt rl d =
                                               )
     | DotSync (i, ft, id)                   -> ft ^ ":L" ^ string_of_int i ^ ":e -> " ^ id ^ ":n [arrowhead = none, arrowtail = none]" ^ nl 
     | DotPend (i, ft, id)                   -> ft ^ ":L" ^ string_of_int i ^ ":e -> " ^ (* "ISR_" ^ *) id ^ ":n [dir = both, arrowtail = invempty, arrowhead = none, style=dotted]" ^ nl 
+    | DotAsync (i, ft, id)                  -> ft ^ ":L" ^ string_of_int i ^ ":e -> " ^ (* "ISR_" ^ *) id ^ ":n [dir = both, arrowtail = invempty, arrowhead = none, style=dotted]" ^ nl 
     | _ -> ""
       
   in      
@@ -85,11 +86,11 @@ let d_of_dt rl d =
     "ISR_" ^ id ^ " -> " ^ id ^ ":nw [arrowhead = none]"^ nl
   in
   match d with
-    | DIsr (id, prio, (Ds (t, l)))      -> entrypoint "tan3" id prio t l
-    | DTask (id, prio, _, (Ds (t, l)))  -> entrypoint "tan2" id prio t l
-    | DFunc (t, id, (Ds (i, l)))        -> (record  (id) "lightgrey") l ^ nl ^ cs id l
-    | DReset (Ds (t, l))                -> 
-      let id = "User_Reset" in 
+    | DIsr (id, prio, (Ds (t, l)))        -> entrypoint "tan3" id prio t l
+    | DTask (id, _, prio, _, (Ds (t, l))) -> entrypoint "tan2" id prio t l
+    | DFunc (t, id, (Ds (i, l)))          -> (record  (id) "lightgrey") l ^ nl ^ cs id l
+    | DReset (Ds (t, l))                  -> 
+      let id = "reset" in 
       (record (id) "yellow") l ^ nl ^ cs id l ^ nl ^ "{ rank=source; " ^ id ^ "  ; }" ^ nl 
                                            
         
@@ -97,25 +98,34 @@ let d_of_dt rl d =
 let label = ref (0);;
 
 let d_of_p p rml = 
-  let rec stmts t s = 
+  let rec stmts t tp sl = 
+    let nr_ref = ref 0 in
+    mymap (stmt t tp nr_ref) sl
+  and stmt t tp nr_ref s = 
     label := !label + 1;
     if opt.debug then p_stderr ("--- generating unique label " ^ string_of_int !label ^ " ----"^ nl ); 
     let i = !label in
     match s with
-      | Claim (cr, cs)         -> let de = cr ^ "_" ^ t in DotClaim (i, cr, t, de, Ds (de , List.map (stmts de) cs))
+      | Claim (cr, cs)         -> let de = cr ^ "_" ^ t in DotClaim (i, cr, t, de, Ds (de , stmts de tp cs))
       | Sync (sid, _)          -> DotSync (i, t, sid) 
       | Pend (_, pid)          -> DotPend (i, t, pid)
-      | Async (_, prio, id, al)-> DotAsync (i, t, id)
+      | Async (_, prio, id, al)->
+        let nr = !nr_ref in
+        nr_ref := nr + 1; 
+        if String.compare t tp == 0 then 
+          DotAsync (i, t, t ^ "_" ^ id ^ if nr > 0 then string_of_int nr else "")
+        else
+          DotAsync (i, t, tp ^ "_" ^ id ^ if nr > 0 then string_of_int nr else "")
       | ClaimC (s)             -> DotC (i, s)
          
   in
   (* parse the program entry points *)
   let mytop = function 
-    | Isr (prio, id, sl)       -> DIsr (id, prio, Ds ("", (mymap (stmts id) sl) ) )
-    | Task (prio, id, _, al, sl)  -> DTask (id, prio, al, Ds ("", (mymap (stmts id) sl) ) )
-    | FuncDef (t, id, _, sl)      -> DFunc (t, id, Ds ("", (mymap (stmts id) sl) ) )
-    | Reset (sl)               -> DReset (Ds ("", (mymap (stmts "User_Reset") sl ) ) )
-    | _                        -> raise UnMatched 
+    | Isr (prio, id, sl)           -> DIsr (id, prio, Ds ("", (stmts id id sl) ) )
+    | Task (prio, id, pa, al, sl)  -> DTask (id, pa, prio, al, Ds ("", (stmts id pa sl) ) )
+    | FuncDef (t, id, _, sl)       -> DFunc (t, id, Ds ("", (stmts id id sl) ) )
+    | Reset (sl)                   -> DReset (Ds ("", (stmts "reset" "reset" sl ) ) )
+    | _                            -> raise UnMatched 
 
   in
   (* leftmost column is the prio/priority ceiling legend *)
