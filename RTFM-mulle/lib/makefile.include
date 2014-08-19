@@ -1,0 +1,62 @@
+
+GCC_BIN=
+#GCC_BIN=../../../decawave/platform/mulle/tools/gcc-arm/bin/
+
+AS=$(GCC_BIN)arm-none-eabi-as
+CC=$(GCC_BIN)arm-none-eabi-gcc
+LD=$(GCC_BIN)arm-none-eabi-gcc
+DB=$(GCC_BIN)arm-none-eabi-gdb
+
+GDB_PORT ?= 3333
+
+FILES+=uart.c stdio.c
+vpath %.c $(BASE_DIR)/stdio/lw
+vpath %.c $(BASE_DIR)/mk60/drivers
+vpath %.c $(SOURCE_DIRS)
+
+
+INC+=-I$(BASE_DIR)/mk60
+INC+=-I$(BASE_DIR)/stdio/lw
+
+OBJECTDIR=out
+CPU_DIR=$(BASE_DIR)/mk60
+
+CFLAGS   += $(CFLAGSNO)  $(DEBUG) -O$(OPTI) $(OPTFLAGS) -Wall -Wa,-adhlns="$@.lst" -fno-strict-aliasing -mcpu=cortex-m4 -mthumb -nostartfiles -g
+LDFLAGS  += $(CFLAGS) -T $(CPU_DIR)/mulle.ld
+PROJECT_OBJECTFILES += ${addprefix $(OBJECTDIR)/,$(FILES:.c=.o)}
+
+all: $(OBJECTDIR) test.$(TARGET)
+
+$(OBJECTDIR):
+	mkdir -p $(OBJECTDIR)
+
+CUSTOM_RULE_C_TO_OBJECTDIR_O = 1
+$(OBJECTDIR)/%.o: %.c
+	$(CC) $(INC) $(CFLAGS) -c $< -o $@
+
+$(OBJECTDIR)/startcode.o: $(BASE_DIR)/startcode.S
+	$(AS) -g -mcpu=cortex-m4 -mthumb -o $@ $<
+
+$(OBJECTDIR)/%.co: %.c
+	$(CC) $(CFLAGS) -DAUTOSTART_ENABLE -c $< -o $@
+
+#TARGET_STARTFILES=out/startcode.o
+#TARGET_LIBFILES=
+
+test.$(TARGET): $(OBJECTDIR)/RTFM.co $(PROJECT_OBJECTFILES) $(OBJECTDIR)/startcode.o
+	echo $(FILES)
+	echo $(PROJECT_OBJECTFILES)
+	$(LD) $(LDFLAGS) $(TARGET_STARTFILES) ${filter-out %.a,$^} ${filter %.a,$^} $(TARGET_LIBFILES) -o $@
+
+%.u: %.$(TARGET)
+	cp $(CPU_DIR)/mulle-arch.gdb /tmp/mulle-arch.gdb
+	sed -i -e 's/target remote :3333/target remote :$(GDB_PORT)/' /tmp/mulle-arch.gdb
+	$(DB) -x /tmp/mulle-arch.gdb $<
+
+.PHONY: clean openocd
+
+clean:
+	rm -rf $(OBJECTDIR)/*
+
+openocd:
+	@cd $(BASE_DIR); sh ./start_openocd.sh $(SERIAL) $(PORT);
