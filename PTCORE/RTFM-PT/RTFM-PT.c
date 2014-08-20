@@ -132,10 +132,9 @@ void RTFM_pend(RTFM_time a, int f, int t) {
 	DPT("RTFM_pend   :pthread_mutex_unlock(&pend_count_mutex[%d])", t);
 	m_unlock(&pend_count_mutex[t]);
 
-	after_base_line[t] = base_line[f]; // set the baseline for the receiver
-    after[t] = a; 					   // set the relative time offset
-
 	if (lcount == 0) { // just a single outstanding semaphore/mimic the single buffer pend of interrupt hardware
+		after_base_line[t] = base_line[f]; // set the baseline for the receiver
+	    after[t] = a; 					   // set the relative time offset
 		DPT("RTFM_pend   :pend_sem[%d], Post :semaphore posted %s", t, entry_names[t])
 		s_post(pend_sem[t]);
 	} else {
