@@ -1,3 +1,7 @@
+// CEx2.coore
+// Per Lindgren (C) 2014
+//
+// Task chains
 class Root<> {
     Task task1 () {
         RT_printf("task 1\n");

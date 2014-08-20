@@ -1,3 +1,7 @@
+// CEx3.coore
+// Per Lindgren (C) 2014
+//
+// Multiple objects
 class R<> { 
     Task task1 () {
         RT_printf("task1 R claimed\n");

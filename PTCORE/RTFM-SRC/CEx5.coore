@@ -1,4 +1,7 @@
-
+// CEx5.coore
+// Per Lindgren (C) 2014
+//
+// Potential deadlock
 class R<int my_id, void (int) other_fun> { 
     void fun(int from_id) {
         RT_printf("in fun task %d, from task %d", my_id, from_id);

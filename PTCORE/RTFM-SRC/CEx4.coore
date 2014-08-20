@@ -1,3 +1,7 @@
+// CEx4.coore
+// Per Lindgren (C) 2014
+//
+// Static communication (callback) structure
 class R<int ri> {
     void fun(int i) {
         RT_printf("task%d R claimed : ri %d\n", i, ri);
