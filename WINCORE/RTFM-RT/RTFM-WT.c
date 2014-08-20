@@ -6,13 +6,13 @@
 
 #include <stdio.h>
 #include <windows.h>
-#include <stdio.h>
+#include <stdint.h>
 
 #define DEBUG
 #define DEBUG_RT
 
 #ifdef DEBUG
-#define DP(fmt, ...) {fprintf(stderr, "\t\t"fmt"\n", ##__VA_ARGS__);}
+#define DP(fmt, ...) {fprintf(stderr, "\t\t"fmt"\n", ##__VA_ARGS__); fflush(stderr);}
 #define DF(x) x
 #else
 #define DP(fmt, ...)
@@ -20,20 +20,27 @@
 #endif
 
 #ifdef DEBUG_RT
-#define DPT(fmt, ...) {fprintf(stderr, "\t\t\t\t"fmt"\n", ##__VA_ARGS__);}
+#define DPT(fmt, ...) {fprintf(stderr, "\t\t\t\t"fmt"\n", ##__VA_ARGS__); fflush(stderr);}
 #else
 #define DPT(fmt, ...)
 #endif
 
-#include "RTFM-RT.h"
-#include "autogen.x"
+#include "RTFM-WT.h"
+#include "../Application/autogen.c"
+
+
+/* data structures for the timer */
+RTFM_time base_line[ENTRY_NR];
+RTFM_time after[ENTRY_NR];
+RTFM_time after_base_line[ENTRY_NR];
+RTFM_time global_base_line = 0;
 
 /* data structures for the threads and semaphores */
 HANDLE			res_mutex[RES_NR];
 HANDLE			pend_sem[ENTRY_NR];
 
 void error(char* s) {
-	printf("RTFM_CORE Internal error %s : %d\n", s, GetLastError());
+	printf("RTFM_CORE Internal error %s : %d\n", s, (int)GetLastError());
 	while (1); // don't exit so we can observe error from within Visual studio
 }
 
@@ -54,15 +61,37 @@ void RTFM_unlock(int f, int r) {
 	)) error("ReleaseMutex");
 }
 
-void RTFM_pend(int f, int t) {
+void RTFM_pend(RTFM_time a, int f, int t) {
+	after_base_line[t] = base_line[f]; // set the baseline for the receiver
+    after[t] = a; 					   // set the relative time offset
+
 	DP("Pend    :%s->%s", entry_names[f], entry_names[t]);
 	BOOL b = ReleaseSemaphore(
 		pend_sem[t],		// handle to semaphore
 		1,					// increase count by one
 		NULL				// not interested in previous count
 		);
+
 	if (!b)
 		DPT("ReleaseSemaphore: exceeded max number");
+}
+
+RTFM_time RTFM_get_bl(int id) {
+	return base_line[id];
+}
+
+RTFM_time time_get() {
+    return GetTickCount() - global_base_line;
+}
+
+void  RTFM_set_bl(int id) {
+	RTFM_time new_bl = time_get();
+	DPT("RTFM_set_bl   :base_line[%d] = %f)", id, RT_time_to_float(new_bl));
+	base_line[id] = new_bl;
+}
+
+void set_global_baseline() {
+	global_base_line = GetTickCount();
 }
 
 DWORD WINAPI MyThreadFunction(LPVOID lpParam) {
@@ -73,8 +102,14 @@ DWORD WINAPI MyThreadFunction(LPVOID lpParam) {
 		if (WaitForSingleObject(
 			pend_sem[id],	// handle to semaphore
 			INFINITE		// block forever
-			)) error("WaitForSingleObject: Sempahore");
-		DP("Inovke  :%s", entry_names[id]);
+			)) error("WaitForSingleObject: Semaphore");
+
+		base_line[id] = after_base_line[id] + after[id];
+		RTFM_time cur_time = time_get();
+		RTFM_time offset = base_line[id]- cur_time;
+		Sleep(offset);
+
+		DP("Invoke  :%s", entry_names[id]);
 		entry_func[id](id);	// dispatch the task
 	}
 	return 0L;
@@ -90,13 +125,23 @@ void dump_priorities() {
 		printf("Task %d \tpriority %d \n", i, entry_prio[i]);
 }
 
+const int winThreadPriorities[] = {
+		THREAD_PRIORITY_IDLE,
+		THREAD_PRIORITY_LOWEST,
+		THREAD_PRIORITY_BELOW_NORMAL,
+		THREAD_PRIORITY_NORMAL,
+		THREAD_PRIORITY_ABOVE_NORMAL,
+		THREAD_PRIORITY_HIGHEST,
+		THREAD_PRIORITY_TIME_CRITICAL
+		};
+
 int main() {
 	int i;
 	for (i = 0; i < RES_NR; i++) {
 		if (!(res_mutex[i] = CreateMutex(
 			NULL,					// no security descriptor
 			FALSE,					// mutex not owned
-			(LPCWSTR) res_names[i]	// object name
+			(LPCSTR) res_names[i]	// object name
 			))) {
 			error("CreateMutex : create error");
 		}	else {
@@ -113,7 +158,7 @@ int main() {
 			NULL,					// default security attributes
 			0,						// initial count
 			1,  					// maximum count
-			(LPCWSTR)entry_names[i]	// named semaphore
+			(LPCSTR)entry_names[i]	// named semaphore
 			))) error("CreateSemaphore error");
 
 		if (!(hThreadArray[i] = CreateThread(
@@ -125,10 +170,32 @@ int main() {
 			0												// returns the thread identifier
 			))) error("CreateThread(): new thread failed");
 
-		DPT("thread %d created\n", i)
+		if (!(SetThreadPriority(
+			hThreadArray[i],
+			winThreadPriorities[min(sizeof(winThreadPriorities), entry_prio[i])]
+			))) error("SetThreadPriority(): set thread priority failed");
+
+		DPT("thread %d created, at prio %d", i, entry_prio[i])
 	}
 	
-	user_reset(0);
+	if (!(SetThreadPriority(
+		GetCurrentThread(),
+		winThreadPriorities[entry_prio[user_reset_nr]]
+		))) error("SetThreadPriority(): set thread priority failed");
+	DPT("main thread, at prio %d", entry_prio[user_reset_nr])
+
+	DPT("setup complete\n\n")
+
+	/* set baselines */
+	set_global_baseline();
+	for (i = 0; i < ENTRY_NR; i++) {
+		base_line[i] = 0; // only for good measure
+	}
+
+
+	printf("-----------------------------------------------------------------------------------------------------------------------\n");
+
+	user_reset(user_reset_nr);
 	while (1)
 		;
 }
