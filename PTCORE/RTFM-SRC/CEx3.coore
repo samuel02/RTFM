@@ -1,9 +1,9 @@
 class R<> { 
-    Task task1 1 {
+    Task task1 () {
         RT_printf("task1 R claimed\n");
     }
     
-    Task task2 1 {
+    Task task2 () {
         RT_printf("task2 R claimed\n");
         RT_sleep(5);
         RT_printf("task2 R released\n");
@@ -14,9 +14,7 @@ class Root<> {
     R<> r;
     Reset {
         RT_printf("User reset\n");
-        Pend r.task2;
-        // Pend task2; // use DEBUG_RT to see the pending being dropped
-        RT_sleep(1);
-        Pend r.task1;
+        Async r.task2();
+        Async after 1000000 r.task1();
     } 
 }

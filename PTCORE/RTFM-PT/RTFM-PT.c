@@ -36,8 +36,6 @@
 #define _GNU_SOURCE
 #endif
 
-
-
 #include <unistd.h>			// sleep etc.
 #include <stdio.h>			// printf etc.
 #include <stdlib.h>			// rand etc.
@@ -46,7 +44,6 @@
 #include <sys/time.h>       // gettimeofday
 
 #include "RTFM-PT.h"
-#include "RTFM-RT.h"
 
 #include "../Application/autogen.c"
 
@@ -190,7 +187,7 @@ volatile void time_usleep(RTFM_time t) {
 		if ((e = usleep(t)))
 			handle_error_en(e, "usleep");
 	} else {
-		DPT("release time expired or interval to short %d (us)", t);
+		DPT("release time expired or interval to short %f", RT_time_to_float(t));
 	}
 }
 
@@ -417,7 +414,7 @@ int main() {
 	DPT("main        :user_reset(user_reset_nr);");
 	user_reset(user_reset_nr);
 	while (1)
-		;
+		RT_sleep(1000); // zzzzzz to save CPU
 	/* code for cleanup omitted, we trust POSIX (Linux/OSX )to do the cleaning */
 }
 

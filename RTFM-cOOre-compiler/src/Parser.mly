@@ -8,7 +8,7 @@
 %token <bool>   BOOLVAL
 %token <char>   CHARVAL
 %token <string> STRVAL
-%token TASK ISR RESET PEND ASYNC CLASS RETURN 
+%token TASK ISR RESET PEND ASYNC AFTER PRIO CLASS RETURN 
 %token RT_SLEEP RT_PRINTF RT_RAND
 %token ASSIGN COMMA LT GT LP RP LCP RCP DOT SC
 %token INT CHAR BOOL BYTE VOID 
@@ -65,20 +65,27 @@ params:
   plist = separated_list(COMMA, expr)                        { plist }
     
 expr:                                                        
-  | ASYNC INTVAL ID LP params RP                             { AsyncExp ($2, [$3], $5) }
-  | ASYNC INTVAL ID DOT ID LP params RP                      { AsyncExp ($2, $3::[$5], $7) }
-  | PEND ID                                                  { PendExp ([$2]) }
-  | PEND ID DOT ID                                           { PendExp ($2::[$4]) }
-  | ID                                                       { IdExp ([$1]) }
-  | ID LP params RP                                          { CallExp ([$1], $3) }
-  | ID DOT ID                                                { IdExp ($1::[$3]) }
-  | ID DOT ID LP params RP                                   { CallExp ($1::[$3], $5) }
+  | ASYNC after prio ids LP params RP                        { AsyncExp ($2, $3, $4, $6) }
+  | PEND ids                                                 { PendExp ($2) }
+  | ids                                                      { IdExp ($1) }
+  | ids LP params RP                                         { CallExp ($1, $3) }
   | INTVAL                                                   { IntExp ($1) }
   | CHARVAL                                                  { CharExp ($1) }
   | BOOLVAL                                                  { BoolExp ($1) }
   | RT_RAND LP expr RP SC                                    { RT_Rand ($3) }
-     
-        
+
+ids:
+  | ID DOT ID                                                { $1::[$3] }
+  | ID                                                       { $1::[] }
+  
+prio:                 
+  | PRIO expr                                                { $2 }
+  |                                                          { IntExp(0) }
+    
+after:
+  | AFTER expr                                               { $2 }
+  |                                                          { IntExp(0) }
+
 stmt:
   | expr SC                                                  { ExpStmt ($1) }
   | pType ID ASSIGN expr SC                                  { MPVar ($1, $2, $4) }  

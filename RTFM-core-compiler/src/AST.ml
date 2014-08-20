@@ -55,7 +55,7 @@ let string_of_tops tl =
     | Claim (id, s)           -> "Claim " ^ id ^ op ^ stmts (tab ^ t) s ^ cl
     | Pend (af, id)           -> "Pend after" ^ string_of_int af ^ " " ^ id  
     | Sync (id, par )         -> "Sync " ^ id ^ "#>" ^ par ^ "<#"  
-    | Async (af, pr, id, par) -> "Async after " ^ af ^ " @prio " ^ string_of_int pr ^ " " ^ id ^ " (" ^ par ^ ")" 
+    | Async (af, pr, id, par) -> "Async after " ^ af ^ " prio " ^ string_of_int pr ^ " " ^ id ^ " (" ^ par ^ ")" 
     | ClaimC (c)              -> "#> CCODE <#"
   in
   tops tl
@@ -70,7 +70,4 @@ let string_of_prog = function
 let rec prio_to_string r = match r with
   | []            -> ""
   | (id, p) :: l  -> "Isr " ^ id ^ ", priority " ^ string_of_int p ^ nl ^ prio_to_string l
-    
-    
-    
     

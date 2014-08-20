@@ -15,14 +15,14 @@ let rec c_defs_of_classDef ce path argl cd =
   let r = "RES_" ^ p in
   
   let rec c_of_expr = function
-    | IdExp (idl)           -> p ^ String.concat "_" idl
-    | CallExp (m, el)       -> c_e ^ " sync " ^ p ^ String.concat "_" m ^ string_par c_of_expr el ^ "; " ^ e_c
-    | AsyncExp (pr, il, el) -> c_e ^ " async " ^ string_of_int pr ^ " " ^ p ^ String.concat "_" il ^ string_par c_of_expr el ^ "; " ^ e_c      
-    | PendExp _             -> raise (RtfmError ("PendExp not implemented"))
-    | IntExp (i)            -> string_of_int i
-    | CharExp (c)           -> ecit ^ String.make 1 c ^ ecit
-    | BoolExp (b)           -> string_of_bool b
-    | RT_Rand (e)           -> "RT_rand(" ^ c_of_expr e ^ ")" 
+    | IdExp (idl)               -> p ^ String.concat "_" idl
+    | CallExp (m, el)           -> c_e ^ " sync " ^ p ^ String.concat "_" m ^ string_par c_of_expr el ^ "; " ^ e_c
+    | AsyncExp (af, pr, il, el) -> c_e ^ " async after (" ^ c_of_expr af  ^ ") prio " ^ c_of_expr pr ^ " " ^ p ^ String.concat "_" il ^ string_par c_of_expr el ^ "; " ^ e_c      
+    | PendExp _                 -> raise (RtfmError ("PendExp not implemented"))
+    | IntExp (i)                -> string_of_int i
+    | CharExp (c)               -> ecit ^ String.make 1 c ^ ecit
+    | BoolExp (b)               -> string_of_bool b
+    | RT_Rand (e)               -> "RT_rand(" ^ c_of_expr e ^ ")" 
   in
   
   let c_of_mPArg = function

@@ -1,15 +1,15 @@
 class Root<> {
-    Task task1 1 {
+    Task task1 () {
         RT_printf("task 1\n");
-        Pend task2;
+        Async task2();
     }
     
-    Task task2 1 {
+    Task task2 () {
         RT_printf("task 2\n");
     }
 
     Reset {
         RT_printf("User reset\n");
-        Pend task1;
+        Async task1();
     } 
 }

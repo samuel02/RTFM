@@ -1,31 +1,31 @@
-class R<> {
+class R<int ri> {
     void fun(int i) {
-        RT_printf("task%d R claimed\n", i);
+        RT_printf("task%d R claimed : ri %d\n", i, ri);
         RT_sleep(5);
         RT_printf("task%d R released\n", i);        
     }
      
-    Task task1 1 {
-        RT_printf("task1\n");
+    Task rt () {
+        RT_printf("task rt %d \n", ri);
     }
+    
 }
 
 class T<int i, void (int) fun> {
-    Task t 1 {
+    Task tt () {
         RT_printf("task%d\n", i);
         fun(i);
     }
 }
 
 class Root<> { 
-    R<> r;
+    R<7> r;
     T<2, r.fun> t2;
     T<3, r.fun> t3;
     
     Reset {
-        Pend t2.t; // task2
-        Pend t3.t; // task3
-        RT_sleep(1);
-        Pend r.task1;
+        Async prio 1 t2.tt(); // task2
+        Async prio 2 t3.tt(); // task3
+        Async after 1000000 prio 3 r.rt();
     } 
 }

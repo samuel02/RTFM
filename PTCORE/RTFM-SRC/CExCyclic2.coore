@@ -1,0 +1,18 @@
+
+class A <> {
+  B<> a;
+}
+
+class B <> {
+  A<> ba;
+}
+
+class C <> {
+  B<> bc;
+}
+
+class Root<> { 
+  C<> c;
+  Reset {
+  } 
+}
