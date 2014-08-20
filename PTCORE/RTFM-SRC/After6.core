@@ -1,3 +1,6 @@
+// After6.core
+// Per Lindgren (C) 2014
+//
 // periodic process
 Task task(int i) {
     #> printf("task %d\n", i);<#
