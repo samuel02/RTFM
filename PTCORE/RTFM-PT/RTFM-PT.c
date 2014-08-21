@@ -419,7 +419,7 @@ int main() {
 	DPT("main        :user_reset(user_reset_nr);");
 	user_reset(user_reset_nr);
 	while (1)
-		RT_sleep(1000); // zzzzzz to save CPU
+		RT_sleep(RT_sec * 1); // zzzzzz to save CPU
 	/* code for cleanup omitted, we trust POSIX (Linux/OSX) to do the cleaning */
 }
 
