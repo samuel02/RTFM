@@ -10,7 +10,7 @@ type id = string
 type expr =
     | IdExp     of id list
     | CallExp   of id list * expr list
-    | AsyncExp  of int * id list * expr list
+    | AsyncExp  of expr * expr * id list * expr list      (* after prio id[.id]? (exprs) *)
     | PendExp   of id list
     | IntExp    of int
     | CharExp   of char
@@ -60,14 +60,14 @@ let string_pp m l  = " <" ^ String.concat ", " (mymap m l) ^ "> "
 let string_cur m l = " {" ^ String.concat ", " (mymap m l) ^ "} "
 
 let rec string_of_expr = function
-    | IdExp (idl)           -> String.concat "." idl
-    | CallExp (m, el)       -> String.concat "." m ^ string_par string_of_expr el
-    | AsyncExp (pr, il, el) -> "async @prio " ^ string_of_int pr ^ " " ^ String.concat "." il ^ string_par string_of_expr el
-    | PendExp (il)          -> "pend " ^ String.concat "." il
-    | IntExp (i)            -> string_of_int i
-    | CharExp (c)           -> ecit ^ String.make 1 c ^ ecit
-    | BoolExp (b)           -> string_of_bool b
-    | RT_Rand (e)           -> "RT_rand(" ^ string_of_expr e ^ ")"
+    | IdExp (idl)               -> String.concat "." idl
+    | CallExp (m, el)           -> String.concat "." m ^ string_par string_of_expr el
+    | AsyncExp (af, pr, il, el) -> "async after (" ^ string_of_expr af ^ ") prio " ^ string_of_expr pr ^ " " ^ String.concat "." il ^ string_par string_of_expr el
+    | PendExp (il)              -> "pend " ^ String.concat "." il
+    | IntExp (i)                -> string_of_int i
+    | CharExp (c)               -> ecit ^ String.make 1 c ^ ecit
+    | BoolExp (b)               -> string_of_bool b
+    | RT_Rand (e)               -> "RT_rand(" ^ string_of_expr e ^ ")"
   
 let string_of_pType = function
     | Int  -> "int"

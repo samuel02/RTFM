@@ -37,7 +37,7 @@ let ck_of_p topl v r tidl =
           "// Task defintion:" ^ id ^ nl ^
           "void " ^ id  ^ def_par par ^ "; // function prototype for the task" ^ nl ^ 
           "typedef struct {" ^ String.map tpar par ^ ";} ARG_" ^ id ^ "; // type definition for arguments"^ nl
-      | Task (p, id, par, _) ->
+      | Task (p, id, pa, par, _) ->
           let hw = myass id tidl in
           "// Task instance defintion: @prio " ^ string_of_int p ^ " " ^ id ^  nl ^
           "void " ^ hw ^ "(); // function prototype for the instance task" ^ nl 
@@ -45,7 +45,7 @@ let ck_of_p topl v r tidl =
     in    
     let entries_top s = function
       | Isr (_, id, _)     -> id ^ s
-      | Task (_, id, _, _) -> id ^ s
+      | Task (_, id, pa, _, _) -> id ^ s
       | _                  -> raise (UnMatched)  
     
     in    
@@ -58,13 +58,13 @@ let ck_of_p topl v r tidl =
       let index id = id ^ "_nr = " ^ string_of_int (vindex (-16) id tidl) in 
       function
       | Isr (_, id, _)     -> index id
-      | Task (_, id, _, _) -> index id
+      | Task (_, id, pa, _, _) -> index id
       | _                  -> raise (UnMatched)
       
     in
     let priorities_top = function
       | Isr (p, _, _)      -> string_of_int p
-      | Task (p, _, _, _)  -> string_of_int p  
+      | Task (p, _, pa, _, _)  -> string_of_int p  
       | _                  -> raise (UnMatched) 
     in
     let entries = mymap (entries_top "") topl in
@@ -112,7 +112,7 @@ let ck_of_p topl v r tidl =
   
   and ptop = function
      | Isr (p, id, sl)       -> pargs id sl
-     | Task (p, id, _, sl)   -> pargs id sl
+     | Task (p, id, pa, _, sl)   -> pargs pa sl
      | Reset (sl)            -> pargs "reset" sl 
      | _                     -> raise (UnMatched)
   
@@ -134,9 +134,9 @@ let ck_of_p topl v r tidl =
   
   and top = function
     | Isr (p, id, sl)        -> "void " ^ id ^ "() {" ^ nl ^ (stmts id) sl ^ "}"
-    | Task (p, id, par, sl)  -> 
-      "void " ^ id  ^ def_par par ^ "{ // function implementation for the task" ^ nl ^ 
-      (stmts id) sl ^ 
+    | Task (p, id, pa, par, sl)  -> 
+      "void " ^ id ^ def_par par ^ "{ // function implementation for the task:" ^ id ^ "[" ^ pa ^ "]"^ nl ^ 
+      (stmts pa) sl ^ 
       "}"
     | Reset (sl)             -> "void user_reset() {" ^ nl ^ (stmts "reset") sl ^ "}"
     | _                      -> raise (UnMatched)

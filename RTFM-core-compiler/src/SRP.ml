@@ -35,7 +35,7 @@ let rec string_of_r r = match r with
 (* lookup id -> prog -> stmts *)
 let rec lookup id p = match p with
   | []                                                  -> failwith("Failed to lookup Func " ^ id)
-  | Func (_, fid, _, sl) :: l when (compare id fid = 0) -> sl
+  | FuncDef (_, fid, _, sl) :: l when (compare id fid = 0) -> sl
   | _ :: l                                              -> lookup id l
 
 (* ceiling *)
@@ -59,7 +59,7 @@ let ceiling p =
     | [] -> rm
     | Isr (p, id, s) :: l     -> let rm' = ceil_of_stmts p rm s [id] in
         tops rm' l
-    | Task (p, id, _, s) :: l -> let rm' = ceil_of_stmts p rm s [id] in
+    | Task (p, pa, id, _, s) :: l -> let rm' = ceil_of_stmts p rm s [id] in
         tops rm' l
     | Reset (s) :: l          -> let rm' = ceil_of_stmts 0 rm s ["Reset"] in
         tops rm' l
@@ -79,7 +79,7 @@ let pl topl rl =
   and top pl t = match t with
     | []                           -> pl
     | Isr (p, id,  _) :: l         -> let pl' = add (p, id ) pl in top pl' l
-    | Task (p, id,  _, _) :: l     -> let pl' = add (p, id ) pl in top pl' l
+    | Task (p, id, pa,  _, _) :: l     -> let pl' = add (p, id ) pl in top pl' l
     | _ :: l                       -> top pl l
   
   and res pl rl = match rl with

@@ -14,7 +14,7 @@
 
 (* reg exps *)
 let white   = [' ' '\t']+
-let newline = '\n'
+let newline = '\r' | '\n' | "\r\n"
 let cite    = '\''
 let quote   = '\"'
 let char    = [^ '\'']   
@@ -28,6 +28,8 @@ rule lex = parse
   | "ISR"                  { ISR }
   | "Pend"                 { PEND }
   | "Async"                { ASYNC }
+  | "after"                { AFTER }
+  | "prio"                 { PRIO }
   | "Reset"                { RESET } 
 
   | "RT_sleep"             { RT_SLEEP }                            (* RT specifics *)

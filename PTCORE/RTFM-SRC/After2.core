@@ -1,0 +1,21 @@
+// After2.core
+// Per Lindgren (C) 2014
+//
+// blocking occurs on the resource R  
+Task task(int i, float j) {
+    #> printf("task %d %f\n", i, j);<#
+	claim R {
+		#>
+		printf("sleep 5 seconds\n");
+		RT_usleep(RT_sec * 3);
+		printf("wake form sleep\n");
+		<#
+		
+	}
+}
+
+Reset {
+    #> printf("Hello\n");<#
+    async prio 1 task(7, 8);
+    async after (RT_sec *2) task(1,2); // X: will start after 2s, but block on the critical section
+}

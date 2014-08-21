@@ -1,10 +1,14 @@
+// CEx1.coore
+// Per Lindgren (C) 2014
+//
+// Simple example
 class Root<> { 
-    Task task1 1 {
+    Task task1 () {
         RT_printf("task1\n");
     }      
 
     Reset {
         RT_printf("User reset\n");
-        Pend task1;
+        Async task1 ();
     } 
 }

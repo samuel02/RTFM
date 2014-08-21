@@ -21,7 +21,7 @@ let crt_of_p topl v r =
   let quote x = "\"" ^ x ^ "\"" in
   let c_of_r rl =
     "enum resources {" ^ mycon "," ((List.map fst rl) @ ["RES_NR"]) ^ "};" ^ nl ^
-    "const int ceilings[] = {" ^ mycon ", " (List.map string_of_int (List.map snd rl)) ^ "};" ^ nl ^ 
+    "int ceilings[] = {" ^ mycon ", " (List.map string_of_int (List.map snd rl)) ^ "};" ^ nl ^ 
     "const char* res_names[] = {" ^ mycon "," (List.map quote (List.map fst rl)) ^ "};" ^ nl 
   
   in
@@ -32,25 +32,25 @@ let crt_of_p topl v r =
         | c -> c
       in
       function
-      | TaskDef (id, par, _) ->
+        | TaskDef (id, par, _) ->
           "// Task defintion:" ^ id ^ nl ^
           (* "void " ^ id  ^ def_par par ^ "; // function prototype for the task" ^ nl ^ *)
           "typedef struct {" ^ String.map tpar par ^ ";} ARG_" ^ id ^ "; // type definition for arguments"^ nl
-      | Task (p, id, par, _) ->
+        | Task (p, id, pa, par, _) ->
           "// Task instance defintion: @prio " ^ string_of_int p ^ " " ^ id ^  nl ^
-          "void " ^ id ^ "(int RTFM_id, " ^ par ^ "); // function prototype for the instance task" ^ nl ^ 
+          "void " ^ id ^ def_par par ^ "; // function prototype for the instance task" ^ nl ^ 
           "void entry_" ^ id ^ "(int RTFM_id); // function prototype for the instance task" ^ nl 
-      | _ -> raise (UnMatched)
+        | _ -> raise (UnMatched)
     in    
     let entries_top = function
       | Isr (_, id, _)     -> id
-      | Task (_, id, _, _) -> id  
+      | Task (_, id, pa, _, _) -> id  
       | _                  -> raise (UnMatched)  
     
     in
     let priorities_top = function
       | Isr (p, _, _)      -> string_of_int p
-      | Task (p, _, _, _)  -> string_of_int p  
+      | Task (p, _, pa, _, _)  -> string_of_int p  
       | _                  -> raise (UnMatched) 
     in
     let entries = "user_reset" :: mymap entries_top topl in
@@ -61,14 +61,14 @@ let crt_of_p topl v r =
     "char* entry_names[] = {" ^ mycon ", " (mymap quote entries) ^ "};" ^ nl ^ nl ^
     mycon nl (mymap proto_top topl) ^ nl ^
     "ENTRY_FUNC entry_func[] = {"^ mycon ", " ("user_reset" :: (List.map (prestr "entry_") (mymap entries_top topl))) ^ "};" ^ nl ^ nl
-      
+          
   in
-  let rec pargs path sl = 
+  let rec pargs path seen sl = 
     let nr_ref = ref 0 in
-    mycon nl (mymap (parg path nr_ref) sl) 
-  and parg path nr_ref = 
+    mycon nl (mymap (parg path nr_ref seen) sl) 
+  and parg path nr_ref seen = 
     function
-    | Claim (r, csl)         -> pargs path csl 
+    | Claim (r, csl)         -> pargs path seen csl 
     | Async (_, p, id, par)  ->
       (
        let nr = !nr_ref in
@@ -77,11 +77,11 @@ let crt_of_p topl v r =
         | TaskDef (id, al, sl) -> 
           let idp = path ^ "_" ^ id ^ if nr > 0 then string_of_int nr else "" in
           let sl = Str.split (Str.regexp ",") al in
-          let arg a = Str.split (Str.regexp "[ /t]+") a in
+          let arg a = Str.split (Str.regexp "[ \t]+") a in
           let argl = List.map arg sl in
           let arga ar = match ar with
           | a :: b :: [] -> " arg_" ^ idp ^ "." ^ b
-          | _ -> failwith("Error parsing argument of task" ^ id)
+          | _ -> failwith("Error parsing argument (" ^ al ^ ") of task " ^ id)
           in 
           let args = mycon "," (List.map arga argl) in
           "ARG_" ^ id ^ " arg_" ^ idp ^ "; // instance for argument" ^ nl ^
@@ -90,13 +90,20 @@ let crt_of_p topl v r =
           "}"
         | _                  -> raise (RtfmError("Lookup failed in Env.lookup_task id topl"))
       )
-     | Sync (id, par)        -> pargs (path ^ "_" ^ id) (Env.lookup_func_sl id topl)  
+     | Sync (id, par)        -> 
+        (
+          match Env.lookup_func id topl with
+            | FuncDef (r, fid, p, sl) -> 
+              r ^ " " ^ path ^ "_" ^ fid ^ def_par p ^ ";" ^ nl ^ 
+              pargs (path ^ "_" ^ id) seen (Env.lookup_func_sl id topl)
+            | _ -> raise (RtfmError("Lookup failed in Env.lookup_task id topl"))
+        )
      | _                     -> ""
   
   and ptop = function
-     | Isr (p, id, sl)       -> pargs id sl
-     | Task (p, id, _, sl)   -> pargs id sl
-     | Reset (sl)            -> pargs "reset" sl 
+     | Isr (p, id, sl)       -> pargs id [] sl
+     | Task (p, id, pa, _, sl)   -> if (String.compare id pa == 0) then pargs pa [] sl else ""
+     | Reset (sl)            -> pargs "reset" [] sl 
      | _                     -> raise (UnMatched)
   
   in
@@ -106,21 +113,23 @@ let crt_of_p topl v r =
   and stmt path nr_ref = function
      | Claim (r, csl)        -> "RTFM_lock(RTFM_id, " ^ r ^ ");" ^ nl ^ (stmts path) csl ^ "RTFM_unlock(RTFM_id, " ^ r ^ ");"
      | Pend (_, id)          -> "RTFM_pend(RTFM_id, " ^ id ^ "_nr);"
-     | Async (_, pr, id, par)   ->
+     | Async (af, pr, id, par)   ->
       let nr = !nr_ref in
         nr_ref := nr + 1;
          let idp = path ^ "_" ^ id ^ if nr > 0 then string_of_int nr else "" in
        "arg_" ^ idp ^ " = (ARG_" ^ id ^ "){" ^ par ^ "}; " ^ nl ^
-       "RTFM_pend(RTFM_id, " ^ idp ^ "_nr);"       
-     | Sync ( id, par )      -> stmts (path ^ "_" ^ id) (SRP.lookup id topl)
+       "RTFM_pend(" ^ af ^ ", RTFM_id, " ^ idp ^ "_nr);"      
+     | Sync ( id, par )      -> (path ^ "_" ^ id) ^ pass_par par ^ ";"
+      
      | ClaimC (c)            -> String.trim c
   
   and top = function
     | Isr (p, id, sl)        -> "void " ^ id ^ "(int RTFM_id) {" ^ nl ^ (stmts id) sl ^ "}"
-    | Task (p, id, par, sl)  -> 
-      "void " ^ id  ^ def_par par ^ "{ // function implementation for the task" ^ nl ^ 
-      (stmts id) sl ^ 
+    | Task (p, id, pa, par, sl)  -> 
+      "void " ^ id  ^ def_par par ^ "{ // function implementation for the task:"  ^ id ^ "[" ^ pa ^ "]" ^ nl ^ 
+      (stmts pa) sl ^ 
       "}"
+    | Func (r, id, par, sl) -> r ^ " " ^ id ^ def_par par ^ "{" ^ nl ^ (stmts id) sl ^ "}" 
     | Reset (sl)            -> "void user_reset(int RTFM_id) {" ^ nl ^ (stmts "reset") sl ^ "}"
     | _                     -> raise (UnMatched)
 

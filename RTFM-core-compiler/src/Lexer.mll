@@ -10,18 +10,21 @@
  open Error  
    
  exception SyntaxError of string 
+
+ (* helpers *)
+ let badd buf lexbuf = Buffer.add_string buf (Lexing.lexeme lexbuf) 
 }
 
 (* regular expressions (regexps) *)
 let white   = [' ' '\t']+
-let newline = '\n'
+let newline = '\r' | '\n' | "\r\n"
 let cite    = '\"'
 let str     = [^ '"']* 
 let id      = ['A'-'Z' 'a'-'z' '_']['0'-'9' 'A'-'Z' 'a'-'z' '_']*  
 let digits  = ['0'-'9']+
 let enter_c = "#>"
 let exit_c  = "<#"
-let params  = ( [^ '*' ')'] [^ ')']* )?   
+(*let params  = ( [^ '*' ')'] [^ ')']* )?   *)
   
 (* lexing rules *)  
 rule lex = parse
@@ -53,10 +56,17 @@ rule lex = parse
   | newline              { next_line lexbuf; lex lexbuf }       (* new line *)
   | "//"                 { set_info lexbuf; comment lexbuf }    (* single line comment *) 
   | "(*"                 { set_info lexbuf; comments 0 lexbuf } (* nested comment *) 
-  | '('(params as p) ')' { PARAMS (p) }                         (* must come after comment *)
+  | '('                  { set_info lexbuf; params 0 (Buffer.create 100) lexbuf }   (* must come after comment *)
   | eof                  { EOF }
   | _                    { raise Parser.Error }
-    
+
+and params level buf = parse
+  | ')'                  { if level = 0 then PARAMS (Buffer.contents buf) else (badd buf lexbuf; params (level-1) buf lexbuf) }
+  | '('                  { badd buf lexbuf; params (level+1) buf lexbuf }
+  | newline              { next_line lexbuf; params level buf lexbuf }
+  | _                    { Buffer.add_string buf (Lexing.lexeme lexbuf); params level buf lexbuf }
+  | eof                  { bol lexbuf; raise (SyntaxError("Parameters not closed.")) }
+        
 and comment = parse
   | newline              { next_line lexbuf; lex lexbuf }
   | eof                  { EOF }                                (* // at last line *)
@@ -72,7 +82,7 @@ and comments level = parse
 and c buf = parse
   | exit_c               { CCODE (Buffer.contents buf) }
   | newline              { next_line lexbuf; Buffer.add_string buf (Lexing.lexeme lexbuf); c buf lexbuf }
-  | enter_c              { raise (SyntaxError("C statement not closed.")) }       
+  | enter_c              { raise (SyntaxError("C statement cannot be nested.")) }       
   | _                    { Buffer.add_string buf (Lexing.lexeme lexbuf); c buf lexbuf }
   | eof                  { bol lexbuf; raise (SyntaxError("C statement not closed.")) }    
                          

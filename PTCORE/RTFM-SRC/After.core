@@ -1,0 +1,19 @@
+// After.core
+// Per Lindgren (C) 2014
+//
+// Generation of chained asynchronous messages
+Task task(int i, float j) {
+    #> printf("task %d %f\n", i, j);<#
+	async after (RT_sec * 2) prio 2 task(i+1, j*2); 
+}
+
+Task helper(int j) {
+	#> printf("------------------ helper %d \n", j);<#
+	async prio 3 task (100, 0);
+}
+		
+Reset {
+    #> printf("Hello\n");<#
+    async after (RT_sec * 2) prio 1 task(5, 1.2);
+    async after (RT_sec * 1) prio 2 helper(5);
+}

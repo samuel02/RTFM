@@ -1,0 +1,29 @@
+// RTFM-cOOre, Per Lindgren (C) 2014
+#>
+
+
+
+
+<# Task Root_t_t (int Root_t_i, int Root_t_j)  { 
+	claim RES_Root_t_ { #>
+		RT_printf("T_t i = %d, j = %d\n", Root_t_i, Root_t_j);
+	<# } #>
+<# } #>
+
+
+<# Task Root_task (int Root_i, int Root_j)  { 
+	claim RES_Root_ { #>
+		RT_printf("reset_task i = %d, j = %d\n", Root_i, Root_j);
+	<# } #>
+<# } #>
+<# Reset {
+	claim RES_Root_ { #>
+		<# async after (0) prio 1 Root_task (1, 11) ; #>;
+		<# async after (0) prio 3 Root_task (3, 33) ; #>;
+		<# async after (0) prio 2 Root_t_t (2, 22) ; #>;
+	<# } #>
+<# } #>
+
+
+<#
+
