@@ -1,0 +1,37 @@
+#> 
+#include <stdio.h>  // printf, etc.
+#include <unistd.h> // sleep, etc.
+
+#define USER_RESET
+
+void user_reset() {
+        <#pend task1;#>
+        <#pend task2;#>
+}
+<#
+
+Func void func1() {
+        claim R1 {
+                #>printf("task1 R1 claimed\n");<#
+                claim R2 {
+                        #>printf("task1 R2 claimed\n");<#
+                }
+        }
+}
+
+Task task1 1 {
+        #>printf("task1\n");<#
+        sync func1();
+}
+
+Task task2 1 {
+        #>printf("task2\n");<#
+        claim R2 {
+                #>printf("task2 R2 claimed\n");<#
+                #>sleep(1);<#
+                claim R1 {
+                        #>printf("task2 R1 claimed\n");<#
+                }
+        }
+}
+

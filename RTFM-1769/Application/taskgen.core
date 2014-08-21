@@ -1,0 +1,25 @@
+#> 
+#include <stdio.h>
+<#
+
+
+Task task(int i, float j) {
+    #> printf("task %d %f\n", i, j);<#
+}
+
+ISR 4 WDT_IRQHandler {
+    #> printf("WDT_IRQHandler\n");<#
+    async 2 task(7*2, 4/3);
+}
+
+Task plepps() {
+    async 2 task(7*2, 4/3);
+}
+
+Reset {
+    #> printf("Hello\n");<#
+    async 1 task(1, 1.2*5); 
+    async 1 plepps();
+    pend after 100 WDT_IRQHandler;
+}
+
