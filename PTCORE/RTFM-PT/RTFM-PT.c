@@ -420,6 +420,6 @@ int main() {
 	user_reset(user_reset_nr);
 	while (1)
 		RT_sleep(1000); // zzzzzz to save CPU
-	/* code for cleanup omitted, we trust POSIX (Linux/OSX )to do the cleaning */
+	/* code for cleanup omitted, we trust POSIX (Linux/OSX) to do the cleaning */
 }
 
