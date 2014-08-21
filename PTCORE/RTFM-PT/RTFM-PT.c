@@ -203,6 +203,7 @@ void *thread_handler(void *id_ptr) {
 		s_wait(pend_sem[id]);
 		// consume the semaphore (decrement it's value)
 		DPT("thread      :pthread_mutex_lock(&pend_count_mutex[%d])", id);
+		RTFM_time offset;
 		m_lock(&pend_count_mutex[id]);
 		{   // inside lock of the counter
 			DPT("thread      :pend_count[%d]--", id);
@@ -217,12 +218,12 @@ void *thread_handler(void *id_ptr) {
 			RTFM_time cur_time = time_get();
 			DPT("cur_time      = %f", RT_time_to_float(cur_time));
 
-			RTFM_time offset = base_line[id]- cur_time;
+			offset = base_line[id]- cur_time;
 		}
 		DPT("thread      :pthread_mutex_unlock(&pend_count_mutex[%d])", id);
 		m_unlock(&pend_count_mutex[id]);
 
-	    DPT("offset        = %f", RT_time_to_float(offset));
+	    DPT("time_usleep(offset)   = %f", RT_time_to_float(offset));
 	    time_usleep(offset);
 
 		DPT("thread      :entry_func[%d](%d)", id, id);
