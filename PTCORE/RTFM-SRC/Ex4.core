@@ -2,7 +2,7 @@ Reset {
 	#>printf("User reset\n");<#
 	pend task2;
 	pend task3;
-	#>RTFM_SLEEP(SEC(1));<#
+	#>RT_sleep(1);<#
 	pend task1;
 }
 
@@ -18,7 +18,7 @@ Func void fun(int i) {
 	claim R {
 		#>
 		printf("task%d R claimed\n", i);
-		RTFM_SLEEP(SEC(5));
+		RT_sleep(5);
 		printf("task%d R released\n", i);
 		<#
 	}	

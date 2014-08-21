@@ -1,7 +1,7 @@
 Reset {
 	#>printf("User reset\n");<#
-	async prio 3 task (75*2);
-	async prio 2 task (75);	
+	async prio 3 task (75*2); // run with DEBUG_RT and see the threads running at different priority
+	async prio 2 task (75);	  // or run on bare metal and see the assignment of ISRs and priorities
 
 	#> 
 	while (1) {

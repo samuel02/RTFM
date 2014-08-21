@@ -126,3 +126,4 @@ inline uint32_t NVIC_GetPriority(IRQn_Type IRQn)
     return((uint32_t)(NVIC->IP[(uint32_t)(IRQn)]           >> (8 - __NVIC_PRIO_BITS)));  } /* get priority for device specific interrupts  */
 }
 
+

@@ -27,7 +27,8 @@ void RTFM_init_priorities() {
 	int i;
 	for (i = 0; i < NELEMS(entry_vi); i++) {
 		RTFM_set_priority(entry_vi[i], entry_prio[entry_vi[i]]);
-		RTFM_enable_irq(entry_vi[i]);
+		if (entry_vi[i]>= 0) /* do not enable non-maskable interrupts (<0) */
+			RTFM_enable_irq(entry_vi[i]);
 	}
 }
 

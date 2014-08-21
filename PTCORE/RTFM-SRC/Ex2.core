@@ -1,20 +1,20 @@
 Reset {
-	#>printf("User reset\n");<#
+	#>printf("Ex2.core User reset\n");<#
 	
 	#>
 	while (1) {
-		<#pend task1;#>
-		RTFM_SLEEP(SEC(1));
+		<#async prio 1 task1(2);#>
+		RT_sleep(RT_sec(1));
 	}
 	<#
 }
 
-Task task1 1 {
-	#>printf("task1\n");<#
-	pend task2;
+Task task1(int i) {
+	#>printf("task1 %d\n", i);<#
+	async prio 2 task2(i*2);
 }
 
-Task task2 1 {
-	#>printf("task2\n");<#	
+Task task2(int j) {
+	#>printf("task2 %d\n", j);<#	
 }
 
