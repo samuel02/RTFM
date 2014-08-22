@@ -1,3 +1,6 @@
+// After.core
+// Per Lindgren (C) 2014
+//
 // Generation of chained asynchronous messages
 Task task(int i, float j) {
     #> printf("task %d %f\n", i, j);<#

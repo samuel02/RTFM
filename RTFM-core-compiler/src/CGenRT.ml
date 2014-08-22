@@ -77,11 +77,11 @@ let crt_of_p topl v r =
         | TaskDef (id, al, sl) -> 
           let idp = path ^ "_" ^ id ^ if nr > 0 then string_of_int nr else "" in
           let sl = Str.split (Str.regexp ",") al in
-          let arg a = Str.split (Str.regexp "[ /t]+") a in
+          let arg a = Str.split (Str.regexp "[ \t]+") a in
           let argl = List.map arg sl in
           let arga ar = match ar with
           | a :: b :: [] -> " arg_" ^ idp ^ "." ^ b
-          | _ -> failwith("Error parsing argument of task" ^ id)
+          | _ -> failwith("Error parsing argument (" ^ al ^ ") of task " ^ id)
           in 
           let args = mycon "," (List.map arga argl) in
           "ARG_" ^ id ^ " arg_" ^ idp ^ "; // instance for argument" ^ nl ^
@@ -90,7 +90,14 @@ let crt_of_p topl v r =
           "}"
         | _                  -> raise (RtfmError("Lookup failed in Env.lookup_task id topl"))
       )
-     | Sync (id, par)        -> pargs (path ^ "_" ^ id) seen (Env.lookup_func_sl id topl)
+     | Sync (id, par)        -> 
+        (
+          match Env.lookup_func id topl with
+            | FuncDef (r, fid, p, sl) -> 
+              r ^ " " ^ path ^ "_" ^ fid ^ def_par p ^ ";" ^ nl ^ 
+              pargs (path ^ "_" ^ id) seen (Env.lookup_func_sl id topl)
+            | _ -> raise (RtfmError("Lookup failed in Env.lookup_task id topl"))
+        )
      | _                     -> ""
   
   and ptop = function
@@ -112,7 +119,7 @@ let crt_of_p topl v r =
          let idp = path ^ "_" ^ id ^ if nr > 0 then string_of_int nr else "" in
        "arg_" ^ idp ^ " = (ARG_" ^ id ^ "){" ^ par ^ "}; " ^ nl ^
        "RTFM_pend(" ^ af ^ ", RTFM_id, " ^ idp ^ "_nr);"      
-     | Sync ( id, par )      -> (path ^ "_" ^ id) ^ pass_par par
+     | Sync ( id, par )      -> (path ^ "_" ^ id) ^ pass_par par ^ ";"
       
      | ClaimC (c)            -> String.trim c
   

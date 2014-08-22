@@ -74,19 +74,62 @@ sudo port install zathura*      ZATHURA is a lightweight pdf viewer that can be
 
 PREPARATION WINDOWS 
 
-Tested on Windows 7, 8 and 8.1. All 64-bit.
+Tested on Windows 7, 8 and 8.1. All 64-bit. (tested also on win8.1 32-bit)
 
-Download wodi 32bit graphical installer: http://wodi.forge.ocamlcore.org/download.html
-Install at standard location (C:\wodi32)
-Run "Wodi32 Package Manager", search for menhir and select it for installation
-Install menhir by clicking on "Apply"
+WODI
+- Download wodi 32bit graphical installer: http://wodi.forge.ocamlcore.org/download.html
+- Install at standard location (C:\wodi32), standard location is important!
+- in Cygwin setup add the following:
+	under devel
+	+ binutils
+	+ clang
+	+ gcc-core
+	+ gcc-g++
+	+ gdb
+- Run "Wodi32 Package Manager", search for menhir and select it for installation
+- Install menhir by clicking on "Apply"
 
-Download graphviz for Windows: http://www.graphviz.org/Download_windows.php
-Run the installer package "graphviz-X.XX.msi"
-Place it under C:\GraphvizX.XX\, NO spaces in the path!!!
-Add C:\GraphvizX.XX\bin to path.
+Graphviz
+- Download graphviz for Windows: http://www.graphviz.org/Download_windows.php
+- Run the installer package "graphviz-X.XX.msi"
+- Place it under C:\GraphvizX.XX\, NO spaces in the path!!!
+- Add C:\GraphvizX.XX\bin to path.
 
-Access the directories via the "Wodi32 Cygwin" terminal.
+Workaround for Common ml files
+- under Cygwin: run "source fix_common_link.sh" from within the local git repo directory
+
+Basic Development with make
+- Access the directories via the "Wodi32 Cygwin" terminal.
+
+OcaIDE
+- Download Eclipse LUNA 4.4
+- in Eclipse: Help -> Install New Software...
+	- OcaIDE
+
+- to install OcaIDE's help: go to https://github.com/nbros/OcaIDE
+	- download zip
+	- copy Ocaml.help to eclipse\dropins\
+	- restart Eclipse
+
+- adjust PATH (,alternatively alter PATH at launch)
+	- go to advanced properties (under windows 8.1: right click at start button, left bottom corner, go to system)
+		- at system envrionment variables: add ;C:\wodi32\bin
+	- either do the same for "C:\wodi32\opt\wodi32\bin", or change it in OcaIDE preferences as follows:
+		- OcaIDE - Paths
+			- OCaml Binaries Directory: C:\wodi32\opt\wodi32\bin
+			- Press Apply besides the box
+			- then it should fill in a few other path boxes
+			- afterwards press apply at the bottom
+			- and restart eclipse
+
+- in Eclipse: create projects for folders in git repo
+	- local git repo needs to be cloned from the central github one
+	- create new projects, with location set to respective folders in the local git repo
+	- adjust project properties
+		- targets: Main.native
+		- Libraries: str
+		- Other flags: -use-menhir
+
 
 -------------------------------------------------------------------------------
 EXAMPLE SETUP 

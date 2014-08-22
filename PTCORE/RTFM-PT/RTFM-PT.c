@@ -1,4 +1,4 @@
-/*
+ /*
  * RTFM-PT.c
  * Pthread run-time system implementation for RTFM-core
  * (C) 2014 Per Lindgren, Marcus Lindner (WINAPI)
@@ -36,8 +36,6 @@
 #define _GNU_SOURCE
 #endif
 
-
-
 #include <unistd.h>			// sleep etc.
 #include <stdio.h>			// printf etc.
 #include <stdlib.h>			// rand etc.
@@ -46,7 +44,6 @@
 #include <sys/time.h>       // gettimeofday
 
 #include "RTFM-PT.h"
-#include "RTFM-RT.h"
 
 #include "../Application/autogen.c"
 
@@ -128,15 +125,17 @@ void RTFM_pend(RTFM_time a, int f, int t) {
 	m_lock(&pend_count_mutex[t]);
 	{   // inside lock of the counter
 		lcount = pend_count[t];
-		if (lcount == 0)
+		if (lcount == 0) {
 			DPT("RTFM_pend   :pend_count[%d]++", t);
 			pend_count[t]++; // may not be atomic, hence needs a lock
+
+			// for good measure, we work on the timing information under the lock
+			after_base_line[t] = base_line[f]; // set the baseline for the receiver
+		    after[t] = a; 					   // set the relative time offset (after)
+		}
 	}
 	DPT("RTFM_pend   :pthread_mutex_unlock(&pend_count_mutex[%d])", t);
 	m_unlock(&pend_count_mutex[t]);
-
-	after_base_line[t] = base_line[f]; // set the baseline for the receiver
-    after[t] = a; 					   // set the relative time offset
 
 	if (lcount == 0) { // just a single outstanding semaphore/mimic the single buffer pend of interrupt hardware
 		DPT("RTFM_pend   :pend_sem[%d], Post :semaphore posted %s", t, entry_names[t])
@@ -183,14 +182,14 @@ void set_global_baseline() {
 // the effect is that we may release the task 0.1 ms too soon, on the other hand we reduce overhead
 const int jitter = 100;
 
-volatile void time_usleep(RTFM_time t) {
+void time_usleep(RTFM_time t) {
 	int e;
 	if (t > jitter) {
 		DPT("usleep         (%f)", RT_time_to_float(t));
 		if ((e = usleep(t)))
 			handle_error_en(e, "usleep");
 	} else {
-		DPT("release time expired or interval to short %d (us)", t);
+		DPT("release time expired or interval to short %f", RT_time_to_float(t));
 	}
 }
 
@@ -204,24 +203,27 @@ void *thread_handler(void *id_ptr) {
 		s_wait(pend_sem[id]);
 		// consume the semaphore (decrement it's value)
 		DPT("thread      :pthread_mutex_lock(&pend_count_mutex[%d])", id);
+		RTFM_time offset;
 		m_lock(&pend_count_mutex[id]);
 		{   // inside lock of the counter
 			DPT("thread      :pend_count[%d]--", id);
 			pend_count[id]--; // may not be atomic, hence needs a lock
+
+			// for good measure we work on the timing information under the lock
+			DPT("old_bl[%2d]    = %f", id, RT_time_to_float(base_line[id]));
+			DPT("after_bl[%2d]  = %f", id, RT_time_to_float(after_base_line[id]));
+			DPT("after[%2d|     = %f", id, RT_time_to_float(after[id]));
+			base_line[id] = RT_time_add(after_base_line[id], after[id]);
+			DPT("new_bl[%2d]    = %f", id, RT_time_to_float(base_line[id]));
+			RTFM_time cur_time = time_get();
+			DPT("cur_time      = %f", RT_time_to_float(cur_time));
+
+			offset = base_line[id]- cur_time;
 		}
 		DPT("thread      :pthread_mutex_unlock(&pend_count_mutex[%d])", id);
 		m_unlock(&pend_count_mutex[id]);
 
-	    DPT("old_bl[%2d]    = %f", id, RT_time_to_float(base_line[id]));
-	    DPT("after_bl[%2d]  = %f", id, RT_time_to_float(after_base_line[id]));
-	    DPT("after[%2d|     = %f", id, RT_time_to_float(after[id]));
-	    base_line[id] = RT_time_add(after_base_line[id], after[id]);
-	    DPT("new_bl[%2d]    = %f", id, RT_time_to_float(base_line[id]));
-	    RTFM_time cur_time = time_get();
-	    DPT("cur_time      = %f", RT_time_to_float(cur_time));
-
-	    RTFM_time offset = base_line[id]- cur_time;
-	    DPT("offset        = %f", RT_time_to_float(offset));
+	    DPT("time_usleep(offset)   = %f", RT_time_to_float(offset));
 	    time_usleep(offset);
 
 		DPT("thread      :entry_func[%d](%d)", id, id);
@@ -417,7 +419,7 @@ int main() {
 	DPT("main        :user_reset(user_reset_nr);");
 	user_reset(user_reset_nr);
 	while (1)
-		;
-	/* code for cleanup omitted, we trust POSIX (Linux/OSX )to do the cleaning */
+		RT_sleep(RT_sec * 1); // zzzzzz to save CPU
+	/* code for cleanup omitted, we trust POSIX (Linux/OSX) to do the cleaning */
 }
 

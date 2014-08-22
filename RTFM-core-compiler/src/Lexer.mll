@@ -17,7 +17,7 @@
 
 (* regular expressions (regexps) *)
 let white   = [' ' '\t']+
-let newline = '\n'
+let newline = '\r' | '\n' | "\r\n"
 let cite    = '\"'
 let str     = [^ '"']* 
 let id      = ['A'-'Z' 'a'-'z' '_']['0'-'9' 'A'-'Z' 'a'-'z' '_']*  

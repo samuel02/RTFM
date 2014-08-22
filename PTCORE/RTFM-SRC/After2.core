@@ -1,3 +1,6 @@
+// After2.core
+// Per Lindgren (C) 2014
+//
 // blocking occurs on the resource R  
 Task task(int i, float j) {
     #> printf("task %d %f\n", i, j);<#

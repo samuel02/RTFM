@@ -2,9 +2,11 @@
 #ifndef RTFM_RT_H_
 #define RTFM_RT_H_
 
+#include <stdint.h>
+
 #define RT_sec                  1000000
 #define RT_ms					1000
-typedef int RTFM_time;
+typedef int64_t RTFM_time;
 #define RT_time					RTFM_time
 
 // prototypes

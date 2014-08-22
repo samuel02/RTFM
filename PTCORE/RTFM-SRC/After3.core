@@ -1,3 +1,6 @@
+// After3.core
+// Per Lindgren (C) 2014
+//
 // time stamping to get the baseline after the blocking call to getc
 Task task(char c) {
     #> printf("task %c \n", c);<#
