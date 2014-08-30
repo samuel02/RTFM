@@ -50,7 +50,7 @@ let mycompare s1 s2 = (String.compare s1 s2 == 0)
 let p_stderr x = Printf.fprintf stderr "%s\n%!" x
 let p_oc oc x = Printf.fprintf oc "%s\n%!" x
   
-let rec range i j = if i < j then [] else i :: (range (i+1) j)
+let rec range i j = if i > j then [] else i :: (range (i+1) j)
   
 let size = 1024 (* Static sized parsing buffer in Parsing.ml (Standard lib) *)
   

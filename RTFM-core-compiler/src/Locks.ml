@@ -5,44 +5,75 @@
 
 open Common
 open AST
+open SpecAST
 open SRP
   
 (* prog -> [(cr, id)] *)   
-let dep_of_p p = 
-  (* stmts *)
+let dep_of_p spec = 
   let rec stmts cr sl = match sl with
     | []                    -> []
     | Claim (id, s) :: l    -> (cr, id) :: stmts id s @ stmts id l
-    | Sync (sid, _) :: l    -> (stmts cr (lookup sid p)) @ stmts cr l 
+    | Sync (sid, _) :: l    -> (stmts cr (lookup_ifunc sid spec)) @ stmts cr l 
     | _ :: l                -> stmts cr l 
-      
-  (* tops *)
   and tops il = match il with
     | []                           -> []
-    | Isr (p, id, s) :: l          -> (stmts id s) @ tops l  
+    | IIsr (p, id, s) :: l         -> (stmts id s) @ tops l
+    | ITask (_, _, id, _, _, s) :: l  -> (stmts id s) @ tops l 
+    | IIdle (s) :: l               -> (stmts "idle" s) @ tops l   (* reset is not a task running concurrent to other tasks*)
     | _ :: l                       -> tops l 
   in
   (* prog *)
-  tops p 
+  tops spec 
     
 let string_of_dep dep =
   let str (a, b) = a ^ " -> " ^ b  in
   String.concat nl (List.map str dep) ^ nl
-    
-    
+        
 let rec entry ll = match ll with
-  | []                         -> []
-  | Isr (_, id, _) :: l     -> id :: entry l 
-  | _ :: l                     -> entry l
-    
+    | []                           -> []
+    | IIsr (p, id, s) :: l         -> id :: entry l
+    | ITask (_, _, id, _, _, s) :: l  -> id :: entry l 
+    (* | IReset (s) :: l              -> "reset" :: entry l *) (* reset is not a task running concurrent to other tasks*)
+    | _ :: l                       -> entry l
     
 let string_of_entry e = "Entry points :" ^ String.concat ", " e ^ nl  
   
-let dot_of_dep dep p =
+let gv_of_res dep p =
   "digraph RTFM {" ^ nl ^ string_of_dep dep ^ nl 
     ^ "{ rank=source; " ^ String.concat "; " (entry p) ^ "; }" ^ nl  
     ^ "}" 
-    
+       
+let rec successors n = function
+  []                -> []
+  | (s, t) :: edges ->
+    if s = n then
+      t :: successors n edges
+    else
+      successors n edges
+        
+exception Cyclic of string
+  
+let tsort edges entries =
+  let rec sort path visited = function
+    []          -> visited
+    | n::nodes  ->
+      if List.mem n path then 
+        raise (Cyclic ("Potential deadlock involving " ^ n )) 
+      else
+        let v'= 
+          if List.mem n visited 
+          then 
+            visited 
+          else
+            n :: sort (n::path) visited (successors n edges)
+        in 
+        sort path v' nodes
+  in
+  try
+    Some (sort [] [] entries)
+  with
+    | Cyclic msg -> p_stderr (msg); None 
+
 (*
    
    
@@ -134,34 +165,4 @@ let dot_of_dep dep p =
    in
    travelentries e (dep, count)
  *)
-    
-let rec successors n = function
-  []                -> []
-  | (s, t) :: edges ->
-    if s = n then
-      t :: successors n edges
-    else
-      successors n edges
-        
-exception Cyclic of string
-  
-let tsort edges entries =
-  let rec sort path visited = function
-    []          -> visited
-    | n::nodes  ->
-      if List.mem n path then 
-        raise (Cyclic ("Potential deadlock involving " ^ n )) 
-      else
-        let v'= 
-          if List.mem n visited 
-          then 
-            visited 
-          else
-            n :: sort (n::path) visited (successors n edges)
-        in 
-        sort path v' nodes
-  in
-  try
-    Some (sort [] [] entries)
-  with
-    | Cyclic msg -> p_stderr (msg); None 
+ 

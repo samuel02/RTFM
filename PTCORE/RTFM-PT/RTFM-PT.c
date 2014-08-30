@@ -17,17 +17,27 @@
 
 #define min(a, b) (a < b ? a : b)
 #define max(a, b) (a > b ? a : b)
+typedef enum { false, true } bool;
 
-#ifdef DEBUG
+#ifdef TRACE
+#ifdef TRACE_TIME
+#define DP(fmt, ...) {fprintf(stderr, "\t\t\t\t<%f> "fmt"\n", RT_time_to_float(time_get()), ##__VA_ARGS__);}
+#define DF(x) x
+#else
 #define DP(fmt, ...) {fprintf(stderr, "\t\t\t\t"fmt"\n", ##__VA_ARGS__);}
 #define DF(x) x
+#endif
 #else
 #define DP(fmt, ...)
 #define DF(x)
 #endif
 
-#ifdef DEBUG_RT
+#ifdef TRACE_OS
+#ifdef TRACE_TIME
+#define DPT(fmt, ...) {fprintf(stderr, "\t\t\t\t\t\t\t\t\t<%f> "fmt"\n",  RT_time_to_float(time_get()), ##__VA_ARGS__);}
+#else
 #define DPT(fmt, ...) {fprintf(stderr, "\t\t\t\t\t\t\t\t\t"fmt"\n", ##__VA_ARGS__);}
+#endif
 #else
 #define DPT(fmt, ...)
 #endif
@@ -66,8 +76,12 @@ void handle_error_en(int en, char *msg) {
 
 /* data structures for the timer */
 RTFM_time base_line[ENTRY_NR];
-RTFM_time after[ENTRY_NR];
-RTFM_time after_base_line[ENTRY_NR];
+RTFM_time dead_line[ENTRY_NR];
+RTFM_time new_base_line[ENTRY_NR];
+RTFM_time new_dead_line[ENTRY_NR];
+
+//RTFM_time after[ENTRY_NR];
+//RTFM_time after_base_line[ENTRY_NR];
 RTFM_time global_base_line = 0;
 
 /* data structures for the threads and semaphores */
@@ -117,7 +131,7 @@ void RTFM_unlock(int f, int r) {
 	m_unlock(&res_mutex[r]);
 }
 
-void RTFM_pend(RTFM_time a, int f, int t) {
+void RTFM_pend(RTFM_time a, RTFM_time b, int f, int t) {
 	int lcount;
 	DP("Pend     :%s->%s", entry_names[f], entry_names[t]);
 
@@ -130,8 +144,13 @@ void RTFM_pend(RTFM_time a, int f, int t) {
 			pend_count[t]++; // may not be atomic, hence needs a lock
 
 			// for good measure, we work on the timing information under the lock
-			after_base_line[t] = base_line[f]; // set the baseline for the receiver
-		    after[t] = a; 					   // set the relative time offset (after)
+			DPT("after_bl[%2d]  = %f", f, RT_time_to_float(base_line[f]));
+			DPT("after[%2d|     = %f", f, RT_time_to_float(a));
+
+			new_base_line[t] = RT_time_add(base_line[f], a); // set the baseline for the receiver
+			//after_base_line[t] = base_line[f]; // set the baseline for the receiver
+		    //after[t] = a; 					   // set the relative time offset (after)
+			new_dead_line[t] = new_base_line[t] + b;
 		}
 	}
 	DPT("RTFM_pend   :pthread_mutex_unlock(&pend_count_mutex[%d])", t);
@@ -193,6 +212,18 @@ void time_usleep(RTFM_time t) {
 	}
 }
 
+int over_run(int id) {
+	RTFM_time now = time_get();
+	if (now > dead_line[id]) {
+		fprintf(stderr,
+				"Deadline expired %s, task/message base_line = %f, dead_line = %f, cur_time = %f\n",
+				entry_names[id], RT_time_to_float(base_line[id]),
+				RT_time_to_float(dead_line[id]), RT_time_to_float(now));
+		return true;
+	}
+	return false;
+}
+
 void *thread_handler(void *id_ptr) {
 	int id = *((int *) id_ptr);
 	DPT("thread      :Working thread %d started : Task %s", id, entry_names[id]);
@@ -211,14 +242,17 @@ void *thread_handler(void *id_ptr) {
 
 			// for good measure we work on the timing information under the lock
 			DPT("old_bl[%2d]    = %f", id, RT_time_to_float(base_line[id]));
-			DPT("after_bl[%2d]  = %f", id, RT_time_to_float(after_base_line[id]));
-			DPT("after[%2d|     = %f", id, RT_time_to_float(after[id]));
-			base_line[id] = RT_time_add(after_base_line[id], after[id]);
+			//DPT("after_bl[%2d]  = %f", id, RT_time_to_float(after_base_line[id]));
+			//DPT("after[%2d|     = %f", id, RT_time_to_float(after[id]));
+			//base_line[id] = RT_time_add(after_base_line[id], after[id]);
+			base_line[id] = new_base_line[id];
+			dead_line[id] = new_dead_line[id];
+
 			DPT("new_bl[%2d]    = %f", id, RT_time_to_float(base_line[id]));
 			RTFM_time cur_time = time_get();
 			DPT("cur_time      = %f", RT_time_to_float(cur_time));
 
-			offset = base_line[id]- cur_time;
+			offset = base_line[id] - cur_time;
 		}
 		DPT("thread      :pthread_mutex_unlock(&pend_count_mutex[%d])", id);
 		m_unlock(&pend_count_mutex[id]);
@@ -229,6 +263,17 @@ void *thread_handler(void *id_ptr) {
 		DPT("thread      :entry_func[%d](%d)", id, id);
 		DP("Task run :%s", entry_names[id]);
 		entry_func[id](id); // dispatch the task
+
+
+#ifdef ABORT_DL
+		if (over_run(id)) {
+			fprintf(stderr, "Aborting on failing to meet deadline!\n");
+			exit(EXIT_FAILURE);
+		}
+
+#elif WARN_DL
+		over_run(id);
+#endif
 	}
 	return NULL;
 }
@@ -246,13 +291,23 @@ void dump_priorities() {
 int main() {
 	fprintf(stderr, "RTFM-RT Per Lindgren (C) 2014 \n");
 	fprintf(stderr, "%s", CORE_FILE_INFO);
-	fprintf(stderr, "RTFM-RT run-time options : ");
-#ifdef DEBUG
-	fprintf(stderr, "-DEBUG ");
+	fprintf(stderr, "RTFM-RT run-time options :");
+#ifdef TRACE
+	fprintf(stderr, " -TRACE");
 #endif
-#ifdef DEBUG_RT
-	fprintf(stderr, "-DEBUG_RT");
+#ifdef TRACE_TIME
+	fprintf(stderr, " -TRACE_TIME");
 #endif
+#ifdef TRACE_OS
+	fprintf(stderr, " -TRACE_OS");
+#endif
+#ifdef WARN_DL
+	fprintf(stderr, " -WARN_DL");
+#endif
+#ifdef ABORT_DL
+	fprintf(stderr, " -ABORT_DL");
+#endif
+
 	fprintf(stderr, "\n");
 
 	// Commodity random function provide for the exmaples
@@ -358,7 +413,7 @@ int main() {
 
 	struct sched_param param;
 
-	for (i = 1; i < ENTRY_NR; i++) {
+	for (i = 2; i < ENTRY_NR; i++) { // 0 = user_reset, 1 = user_idle
 		/* semaphore handling */
 		/*
 		 * The named semaphore named name is removed.
@@ -418,8 +473,10 @@ int main() {
 	printf("-----------------------------------------------------------------------------------------------------------------------\n");
 	DPT("main        :user_reset(user_reset_nr);");
 	user_reset(user_reset_nr);
+	printf("-----------------------------------------------------------------------------------------------------------------------\n");
+	user_idle(user_idle_nr);
+
 	while (1)
 		RT_sleep(RT_sec * 1); // zzzzzz to save CPU
 	/* code for cleanup omitted, we trust POSIX (Linux/OSX) to do the cleaning */
 }
-

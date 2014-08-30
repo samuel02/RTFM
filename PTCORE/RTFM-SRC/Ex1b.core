@@ -1,14 +1,14 @@
+// Ex1b.core
+// Per Lindgren (C) 2014
+//
+// A Task may be passed arguments (aka message massing)
+
+Task t (int i) {
+	#>printf("task t %d\n", i);<#
+}
+
 Reset {
 	#>printf("User reset\n");<#
-	async task (75*2);
-
-	#> 
-	while (1) {
-		// RT_SLEEP(SEC(1)); // (watch you CPU monitor)
-	}
-	<#	
+	async t (75*(2+1));
 }
 
-Task task (int i) {
-	#>printf("task %d\n", i);<#
-}

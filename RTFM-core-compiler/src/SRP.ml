@@ -4,6 +4,7 @@
 (* RTFM-core/SRP.ml *)
 
 open AST
+open SpecAST
 open Common
 
 (* resource is ass assoicative list (a->b) *)
@@ -11,12 +12,13 @@ let id_of r = fst r
 let prio_of r = snd r
 
 (* lookup resource id -> priority option *)
+(*
 let lookup e ml =
   try
     Some (List.assoc e ml)
   with
     _ -> None
-
+*)
 (* add/update map resrouce id -> priority *)
 let rec add (id, prio) ml = match ml with
   | []                                -> [(id, prio)] (* add *)
@@ -38,39 +40,75 @@ let rec lookup id p = match p with
   | FuncDef (_, fid, _, sl) :: l when (compare id fid = 0) -> sl
   | _ :: l                                              -> lookup id l
 
-(* ceiling *)
-let ceiling p =
+let rec lookup_ifunc id p = match p with
+  | []                                                   -> failwith("Failed to lookup IFunc " ^ id)
+  | IFunc (_, _, fid, _, sl) :: l when (compare id fid = 0) -> sl
+  | _ :: l                                               -> lookup_ifunc id l
+
+(* priorities from deadlines *)
+let dl_to_pr spec =
+  (* extract the prtiorities of task instances *)
+  let prl = function
+    | ITask (_, dl, _, _, _, _) -> usec_of_time dl 
+    | _ -> raise (UnMatched)
+  in
+  
+  (* get them sorted *)
+  let sort_prl = List.sort compare (mymap prl spec) in
+  
+  (* remove dupicate deadlines *)
+  let rec compress = function
+    | a :: (b :: _ as t) -> if a = b then compress t else a :: compress t
+    | s -> s
+  in
+  let u_prl = compress sort_prl in
+  
+  (* associate priorities by decreasing deadline *)
+  let prnrl = range 1 (List.length u_prl) in
+ 
+  List.combine (List.rev u_prl) prnrl 
+
+let pr_of_dl dlp dl =
+  try
+    List.assoc dl dlp 
+  with _ -> raise (RtfmError("Internal Error looking up priority for deadline " ^ string_of_int dl))  
+
+let string_of_dl dlp dl =
+  string_of_int (pr_of_dl dlp (usec_of_time dl))
+  
+(* ceiling_spec *)
+let ceiling_spec spec dlp =
   (* stmts *)
-  let rec ceil_of_stmts cp rm sl k = match sl with
+  let rec stmts cp rm sl = match sl with
     | [] -> rm
-    | Claim (id, s) :: l -> let rm' = add (id, cp) (ceil_of_stmts cp rm s k) in
-        ceil_of_stmts cp rm' l k
+    | Claim (id, s) :: l -> 
+      let rm' = add (id, cp) (stmts cp rm s) in
+      stmts cp rm' l
     | Sync (sid, _) :: l ->
-        (
-          match (List.mem sid k) with
-          | true -> raise (RtfmError ("Failed due to cyclic synch chain in Ist/Task " ^ (String.concat " -> " (k @ [sid]))))
-          | _    -> let rm' = ceil_of_stmts cp rm (lookup sid p) (k @ [sid]) in
-              ceil_of_stmts cp rm' l k
-        )
-    | _ :: l             -> ceil_of_stmts cp rm l k
+        let rm' = stmts cp rm (lookup_ifunc sid spec)  in
+        stmts cp rm' l 
+    | _ :: l             -> stmts cp rm l 
   
   (* tops *)
   and tops rm il = match il with
     | [] -> rm
-    | Isr (p, id, s) :: l     -> let rm' = ceil_of_stmts p rm s [id] in
-        tops rm' l
-    | Task (p, pa, id, _, s) :: l -> let rm' = ceil_of_stmts p rm s [id] in
-        tops rm' l
-    | Reset (s) :: l          -> let rm' = ceil_of_stmts 0 rm s ["Reset"] in
-        tops rm' l
-            
+    | IIsr (p, id, s) :: l  ->
+      let rm' = stmts p rm s in
+      tops rm' l
+    | ITask (_, dl, pa, id, _, s) :: l -> 
+      let rm' = stmts (pr_of_dl dlp (usec_of_time dl)) rm s  in
+      tops rm' l
+    | IReset (s) :: l -> 
+      let rm' = stmts 0 rm s  in
+      tops rm' l         
     | _ :: l -> tops rm l
   in
   (* prog *)
-  tops [] p
+  tops [] spec
 
+  
 (* associative list (id, [names]) *)
-let pl topl rl =
+let pl dlp topl rl =
   let rec add (p, id) pl = match pl with
     | []                            -> [(p, [id])]          (* add new *)
     | (lp, idl) :: l when (p = lp)  -> (p, id:: idl) :: l   (* add to existing *)
@@ -79,7 +117,7 @@ let pl topl rl =
   and top pl t = match t with
     | []                           -> pl
     | Isr (p, id,  _) :: l         -> let pl' = add (p, id ) pl in top pl' l
-    | Task (p, id, pa,  _, _) :: l     -> let pl' = add (p, id ) pl in top pl' l
+    | Task (dl, id, pa,  _, _) :: l -> let pl' = add (pr_of_dl dlp dl, id ) pl in top pl' l
     | _ :: l                       -> top pl l
   
   and res pl rl = match rl with
@@ -88,6 +126,27 @@ let pl topl rl =
   
   in
   let isrs = top [] topl in
+  List.sort (fun (a, _) (b, _) -> a - b) (res isrs rl)
+
+(* associative list (id, [names]) *)
+let pl_spec dlp spec rl =
+  let rec add (p, id) pl = match pl with
+    | []                            -> [(p, [id])]          (* add new *)
+    | (lp, idl) :: l when (p = lp)  -> (p, id:: idl) :: l   (* add to existing *)
+    | e :: l                        -> e :: (add (p, id) l)
+  
+  and top pl t = match t with
+    | []                            -> pl
+    | IIsr (p, id,  _) :: l         -> let pl' = add (p, id ) pl in top pl' l
+    | ITask (_, dl, id, pa,  _, _) :: l -> let pl' = add (pr_of_dl dlp (usec_of_time dl), id ) pl in top pl' l
+    | _ :: l                        -> top pl l
+  
+  and res pl rl = match rl with
+    | []           -> pl
+    | (id, p) :: l -> let pl' = add (p, "[" ^ id ^ "]") pl in res pl' l
+  
+  in
+  let isrs = top [] spec in
   List.sort (fun (a, _) (b, _) -> a - b) (res isrs rl)
 
 let rec string_of pl = match pl with

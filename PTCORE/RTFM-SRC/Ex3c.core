@@ -1,4 +1,4 @@
-// Ex3.core
+// Ex3c.core
 // Per Lindgren (C) 2014
 //
 // Critical sections are used to protect shared resources
@@ -33,6 +33,6 @@ Task t2() {
 Reset {
 	#>x = 0; y = 0;<#
     #>printf("User reset\n");<#
-    async before 9 s t2();
-    async after 1 s before 10 s t1();     
+    async before 6s t2();
+    async after 2 s before 3 s t1();  // R will be claimed by t2    
 }

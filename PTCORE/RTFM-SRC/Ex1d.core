@@ -1,15 +1,20 @@
+// Ex1d.core
+// Per Lindgren (C) 2014
+
+// Each message may dictate the deadline for the receiving task
+// the compiler analyse the task model and assign static priories accordingly
+//
+// run with TRACE_OS and see the threads running at different priority
+// run with TRACE_TIME and see the time for each interaction with the run-time
+// or run on bare metal and see the assignment of ISRs and priorities
+
+Task t (int id, int arg) {
+    #>printf("task t%d, arg %d\n", id, arg);<#
+}
+
 Reset {
-	#>printf("User reset\n");<#
-	async prio 3 task (75*2); // run with DEBUG_RT and see the threads running at different priority
-	async prio 2 task (75);	  // or run on bare metal and see the assignment of ISRs and priorities
-
-	#> 
-	while (1) {
-		// RT_SLEEP(SEC(1)); // (watch you CPU monitor)
-	}
-	<#	
+    #>printf("User reset\n");<#
+    async after 1 s before 1 s t (1, 75);   
+    async before 2 s t (2, 75*2);      
 }
 
-Task task (int i) {
-	#>printf("task %d\n", i);<#
-}

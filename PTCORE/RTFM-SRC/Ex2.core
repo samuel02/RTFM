@@ -1,20 +1,49 @@
-Reset {
-	#>printf("Ex2.core User reset\n");<#
-	
-	#>
-	while (1) {
-		<#async prio 1 task1(2);#>
-		RT_sleep(RT_sec(1));
-	}
+// Ex2.core
+// Per Lindgren (C) 2014
+//
+// This example shows:
+// 1) The chaining of tasks (e.g., idle->t1->t2)
+// 2) The role of Reset and Idle
+//
+// The Reset task is executed to end before any other tasks executed by the 
+// run-time system. This allows setting up a system in a "Reset" mode.
+//
+// When Reset is run-to-end the Idle task is triggered.
+// Idle is the only task that may never run-to-completion!
+
+// In this example we use the Idle to emulate an environment that triggers t1 
+// passing a character value.
+// 
+// Deadlines may be given explicitly (as in this case), else will be inherited 
+// from the sender. Priorities are automatically derived (shorter deadline 
+// gives higher priority.)
+// 
+// Both Reset and Idle has a baseline of 0s and an Infinite deadline.
+// 
+// Use ABORT_DL to let the run-time abort on a deadline over-run
+// Use WARN_DL to let the run-time wanr on a deadline over-run
+
+Task t1(char c) {
+    #>printf("t1: you entered :");
+	putc(c, stdout);
+	printf("\n");
 	<#
+    async after 5s before 100 ms t2(++c);
 }
 
-Task task1(int i) {
-	#>printf("task1 %d\n", i);<#
-	async prio 2 task2(i*2);
+Task t2(char c) {
+    #>printf("t2: the next character is %c\n", c);<#    
 }
 
-Task task2(int j) {
-	#>printf("task2 %d\n", j);<#	
+Reset {
+    #>printf("User reset\n");<#
 }
 
+Idle {
+    #>
+	char c;
+    printf("enter a character (before 5s)\n");
+    c = getc(stdin);
+    <# 
+    async before 5 s t1(c);   
+}

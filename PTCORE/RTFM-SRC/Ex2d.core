@@ -1,0 +1,23 @@
+// Ex2d.core
+// Per Lindgren (C) 2014
+//
+// Multiple cycles are rejected (may cause infinite task sets)
+
+Task t1(int i) {
+	#>printf("task1 %d\n", i);<#
+	async after 1 s t1(i+1);
+	async t2(i*2);
+	async after 1 s t1(i+1);
+}
+
+Task t2(int j) {
+	#>printf("task2 %d\n", j);<#
+}
+
+Reset {
+	#>printf("User reset\n");<#
+	async before 1 s t1(0); 
+}
+
+
+

@@ -36,12 +36,18 @@ rule lex = parse
   | "async"              { ASYNC }
   | "claim"              { CLAIM }
   | "after"              { AFTER }
+  | "before"             { BEFORE }
   | "prio"               { PRIO }
   
   | "ISR"                { ISR }                                (* top level *)
   | "Task"               { TASK }
   | "Func"               { FUNC }
   | "Reset"              { RESET }
+  | "Idle"               { IDLE }
+  
+  | "us"                 { USEC }                               (* time *)
+  | "ms"                 { MSEC }
+  | "s"                  { SEC }
   
   | '{'                  { LCP }                                (* delimeters *)
   | '}'                  { RCP }

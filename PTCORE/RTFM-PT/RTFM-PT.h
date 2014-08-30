@@ -9,12 +9,13 @@
 
 typedef void (*ENTRY_FUNC)(int);
 void user_reset(int);
+void user_idle(int);
 
 #define FALSE 					false
 #define TRUE 					true
 
 void RTFM_lock(int, int);
 void RTFM_unlock(int, int);
-void RTFM_pend(RTFM_time, int, int);
+void RTFM_pend(RTFM_time, RTFM_time, int, int);
 
 #endif /* RTFM_PT_H_ */

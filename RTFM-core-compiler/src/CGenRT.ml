@@ -6,6 +6,7 @@
 open Common
 open Options
 open AST
+open SRP
 
 let deb s = if opt.debug then "// RTFM-core: " ^ s ^ nl else ""
 
@@ -118,7 +119,7 @@ let crt_of_p topl v r =
         nr_ref := nr + 1;
          let idp = path ^ "_" ^ id ^ if nr > 0 then string_of_int nr else "" in
        "arg_" ^ idp ^ " = (ARG_" ^ id ^ "){" ^ par ^ "}; " ^ nl ^
-       "RTFM_pend(" ^ af ^ ", RTFM_id, " ^ idp ^ "_nr);"      
+       "RTFM_pend(" ^ pr_of_dl dlp (usec_of_time dl) ^ ", RTFM_id, " ^ idp ^ "_nr);"      
      | Sync ( id, par )      -> (path ^ "_" ^ id) ^ pass_par par ^ ";"
       
      | ClaimC (c)            -> String.trim c

@@ -1,15 +1,15 @@
+// Ex1c.core
+// Per Lindgren (C) 2014
+//
+// A Task may called multiple times, the compiler creates unique Task instances
+
+Task t (int id, int arg) {
+	#>printf("task t%d, arg %d\n", id, arg);<#
+}
+
 Reset {
 	#>printf("User reset\n");<#
-	async task (75*2);
-	async task (75);	
-
-	#> 
-	while (1) {
-		// RT_SLEEP(SEC(1)); // (watch you CPU monitor)
-	}
-	<#	
+	async t (1, 75);
+	async t (2, 75*2);	
 }
 
-Task task (int i) {
-	#>printf("task %d\n", i);<#
-}

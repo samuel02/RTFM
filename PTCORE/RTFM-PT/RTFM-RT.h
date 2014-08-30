@@ -12,6 +12,7 @@ typedef int64_t RTFM_time;
 // prototypes
 RTFM_time RTFM_get_bl(int id);
 void RTFM_set_bl(int id);
+RTFM_time time_get();
 
 #define RT_time_sub(t1, t2)     (t1 - t2)
 #define RT_time_add(t1, t2)     (t1 + t2)
