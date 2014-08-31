@@ -2,6 +2,7 @@ RTFM-Core v1.0 Per Lindgren (C) 2014
 -------------------------------------------------------------------------------
 History
 2014-07-18                      v1.0 development branch
+2014-09-01                      v1.0 release candidate
 
 -------------------------------------------------------------------------------
 DISTRIBUTION AND DIRECTORY STRUCTURE
@@ -56,20 +57,21 @@ PREPARATION LINUX
 Ubuntu 12.04/14.04              Should work on any modern LINUX
 
 sudo apt-get install ocaml      OCAML compiler
-sudo apg-get install opam       We use OPAM for the OCAML related installations
+sudo apt-get install opam       We use OPAM for the OCAML related installations
+sudo apt-get install m4         Sometimes needed to compile ocamlfind
 opam init                       The OPAM system needs to be initially configured
 opam config env                 run after OPAM init
 opam install menhir             Our Parser generator (installs ocamlfind also)
 
 This should be enough to build and run the RTFM-core compiler under Linux
 
-sudo port install graphviz      Used to compile generated .dot files 
-                                (this package has a lot of dependencies so it 
-                                takes a while to install)
-sudo port install graphviz-gui  Optional
-sudo port install zathura*      ZATHURA is a lightweight pdf viewer that can be 
-                                used instead of the built in OSX preview 
-                                (* makes it install some plugins needed)
+sudo apt-get install graphviz      Used to compile generated .dot files 
+                                   (this package has a lot of dependencies so it 
+                                   takes a while to install)
+sudo apt-get install graphviz-gui  Optional
+sudo apt-get install zathura*      ZATHURA is a lightweight pdf viewer that can be 
+                                   used instead of the built in OSX preview 
+                                   (* makes it install some plugins needed)
 
 
 PREPARATION WINDOWS 
@@ -227,16 +229,3 @@ PTCORE                          Running you application under Pthreads
                                 OSX, does not correctly report the error on trying to
                                 unlink a named semaphore (should report errno=ENOENT) but it 
                                 does not (it seems). So we report this as a warning (if DEBUG).
-
--------------------------------------------------------------------------------
-ADVANCED WINDOWS (generating an .exe file of the RTFM-core compiler)
-
-To generate an .exe file from the RTFM-core compiler, the "PREPARATION WINDOWS"
-must have been made and then do the following.
-
-1. cd in the "Wodi32 Cygwin" terminal to the src folder of the compiler.
-2. Run "make rtfm_core".
-3. Copy the last line ocamlbuild prints ex: ''C:/wodi32/opt/wodi32/bin/ocamlopt.opt Common.cmx AST.cmx IsrVector.cmx IsrCGen.cmx SRP.cmx CGen.cmx Cmd.cmx Dot.cmx Error.cmx Parser.cmx Lexer.cmx Locks.cmx Main.cmx -o Main.native
-4. cd to the _build directory: "cd _build"
-5. Force it to use ocamlopt and execute the command: "ocamlopt Common.cmx AST.cmx IsrVector.cmx IsrCGen.cmx SRP.cmx CGen.cmx Cmd.cmx Dot.cmx Error.cmx Parser.cmx Lexer.cmx Locks.cmx Main.cmx -o rtfm-core.exe"
-6. Use the rtfm-core.exe as a stand-alone executable. Done!
