@@ -37,7 +37,7 @@ rule lex = parse
   | "claim"              { CLAIM }
   | "after"              { AFTER }
   | "before"             { BEFORE }
-  | "prio"               { PRIO }
+(*| "prio"               { PRIO } *)
   
   | "ISR"                { ISR }                                (* top level *)
   | "Task"               { TASK }

@@ -1,0 +1,143 @@
+Section B) rtfm-core compiler
+-----------------------------
+This section we cover
+B.1) the -core compiler options
+B.2) an overview of the -core compiler design
+B.3) compiler implementation.
+
+B.1) Compiler options:
+----------------------
+The -core compiler has the following options:
+
+The RTFM-core compiler v1.0, Per Lindgren (c) 2014
+
+Usage core [--async_err] [-gcc|-ccomp|-clang] [-rt|-km3] [-v] [-D] 
+  [-gv_task file.gv] [-gv_res file.gv] [-d_ast] [-o outfile.c] [-i] infile.core
+
+Options summary:
+  -i            : infile
+  -o            : outfile (default infile.c)
+  -async_err    : async_err (default disable)
+  -gv_task      : graphviz file (default none)
+  -gv_res       : graphviz file (default none)
+  -gcc          : for gcc (default)
+  -ccomp        : for ccomp
+  -clang        : for clang
+  -rt           : for Pthread Linux (default)
+  -km3          : for ARM Cortex M3
+  -v            : verbose mode (default disable)
+  -D            : debug mode (default disable)
+  -d_ast        : dump AST
+  -help         : Display this list of options
+  --help        : Display this list of options
+  
+Recognised source file:
+infile.core      RTFM-core source infile (root)
+
+Output C file:
+-o outfile.c     Compiler output (defaults to input.c)
+
+Compilation options:
+-async_err       Enable : Treat inconsistent timing requirements as errors 
+                 (default warning)
+
+Backend options:
+-gcc             Generate code for GCC backend (default)
+-ccomp           Generate code for CCOMP backend
+-clang           Generate code for CLANG backend
+
+Target options:
+-rt              Target RTFM Run-Time (OSX/Linux/Windows) (default)
+-km3             Target RTFM Kernel ARM Cortex M3
+
+General options:
+-v               Enable : Verbose compilation (default disabled)
+-D               Enable : Generate output for debugging (default disabled)
+
+Additional options:
+-gv_task file.gv Enable : Task and resource structure in gv format 
+                 (default disabled)
+-gv_res  file.gv Enable : Resource dependency graph (lock structure) in gv 
+                 format (default disabled)
+-d_ast           Enable : Dump internal AST (default disabled)
+
+All file paths are relative to the current directory.
+
+See section X for compiling C-code output for run-time execution. 
+-------------------------------------------------------------------------------
+
+B.2) Compiler design
+
+The rtfm-core compiler performs the following steps:
+1. Lexing and parsing of the input program to an internal AST representation.
+   Single line and nested comments are taken care of in the lexer.
+   
+2. Task/Func instance generation to and internal SpecAST representation.
+   Tasks/Funcs in the program input are treated as definitions. Each async Isrs,
+   reachable from Isrs, Reset and Idle are recursively generates unique task
+   and function instances. 
+   
+   This allows single buffering of task arguments given a schedulable system 
+   where deadlines are less/equal to inter-arrival time.
+   
+3. Specialisation of the SpecAST. 
+   Each task instance has a unique identifier given form the path of origin 
+   (e.g., reset_task1_0), corresponds to the first async to task1 from the 
+   reset task. (reset_task1_1 to the 2nd, etc.) 
+   During specialisation path names are propagated to the statements. Special
+   case for asyncs closing a cycle is considered.
+   
+4. Compile time SRP analysis for deriving resource ceilings.
+
+5. (Optional for bare metal executables) 
+   a) Mapping of task instances to free places of the interrupt vector.
+   b) C-code generation for the RTFM-Kernel API
+
+6. (Optional for thread based executables)
+   a) Lock analysis, detecting potential deadlock chains.
+   
+7. (Optional for Graphviz output)
+   a) gv_task detailed view over the system instance
+   b) gv_res overview of resource dependencies visualising potential deadlock
+      as a cycle in the resource dependency graph
+      
+B.3) Compiler implementation:   
+File by file:
+AST.ml          defines the AST for parsing -core programs
+                provides pretty printing for the AST constructs
+Common.ml       defines some common (to -core and -coore) data structures 
+                and functions
+Env.ml          defines lookup functions (more refactoring could be done)
+Error.ml        defines error handling for the lexer (and parser)
+Gv.ml           provides .gv output for tasks
+ICGenRT.ml      C-code generation for the thread based run-time
+                (currently required to build CompCert-C only systems
+                due to lack of weak-pointer support in CompCert-C)
+IsrCGen.ml      C-code generation for interrupt vector output
+IsrVector.ml    IsrVector specification (for LPC1769 Cortex M3)     
+                for now, replace this file to change ARM target
+                (ongoing work to be replaced by configuration file option)
+Lexer.mll       ocamllex lexer used in combination with Menhir
+Locks.ml        lock related analysis for thread based run-times
+Main.ml         the main file
+Options.ml      defines the compiler options and default values
+Parser.mly      grammar for parser generation using Menhir 
+SpecAST.ml      defines the AST for task generation and specialisation
+SRP.ml          analys for resource ceiling computation (used for code 
+                generation targeting both bare-metal and threads)
+TaskGenSpec.ml  analysis for task generation and specialisation
+  
+Word form the author:  
+The -core compiler together with supporting tools have been Designed and 
+Implemented from scratch during a 3 month period (June,-August 2014). 
+
+It is an endeavour of some complexity, and I was completely new to both                   
+OCaml and Menhir at this point (June). Despite that many design choices and 
+implementation techniques can be improved on, I'm confident that the choice 
+of OCaml and Menhir was a good one. I will consistently seek to improve
+both functionality and readability of the compiler implementation. Even
+the -core language (and its semantics) can and will be further refined.
+Especially the timing semantics, and static analysis thereof is a work-in
+-progress, and you will see some additions during the fall.
+
+/Per Lindgren, founder of RTFM-lang August 2014.

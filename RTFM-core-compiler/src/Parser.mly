@@ -8,7 +8,7 @@
 %token <string> STRINGVAL
 %token <string> CCODE
 %token <string> PARAMS
-%token MODULE INCLUDE ISR TASK FUNC RESET IDLE SYNC ASYNC PEND AFTER BEFORE PRIO CLAIM USEC MSEC SEC SC LCP RCP EOF
+%token MODULE INCLUDE ISR TASK FUNC RESET IDLE SYNC ASYNC PEND AFTER BEFORE (* PRIO *) CLAIM USEC MSEC SEC SC LCP RCP EOF
 
 %{
   open AST 
@@ -61,7 +61,8 @@ time:
   | INTVAL SEC                              { Sec($1) } 
   | INTVAL                                  { Usec($1) }
 
+(*
 prio:
   | PRIO INTVAL                             { $2 }
   |                                         { 0 }
-  
+*)  
