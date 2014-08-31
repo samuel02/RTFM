@@ -12,6 +12,7 @@
 
 %{
   open AST 
+  open Common
 %}
 
 %start prog

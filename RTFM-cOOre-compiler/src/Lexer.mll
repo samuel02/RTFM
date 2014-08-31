@@ -26,16 +26,20 @@ let str     = [^ '\"']*
 rule lex = parse
   | "Task"                 { TASK }                                (* RTFM-core related *)
   | "ISR"                  { ISR }
-  | "Pend"                 { PEND }
-  | "Async"                { ASYNC }
+  | "pend"                 { PEND }
+  | "async"                { ASYNC }
   | "after"                { AFTER }
+  | "before"               { BEFORE }
   | "prio"                 { PRIO }
   | "Reset"                { RESET } 
+  | "Idle"                 { IDLE } 
 
   | "RT_sleep"             { RT_SLEEP }                            (* RT specifics *)
   | "RT_printf"            { RT_PRINTF }
-  | "RT_rant"              { RT_RAND }
-  
+  | "RT_rand"              { RT_RAND }
+  | "RT_getc"              { RT_GETC }
+  | "RT_putc"              { RT_PUTC }
+    
   | "class"                { CLASS }                               (* RTFM-cOOre related *) 
   | "return"               { RETURN }
      
@@ -54,6 +58,10 @@ rule lex = parse
   | ')'                    { RP }
   | '.'                    { DOT }
   | ';'                    { SC } 
+  
+  | "us"                   { USEC }                               (* time *)
+  | "ms"                   { MSEC }
+  | "s"                    { SEC }
     
   | "true"                 { BOOLVAL (true) }                     (* literals/values *)
   | "false"                { BOOLVAL (false) }

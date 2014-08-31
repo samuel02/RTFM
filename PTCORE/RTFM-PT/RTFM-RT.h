@@ -24,9 +24,11 @@ RTFM_time time_get();
 #define RT_set_bl()     	    { RTFM_set_bl(RTFM_id); }
 #define RT_get_bl()         	RTFM_get_bl(RTFM_id)
 
-#define RT_rand(x)      		( rand() % x )
-#define RT_sleep(x) 			( sleep( x ) )
-#define RT_usleep(x)        	( usleep( x ) )
+#define RT_rand(i)      		( rand() % i )
+#define RT_sleep(s) 			( sleep( s ) )
+#define RT_usleep(us)        	( usleep( us ) )
 #define RT_printf(...) 			{ printf( __VA_ARGS__ ); }
+#define RT_getc()				( getc(stdin) )
+#define RT_putc(c)				{ putc(c, stdout); }
 
 #endif /* RTFM_RT_H_ */

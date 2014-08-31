@@ -4,12 +4,14 @@
 (* RTFM-core/AST *)
 
 open Common
-     
+(*    
+  
 type time =
   | Usec of int
   | Msec of int
   | Sec  of int
   | Infinite
+*)
 
 type stmt =
   | Claim     of string * stmt list                             (* res_id, stmts                    *)
@@ -33,11 +35,12 @@ type top =
 type prog =
   | Prog      of string * string list * top list
 
+(*  
 let usec_of_time = function
-  | Usec i -> i
-  | Msec i -> 1000 * i
-  | Sec i  -> 1000 * 1000 * i  
-  | Infinite -> 60*60*24*7 * 1000 * 1000 (* a week should be enough *)
+  | Usec i   -> i
+  | Msec i   -> 1000 * i
+  | Sec i    -> 1000 * 1000 * i  
+  | Infinite -> max_int (* compatible over 32/64 bit systems *)
     
 (* pretty printing *)
 
@@ -46,7 +49,7 @@ let string_of_time = function
     | Msec i   -> string_of_int i ^ " ms"
     | Sec  i   -> string_of_int i ^ " s"
     | Infinite -> "Infinite"
-
+*)
   
 let string_of_tops tl = 
   let rec stmts t sl = myconcat nl (mymap (stmt (t ^ tab)) sl)          

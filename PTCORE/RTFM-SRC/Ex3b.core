@@ -30,7 +30,6 @@ Task t2() {
     }
 }
 
-
 Reset {
 	#>x = 0; y = 0;<#
     #>printf("User reset\n");<#

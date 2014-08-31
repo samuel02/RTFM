@@ -18,7 +18,7 @@
 // from the sender. Priorities are automatically derived (shorter deadline 
 // gives higher priority.)
 // 
-// Both Reset and Idle has a baseline of 0s and an Infinite deadline.
+// Both Reset and Idle have a baselines of 0s and an Infinite deadlines.
 // 
 // Use ABORT_DL to let the run-time abort on a deadline over-run
 // Use WARN_DL to let the run-time wanr on a deadline over-run

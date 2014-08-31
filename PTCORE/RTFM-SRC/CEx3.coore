@@ -2,14 +2,19 @@
 // Per Lindgren (C) 2014
 //
 // Multiple objects
-class R<> { 
-    Task task1 () {
-        RT_printf("task1 R claimed\n");
+class R<> {
+    int x := 0;
+    int y := 0;
+    
+    Task t1 () {
+        RT_printf("task1 R claimed, point is (%d,%d)\n", x, y);
     }
     
-    Task task2 () {
+    Task t2 () {
+        x := 1;
         RT_printf("task2 R claimed\n");
         RT_sleep(5);
+        y := 1;
         RT_printf("task2 R released\n");
     }      
 }
@@ -18,7 +23,7 @@ class Root<> {
     R<> r;
     Reset {
         RT_printf("User reset\n");
-        Async r.task2();
-        Async after 1000000 r.task1();
+        async before 9 s r.t2();
+        async after 1 s before 10 s r.t1();
     } 
 }

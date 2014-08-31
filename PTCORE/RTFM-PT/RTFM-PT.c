@@ -1,4 +1,4 @@
- /*
+/*
  * RTFM-PT.c
  * Pthread run-time system implementation for RTFM-core
  * (C) 2014 Per Lindgren, Marcus Lindner (WINAPI)
@@ -17,7 +17,9 @@
 
 #define min(a, b) (a < b ? a : b)
 #define max(a, b) (a > b ? a : b)
-typedef enum { false, true } bool;
+typedef enum {
+	false, true
+} bool;
 
 #ifdef TRACE
 #ifdef TRACE_TIME
@@ -63,7 +65,6 @@ typedef enum { false, true } bool;
 #include <semaphore.h>
 #include <fcntl.h>			// for O_CREATE etc.
 
-
 typedef struct timeval timeval_t;
 
 void handle_error_en(int en, char *msg) {
@@ -86,9 +87,10 @@ RTFM_time global_base_line = 0;
 
 /* data structures for the threads and semaphores */
 pthread_mutex_t res_mutex[RES_NR];
-sem_t* 			pend_sem[ENTRY_NR];
+sem_t* pend_sem[ENTRY_NR];
+sem_t* reset_sem[ENTRY_NR];
 pthread_mutex_t pend_count_mutex[ENTRY_NR];
-int				pend_count[ENTRY_NR] = { 0 };
+int pend_count[ENTRY_NR] = { 0 };
 
 /* mutex management primitves*/
 void m_lock(pthread_mutex_t *m) {
@@ -117,11 +119,9 @@ void s_wait(sem_t *s) {
 
 /* RTFM_API */
 void RTFM_lock(int f, int r) {
-	DP("Claim    :%s->%s", entry_names[f], res_names[r]);
-	DPT("RTFM_lock   :pthread_mutex_lock(&res_mutex[%d])", r);
+	DP("Claim    :%s->%s", entry_names[f], res_names[r]);DPT("RTFM_lock   :pthread_mutex_lock(&res_mutex[%d])", r);
 	m_lock(&res_mutex[r]);
-	DPT("RTFM_lock   :pthread_mutex_locked(&res_mutex[%d])", r);
-	DP("Claimed  :%s->%s", entry_names[f], res_names[r]);
+	DPT("RTFM_lock   :pthread_mutex_locked(&res_mutex[%d])", r);DP("Claimed  :%s->%s", entry_names[f], res_names[r]);
 
 }
 
@@ -144,16 +144,12 @@ void RTFM_pend(RTFM_time a, RTFM_time b, int f, int t) {
 			pend_count[t]++; // may not be atomic, hence needs a lock
 
 			// for good measure, we work on the timing information under the lock
-			DPT("after_bl[%2d]  = %f", f, RT_time_to_float(base_line[f]));
-			DPT("after[%2d|     = %f", f, RT_time_to_float(a));
+			DPT("after_bl[%2d]  = %f", f, RT_time_to_float(base_line[f])); DPT("after[%2d|     = %f", f, RT_time_to_float(a));
 
 			new_base_line[t] = RT_time_add(base_line[f], a); // set the baseline for the receiver
-			//after_base_line[t] = base_line[f]; // set the baseline for the receiver
-		    //after[t] = a; 					   // set the relative time offset (after)
 			new_dead_line[t] = new_base_line[t] + b;
 		}
-	}
-	DPT("RTFM_pend   :pthread_mutex_unlock(&pend_count_mutex[%d])", t);
+	} DPT("RTFM_pend   :pthread_mutex_unlock(&pend_count_mutex[%d])", t);
 	m_unlock(&pend_count_mutex[t]);
 
 	if (lcount == 0) { // just a single outstanding semaphore/mimic the single buffer pend of interrupt hardware
@@ -164,13 +160,12 @@ void RTFM_pend(RTFM_time a, RTFM_time b, int f, int t) {
 	}
 }
 
-
 RTFM_time RTFM_get_bl(int id) {
 	return base_line[id];
 }
 
 RTFM_time time_get();
-void  RTFM_set_bl(int id) {
+void RTFM_set_bl(int id) {
 	RTFM_time new_bl = time_get();
 	DPT("RTFM_set_bl   :base_line[%d] = %f)", id, RT_time_to_float(new_bl));
 	base_line[id] = new_bl;
@@ -185,7 +180,7 @@ RTFM_time time_get() {
 	timeval_t ts;
 	if ((e = gettimeofday(&ts, NULL)))
 		handle_error_en(e, "gettimeofday");
-    return (ts.tv_sec*RT_sec + ts.tv_usec) - global_base_line;
+	return (ts.tv_sec * RT_sec + ts.tv_usec) - global_base_line;
 }
 
 void set_global_baseline() {
@@ -193,9 +188,8 @@ void set_global_baseline() {
 	timeval_t ts;
 	if ((e = gettimeofday(&ts, NULL)))
 		handle_error_en(e, "gettimeofday");
-	global_base_line = (ts.tv_sec*RT_sec + ts.tv_usec);
+	global_base_line = (ts.tv_sec * RT_sec + ts.tv_usec);
 }
-
 
 // 100 this is an arbitrarily chosen constant 0.1 ms, Linus/OSX is sloppy conf. bare metal
 // the effect is that we may release the task 0.1 ms too soon, on the other hand we reduce overhead
@@ -226,11 +220,11 @@ int over_run(int id) {
 
 void *thread_handler(void *id_ptr) {
 	int id = *((int *) id_ptr);
-	DPT("thread      :Working thread %d started : Task %s", id, entry_names[id]);
-
+	DPT("thread      :Working thread %d started, in reset mode : Task %s", id, entry_names[id]);
+	s_wait(reset_sem[id]);
+	DPT("thread      :Working thread %d started, in run mode : Task %s", id, entry_names[id]);
 	while (1) {
-		DP("Task wait:%s", entry_names[id]);
-		DPT("thread      :sem_wait(pend_sem[%d])", id);
+		DP("Task wait:%s", entry_names[id]);DPT("thread      :sem_wait(pend_sem[%d])", id);
 		s_wait(pend_sem[id]);
 		// consume the semaphore (decrement it's value)
 		DPT("thread      :pthread_mutex_lock(&pend_count_mutex[%d])", id);
@@ -242,9 +236,7 @@ void *thread_handler(void *id_ptr) {
 
 			// for good measure we work on the timing information under the lock
 			DPT("old_bl[%2d]    = %f", id, RT_time_to_float(base_line[id]));
-			//DPT("after_bl[%2d]  = %f", id, RT_time_to_float(after_base_line[id]));
-			//DPT("after[%2d|     = %f", id, RT_time_to_float(after[id]));
-			//base_line[id] = RT_time_add(after_base_line[id], after[id]);
+
 			base_line[id] = new_base_line[id];
 			dead_line[id] = new_dead_line[id];
 
@@ -253,17 +245,14 @@ void *thread_handler(void *id_ptr) {
 			DPT("cur_time      = %f", RT_time_to_float(cur_time));
 
 			offset = base_line[id] - cur_time;
-		}
-		DPT("thread      :pthread_mutex_unlock(&pend_count_mutex[%d])", id);
+		}DPT("thread      :pthread_mutex_unlock(&pend_count_mutex[%d])", id);
 		m_unlock(&pend_count_mutex[id]);
 
-	    DPT("time_usleep(offset)   = %f", RT_time_to_float(offset));
-	    time_usleep(offset);
+		DPT("time_usleep(offset)   = %f", RT_time_to_float(offset));
+		time_usleep(offset);
 
-		DPT("thread      :entry_func[%d](%d)", id, id);
-		DP("Task run :%s", entry_names[id]);
+		DPT("thread      :entry_func[%d](%d)", id, id);DP("Task run :%s", entry_names[id]);
 		entry_func[id](id); // dispatch the task
-
 
 #ifdef ABORT_DL
 		if (over_run(id)) {
@@ -282,16 +271,18 @@ void dump_priorities() {
 	int i;
 	fprintf(stderr, "\nResource ceilings:\n");
 	for (i = 0; i < RES_NR; i++)
-		fprintf(stderr, "Res %d \t ceiling %d : %s\n", i,  ceilings[i], res_names[i]);
+		fprintf(stderr, "Res %d \t ceiling %d : %s\n", i, ceilings[i],
+				res_names[i]);
 	fprintf(stderr, "\nTask priorities:\n");
 	for (i = 0; i < ENTRY_NR; i++)
-		fprintf(stderr, "Task %d \tpriority %d : %s\n",i, entry_prio[i], entry_names[i]);
+		fprintf(stderr, "Task %d \tpriority %d : %s\n", i, entry_prio[i],
+				entry_names[i]);
 }
 
 int main() {
-	fprintf(stderr, "RTFM-RT Per Lindgren (C) 2014 \n");
+	fprintf(stderr, "PTCORE, RTFM-RT Per Lindgren (C) 2014 \n");
 	fprintf(stderr, "%s", CORE_FILE_INFO);
-	fprintf(stderr, "RTFM-RT run-time options :");
+	fprintf(stderr, "PTCORE run-time options :");
 #ifdef TRACE
 	fprintf(stderr, " -TRACE");
 #endif
@@ -313,14 +304,14 @@ int main() {
 	// Commodity random function provide for the exmaples
 	srand(time(NULL));
 
-	int policy 	= SCHED_FIFO; // SCHED_RR; //SCHED_OTHER;
-	int p_max 	= sched_get_priority_max(policy);
-	int p_min 	= sched_get_priority_min(policy);
+	int policy = SCHED_FIFO; // SCHED_RR; //SCHED_OTHER;
+	int p_max = sched_get_priority_max(policy);
+	int p_min = sched_get_priority_min(policy);
 	int s, i;
 
 	DF(
-		fprintf(stderr, "POSIX priorities: np_min %d, p_max %d\n\n", p_min, p_max );
-		dump_priorities();
+			fprintf(stderr, "POSIX priorities: np_min %d, p_max %d\n\n", p_min, p_max );
+			dump_priorities();
 	);
 
 	/* re-mapping of logic priorities to POSIX priorities */
@@ -330,8 +321,8 @@ int main() {
 		entry_prio[i] = min(p_max, entry_prio[i] + p_min);
 
 	DF(
-		fprintf(stderr, "\nAfter re-mapping priorities to POSIX priorities.\n");
-		dump_priorities();
+			fprintf(stderr, "\nAfter re-mapping priorities to POSIX priorities.\n");
+			dump_priorities();
 	);
 
 	/* Resource management */
@@ -409,9 +400,10 @@ int main() {
 	 */
 	DPT("main        :pthread_mutexattr_init(&mutexattr)");
 	if ((s = pthread_mutexattr_init(&mutexattr)))
-			handle_error_en(s, "pthread_mutexattr_init");
+		handle_error_en(s, "pthread_mutexattr_init");
 
 	struct sched_param param;
+	char sem_name[32]; // allocated string for semaphore name
 
 	for (i = 2; i < ENTRY_NR; i++) { // 0 = user_reset, 1 = user_idle
 		/* semaphore handling */
@@ -419,14 +411,21 @@ int main() {
 		 * The named semaphore named name is removed.
 		 */
 		if ((s = sem_unlink(entry_names[i]))) {
-			DPT("main        :Warning sem_unlinked failed, the named semaphore did not exist\n")
+			DPT("main        :Warning sem_unlinked failed, the named semaphore did not exist\n");
 		}
 		/*
 		 * The named semaphore named name is initialized and opened as specified by
 		 * the argument oflag and a semaphore descriptor is returned to the calling process.
 		 */
-		DPT("main        :sem_open(entry_names[%d], O_CREAT, O_RDWR, 0",i)
-		pend_sem[i] = sem_open(entry_names[i], O_CREAT, O_RDWR, 0);
+		DPT("main        :sem_open(entry_names[%d], O_CREAT, O_RDWR, 0",i);
+
+		sprintf(sem_name, "sem_reset_%d", i);
+		reset_sem[i] = sem_open(sem_name, O_CREAT, O_RDWR, 0);
+		if (reset_sem[i] == SEM_FAILED)
+			handle_error_en(errno, "sem_open");
+
+		sprintf(sem_name, "sem_run_%d", i);
+		pend_sem[i] = sem_open(sem_name, O_CREAT, O_RDWR, 0);
 		if (pend_sem[i] == SEM_FAILED)
 			handle_error_en(errno, "sem_open");
 
@@ -438,7 +437,6 @@ int main() {
 		DPT("main        :pthread_mutexattr_setprioceiling(&mutexattr, entry_prio[%d]=%d)", i, entry_prio[i]);
 		if ((s = pthread_mutexattr_setprioceiling(&mutexattr, entry_prio[i])))
 			handle_error_en(s, "pthread_mutexattr_setprioceiling");
-
 
 		/* pthread initialization */
 		param.sched_priority = entry_prio[i];
@@ -457,7 +455,7 @@ int main() {
 	pthread_t this_thread = pthread_self();
 	param.sched_priority = p_min;
 
-    DPT("main        :pthread_setschedparam(this_thread, SCHED_FIFO, &param)");
+	DPT("main        :pthread_setschedparam(this_thread, SCHED_FIFO, &param)");
 	if ((s = pthread_setschedparam(this_thread, SCHED_FIFO, &param)))
 		handle_error_en(s, "pthread_setschedparam\n");
 
@@ -469,14 +467,19 @@ int main() {
 		base_line[i] = 0; // only for good measure
 	}
 
-
 	printf("-----------------------------------------------------------------------------------------------------------------------\n");
 	DPT("main        :user_reset(user_reset_nr);");
 	user_reset(user_reset_nr);
+
+	// change mode from reset to run
+	for (i = 2; i < ENTRY_NR; i++) {
+		s_post(reset_sem[i]);
+	}
+
 	printf("-----------------------------------------------------------------------------------------------------------------------\n");
 	user_idle(user_idle_nr);
 
 	while (1)
 		RT_sleep(RT_sec * 1); // zzzzzz to save CPU
-	/* code for cleanup omitted, we trust POSIX (Linux/OSX) to do the cleaning */
+				/* code for cleanup omitted, we trust POSIX (Linux/OSX) to do the cleaning */
 }

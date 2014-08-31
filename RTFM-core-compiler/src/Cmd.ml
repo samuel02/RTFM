@@ -8,13 +8,16 @@ open Options
   
 let usage = 
   "The RTFM-core compiler v1.0, Per Lindgren (c) 2014" ^ nl ^ nl
-    ^ "Usage core [-gcc|-ccomp|-clang] [-rt|-km3] [-v] [-D] [-gv_task file.gv] [-gv_res file.gv] [-d_ast] [-o outfile.c] [-i] infile.core" ^ nl
+    ^ "Usage core [--async_err] [-gcc|-ccomp|-clang] [-rt|-km3] [-v] [-D] [-gv_task file.gv] [-gv_res file.gv] [-d_ast] [-o outfile.c] [-i] infile.core" ^ nl
     ^ "Recognized source file:" ^ nl
-    ^ ".core            RTFM-core source infile (root)" ^ nl
+    ^ "infile.core      RTFM-core source infile (root)" ^ nl
     ^ nl
     ^ "Output C file:" ^ nl
-    ^ "-o outfile.c     Compiler output (defaults to input.c)" ^ nl
-    ^ nl 
+    ^ "-o outfile.c     Compiler output (defaults to infile.c)" ^ nl
+    ^ nl
+    ^ "Compilation options:" ^ nl
+    ^ "-async_err       Enable : Treat inconsistent timing requirements as errors (default warning)" ^nl
+    ^ nl
     ^ "Backend options:" ^ nl
     ^ "-gcc             Generate code for GCC backend (default)" ^ nl
     ^ "-ccomp           Generate code for CCOMP backend" ^ nl
@@ -60,8 +63,8 @@ let speclist =
   [
     ("-i", Arg.Set_string f_infile,   "\t\t: infile");
     ("-o", Arg.Set_string f_outfile,  "\t\t: outfile (default infile.c)");
-    ("-async_err", Arg.Set o_async_err, "\t\t: async_err (default false)");
-    ("-gv_task", Arg.Set_string f_dotfile,  "\t\t: graphviz file (default none)");
+    ("-async_err", Arg.Set o_async_err, "\t: async_err (default disable)");
+    ("-gv_task", Arg.Set_string f_dotfile,  "\t: graphviz file (default none)");
     ("-gv_res", Arg.Set_string f_ldotfile,"\t: graphviz file (default none)");
     
     ("-gcc", Arg.Set o_gcc,       "\t\t: for gcc (default)");
@@ -71,8 +74,8 @@ let speclist =
     ("-rt", Arg.Set o_ptl,        "\t\t: for Pthread Linux (default)");
     ("-km3", Arg.Set o_km3,       "\t\t: for ARM Cortex M3");
     
-    ("-v", Arg.Set o_verbose,       "\t\t: verbose mode");
-    ("-D", Arg.Set o_debug,       "\t\t: debug mode");
+    ("-v", Arg.Set o_verbose,       "\t\t: verbose mode (default disable)");
+    ("-D", Arg.Set o_debug,       "\t\t: debug mode (default disable)");
   
     ("-d_ast", Arg.Set d_ast,         "\t: dump AST");   
   ]

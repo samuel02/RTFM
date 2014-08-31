@@ -16,6 +16,7 @@ class R<int ri> {
 
 class T<int i, void (int) fun> {
     Task tt () {
+        ri := 8;
         RT_printf("task%d\n", i);
         fun(i);
     }

@@ -1,8 +1,7 @@
 // CEx5.coore
 // Per Lindgren (C) 2014
 //
-// Mutually dependent instances can be created without dynamic installation.
-// Potential deadlock may occur in cases of mutual synchrnoous calls.
+// Potential deadlock
 class R<int my_id, void (int) other_fun> { 
     void fun(int from_id) {
         RT_printf("in fun task %d, from task %d\n", my_id, from_id);
@@ -10,10 +9,11 @@ class R<int my_id, void (int) other_fun> {
     
     Task t () {
         RT_printf("task %d\n", my_id);
-        RT_sleep(1);
+        //RT_sleep(1); // depending on luck, it might not deadlock
         other_fun(my_id);
     }    
 }
+
 
 class Root<> { 
     R<1, r2.fun> r1;

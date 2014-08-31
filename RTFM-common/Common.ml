@@ -83,4 +83,22 @@ let string_of_backend = function
   | GCC		-> "GCC"
   | CCOMP	-> "CCOMP"
   | CLANG	-> "CLANG"
-    
+ 
+type time =
+  | Usec of int
+  | Msec of int
+  | Sec  of int
+  | Infinite
+ 
+let string_of_time = function 
+  | Usec i   -> string_of_int i ^ " us"
+  | Msec i   -> string_of_int i ^ " ms"
+  | Sec  i   -> string_of_int i ^ " s"
+  | Infinite -> "Infinite"
+ 
+let usec_of_time = function
+  | Usec i   -> i
+  | Msec i   -> 1000 * i
+  | Sec i    -> 1000 * 1000 * i  
+  | Infinite -> max_int (* compatible over 32/64 bit systems *)
+     
