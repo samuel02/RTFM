@@ -1,4 +1,10 @@
 #################
+## WTcore
+#################
+autogen.c
+WINCORE/Default
+
+#################
 ## PT core
 #################
 autogen.c
