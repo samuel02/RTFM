@@ -1,8 +1,9 @@
 RTFM-Core v1.0 Per Lindgren (C) 2014
 -------------------------------------------------------------------------------
 History
-2014-09-01                      v1.0 release candidate
-2014-07-18                      v1.0 development branch
+2014-09-02          Updated Linux install instructions (for Linux Mint etc)
+2014-09-01          v1.0 release candidate
+2014-07-18          v1.0 development branch
 
 -------------------------------------------------------------------------------
 DISTRIBUTION AND DIRECTORY STRUCTURE
@@ -56,12 +57,14 @@ PREPARATION LINUX
 
 Ubuntu 12.04/14.04              Should work on any modern LINUX
 
-sudo apt-get install ocaml      OCAML compiler
-sudo apt-get install opam       We use OPAM for the OCAML related installations
-sudo apt-get install m4         Sometimes needed to compile ocamlfind
-opam init                       The OPAM system needs to be initially configured
-opam config env                 run after OPAM init
-opam install menhir             Our Parser generator (installs ocamlfind also)
+sudo add-apt-repository ppa:avsm/ppa    Add OPAM repository
+sudo apt-get update                     Update the repository tree
+sudo apt-get install ocaml              OCAML compiler
+sudo apt-get install opam               We use OPAM for the OCAML related installations
+sudo apt-get install m4                 Sometimes needed to compile ocamlfind
+opam init                               The OPAM system needs to be initially configured
+opam config env                         Run after OPAM init to configure the environment
+opam install menhir                     Our Parser generator (installs ocamlfind also)
 
 This should be enough to build and run the RTFM-core compiler under Linux
 
