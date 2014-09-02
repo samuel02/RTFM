@@ -61,18 +61,18 @@ void RTFM_unlock(int f, int r) {
 	)) error("ReleaseMutex");
 }
 
-void RTFM_pend(RTFM_time a, int f, int t) {
+void RTFM_pend(RTFM_time a, RTFM_time b, int f, int t) {
 	after_base_line[t] = base_line[f]; // set the baseline for the receiver
     after[t] = a; 					   // set the relative time offset
 
 	DP("Pend    :%s->%s", entry_names[f], entry_names[t]);
-	BOOL b = ReleaseSemaphore(
+	BOOL check = ReleaseSemaphore(
 		pend_sem[t],		// handle to semaphore
 		1,					// increase count by one
 		NULL				// not interested in previous count
 		);
 
-	if (!b)
+	if (!check)
 		DPT("ReleaseSemaphore: exceeded max number");
 }
 
@@ -196,6 +196,8 @@ int main() {
 	printf("-----------------------------------------------------------------------------------------------------------------------\n");
 
 	user_reset(user_reset_nr);
+
+	user_idle(user_idle_nr);
 	while (1)
 		;
 }
