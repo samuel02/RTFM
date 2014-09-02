@@ -57,6 +57,9 @@ PREPARATION LINUX
 
 Ubuntu 12.04/14.04              Should work on any modern LINUX
 
+# when add-apt-repository is missing, you should install the python-software-properties package
+# sudo apt-get install python-software-properties
+
 sudo add-apt-repository ppa:avsm/ppa    Add OPAM repository
 sudo apt-get update                     Update the repository tree
 sudo apt-get install ocaml              OCAML compiler
