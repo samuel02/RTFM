@@ -108,6 +108,7 @@ let ceiling_spec spec dlp =
 
   
 (* associative list (id, [names]) *)
+(*
 let pl dlp topl rl =
   let rec add (p, id) pl = match pl with
     | []                            -> [(p, [id])]          (* add new *)
@@ -117,7 +118,7 @@ let pl dlp topl rl =
   and top pl t = match t with
     | []                           -> pl
     | Isr (p, id,  _) :: l         -> let pl' = add (p, id ) pl in top pl' l
-    | Task (dl, id, pa,  _, _) :: l -> let pl' = add (pr_of_dl dlp dl, id ) pl in top pl' l
+    | Task (dl, id, pa,  _, _) :: l-> let pl' = add (pr_of_dl dlp dl, id ) pl in top pl' l
     | _ :: l                       -> top pl l
   
   and res pl rl = match rl with
@@ -127,6 +128,7 @@ let pl dlp topl rl =
   in
   let isrs = top [] topl in
   List.sort (fun (a, _) (b, _) -> a - b) (res isrs rl)
+*)
 
 (* associative list (id, [names]) *)
 let pl_spec dlp spec rl =
