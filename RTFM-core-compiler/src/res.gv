@@ -1,8 +1,0 @@
-digraph RTFM {
-compute -> R_SData
-compute -> R_SData
-EINT0_IRQHandler -> R_SData
-TIMER0_IRQHandler -> R_SData
-
-{ rank=source; compute; EINT0_IRQHandler; TIMER0_IRQHandler; }
-}

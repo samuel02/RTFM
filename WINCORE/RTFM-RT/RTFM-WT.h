@@ -9,10 +9,11 @@
 
 typedef void(*ENTRY_FUNC)(int);
 void user_reset(int);
+void user_idle(int);
 
 void RTFM_lock(int, int);
 void RTFM_unlock(int, int);
-void RTFM_pend(ULONGLONG, int,int);
+void RTFM_pend(ULONGLONG, ULONGLONG, int,int);
 
 #define RT_sec                  1000
 #define RT_ms					1
