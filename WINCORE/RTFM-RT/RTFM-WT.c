@@ -80,7 +80,7 @@ void RTFM_pend(RTFM_time a, RTFM_time b, int f, int t) {
 }
 
 RTFM_time RTFM_get_bl(int id) {
-	return base_line[id];
+	return base_line[id] * 1000;
 }
 
 RTFM_time time_get() {
