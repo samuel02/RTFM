@@ -1,4 +1,4 @@
-// API to the run-time system functions besides schdeuling 
+// API to the run-time system functions besides scheduling
 #ifndef RTFM_RT_H_
 #define RTFM_RT_H_
 
@@ -22,7 +22,7 @@ RTFM_time time_get();
 
 // Run-time API, built in functions
 #define RT_set_bl()     	    { RTFM_set_bl(RTFM_id); }
-#define RT_get_bl()         	RTFM_get_bl(RTFM_id)
+#define RT_get_bl()         	( RTFM_get_bl(RTFM_id) )
 
 #define RT_rand(i)      		( rand() % i )
 #define RT_sleep(s) 			( sleep( s ) )

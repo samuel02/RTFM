@@ -30,7 +30,7 @@ rule lex = parse
   | "async"                { ASYNC }
   | "after"                { AFTER }
   | "before"               { BEFORE }
-  | "prio"                 { PRIO }
+(*| "prio"                 { PRIO } *)
   | "Reset"                { RESET } 
   | "Idle"                 { IDLE } 
 

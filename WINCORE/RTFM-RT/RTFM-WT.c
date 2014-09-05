@@ -10,6 +10,7 @@
 
 #define DEBUG
 #define DEBUG_RT
+#define WARN_DL
 
 #ifdef DEBUG
 #define DP(fmt, ...) {fprintf(stderr, "\t\t"fmt"\n", ##__VA_ARGS__); fflush(stderr);}
@@ -31,8 +32,10 @@
 
 /* data structures for the timer */
 RTFM_time base_line[ENTRY_NR];
-RTFM_time after[ENTRY_NR];
-RTFM_time after_base_line[ENTRY_NR];
+RTFM_time dead_line[ENTRY_NR];
+RTFM_time new_base_line[ENTRY_NR];
+RTFM_time new_dead_line[ENTRY_NR];
+
 RTFM_time global_base_line = 0;
 
 /* data structures for the threads and semaphores */
@@ -61,23 +64,23 @@ void RTFM_unlock(int f, int r) {
 	)) error("ReleaseMutex");
 }
 
-void RTFM_pend(RTFM_time a, int f, int t) {
-	after_base_line[t] = base_line[f]; // set the baseline for the receiver
-    after[t] = a; 					   // set the relative time offset
+void RTFM_pend(RTFM_time a, RTFM_time b, int f, int t) {
+	new_base_line[t] = base_line[f] + (a / 1000); // set the baseline for the receiver
+	new_dead_line[t] = new_base_line[t] + (b / 1000);
 
 	DP("Pend    :%s->%s", entry_names[f], entry_names[t]);
-	BOOL b = ReleaseSemaphore(
+	BOOL check = ReleaseSemaphore(
 		pend_sem[t],		// handle to semaphore
 		1,					// increase count by one
 		NULL				// not interested in previous count
 		);
 
-	if (!b)
+	if (!check)
 		DPT("ReleaseSemaphore: exceeded max number");
 }
 
 RTFM_time RTFM_get_bl(int id) {
-	return base_line[id];
+	return base_line[id] * 1000;
 }
 
 RTFM_time time_get() {
@@ -94,6 +97,18 @@ void set_global_baseline() {
 	global_base_line = GetTickCount();
 }
 
+int over_run(int id) {
+	RTFM_time now = time_get();
+	if (now > dead_line[id]) {
+		fprintf(stderr,
+				"Deadline expired %s, task/message base_line = %f, dead_line = %f, cur_time = %f\n",
+				entry_names[id], RT_time_to_float(base_line[id]),
+				RT_time_to_float(dead_line[id]), RT_time_to_float(now));
+		return TRUE;
+	}
+	return FALSE;
+}
+
 DWORD WINAPI MyThreadFunction(LPVOID lpParam) {
 	int id = (int)lpParam;
 	DPT("Working thread %d started : Task %s", id, entry_names[id]);
@@ -104,13 +119,28 @@ DWORD WINAPI MyThreadFunction(LPVOID lpParam) {
 			INFINITE		// block forever
 			)) error("WaitForSingleObject: Semaphore");
 
-		base_line[id] = after_base_line[id] + after[id];
+
+		base_line[id] = new_base_line[id];
+		dead_line[id] = new_dead_line[id];
+
 		RTFM_time cur_time = time_get();
-		RTFM_time offset = base_line[id]- cur_time;
-		Sleep(offset);
+		RTFM_time offset = base_line[id] - cur_time;
+
+		if (cur_time < base_line[id])
+			Sleep(offset);
 
 		DP("Invoke  :%s", entry_names[id]);
 		entry_func[id](id);	// dispatch the task
+
+#ifdef ABORT_DL
+		if (over_run(id)) {
+			fprintf(stderr, "Aborting on failing to meet deadline!\n");
+			exit(EXIT_FAILURE);
+		}
+
+#elif defined(WARN_DL)
+		over_run(id);
+#endif
 	}
 	return 0L;
 }
@@ -153,7 +183,7 @@ int main() {
 	}
 
 	HANDLE hThreadArray[ENTRY_NR];
-	for (i = 1; i < ENTRY_NR; i++) {
+	for (i = 2; i < ENTRY_NR; i++) {
 		if (!(pend_sem[i] = CreateSemaphore(
 			NULL,					// default security attributes
 			0,						// initial count
@@ -196,6 +226,8 @@ int main() {
 	printf("-----------------------------------------------------------------------------------------------------------------------\n");
 
 	user_reset(user_reset_nr);
+
+	user_idle(user_idle_nr);
 	while (1)
 		;
 }

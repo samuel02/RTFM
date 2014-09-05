@@ -1,0 +1,916 @@
+Section A) RTFM-core
+--------------------
+In the following we will describe the syntax and semantics of RTFM-core 
+language by a set of examples. To keep it simple introduce of subset of 
+the language first with the following grammar:
+
+A) Syntax (subset in EBNF like form)
+
+core:
+  | top*
+top:
+  | "Task" ID ( C-params ) { stmt* }
+  | "Reset" ( stmt* )   
+              
+stmt:
+  | #> C-code <#                                  
+  | "async" after? before? ID ( C-params ) ;             
+  | "sync" ID ( C-params ) ;
+  
+after:
+  | "after" time                              
+
+before:
+  | "before" time          
+
+time:
+  | INTVAL tunit?
+
+tuint:
+  | "us" | "ms" | "s"                                                                                                   
+
+- * matches zero or many occurrences 
+- ? matches zero or one occurrence
+- An ID is a string denoting an identifier.
+- C-params uses the C notation for specifying parameters.
+- #> C-code <# in-lines C-code in the core program
+
+RTFM-core examples
+Let us look at set of simple examples.
+-------------------------------------------------------------------------------
+// Ex1.core
+// Per Lindgren (C) 2014
+//
+// Simple task invocation
+// All tasks are assumed run-to-end
+//
+// run with TRACE to see the interaction with the run-time system
+
+Task t () {
+    #>printf("task t\n");<#     // embedding of C in -core  
+}
+
+Reset {
+    #>printf("User reset\n");<#
+    async t ();
+}
+
+------------------------------------------------------------------------------- 
+This is a complete RTFM-core application, which compiled by the rtfm-core 
+compiler gives a C-code output that can be compiled together with an RTFM 
+run-time system to render an executable for OSX/Linux/Windows or bare metal 
+target (e.g., the LCP1769 Arm Cortex M3).
+
+More on compiler options, in section X, and run-time systems in section Y.
+
+For now let us just look more closely at the syntax (grammar) and meaning 
+(semantics) of the program.
+
+The 
+Task t () {
+    #>printf("task t\n");<#       // embedding of C in -core  
+}
+defines a task t taking no arguments, and contains only a single statement
+of embedded C-code (printf("task\n");).
+
+The language allows for inlining of arbitrary C-code, without any limitations.
+This allows for great flexibility, but requires the programmer to take 
+responsibility of the suitability and correctness or the inlined code.
+More on that later in section Z.
+
+The
+Reset {
+    #>printf("User reset\n");<#
+    async t ();
+}  
+defines the sequence of statements that should be executed when the system
+is reset (or started under a hosting operating system).
+
+In this case, we expect the printf followed by async.
+So far so good, what about the async?
+
+In the -core language tasks are invoked asynchronously, i.e., we decouple
+execution of the recipient (Task t) from the sender (Reset). In this way,
+the statements associated with t and the remaining statements of the sender
+are concurrent and may as such execute in parallel.
+
+There is a bit more to it (more on that later), but for now we can just 
+conclude that the expected output is:
+
+User reset
+task t
+
+Let's now look at Ex1b.core:
+-------------------------------------------------------------------------------
+// Ex1b.core
+// Per Lindgren (C) 2014
+//
+// A Task may be passed arguments (aka message massing)
+
+Task t (int i) {
+    #>printf("task t %d\n", i);<#
+}
+
+Reset {
+    #>printf("User reset\n");<#
+    async t (75*(2+1));
+}
+------------------------------------------------------------------------------- 
+We have now added an argument (int i) to the Task t definition, and 
+correspondingly (75*(2+1)) to the asynchronous invocation.
+
+The expected output now becomes:
+
+User reset
+task t 225
+
+Looking to the grammar (A) we find that the argument 75*(2+1) is a C-params.
+Similar to the inlining of C code (#> ... <#) the programmer is free to inline
+any expressions to be passed, in this case the expression 75*(2+1).
+
+In comparison to other concurrency models, our async->Task communication 
+resembles message passing, without the introduction of explicit message
+queues, mail-boxes, channels or similar. In this way the programmer can focus
+directly on the problem to be solved, not the mechanisms provided by a library
+or programming framework. 
+
+Let's move on to the next example, Ex1c.core:
+------------------------------------------------------------------------------- 
+// Ex1c.core
+// Per Lindgren (C) 2014
+//
+// A Task may called multiple times, the compiler creates unique Task instances
+
+Task t (int id, int arg) {
+    #>printf("task t%d, arg %d\n", id, arg);<#
+}
+
+Reset {
+    #>printf("User reset\n");<#
+    async t (1, 75);
+    async t (2, 75*2);  
+}
+-------------------------------------------------------------------------------  
+The Task t now takes two formal parameters (int i, int arg), and is invoked 
+twice with the actual parameters (1, 75) and (2, 75*2).
+
+Since async decouples execution, the two "messages" 
+    async t (1, 75);
+    async t (2, 75*2);  
+will be concurrent (and may execute in parallel).
+
+The semantics of the -core language does not impose any restriction or give any 
+guarantees to the order of execution of asynchronous "messages".
+
+Hence the expected (valid) outputs of this non-deterministic program are:
+
+task t1, arg 75
+task t2, arg 150
+
+and
+task t2, arg 150
+task t1, arg 75
+
+For now we do neither go into details on how code is generated, nor how the 
+run-time systems are implemented, we keep our focus on programming model.
+
+Let us look at the last example in the first suit E1d.core:
+------------------------------------------------------------------------------- 
+// Ex1d.core
+// Per Lindgren (C) 2014
+//
+// Each message may dictate the deadline for the receiving task
+// the compiler analyse the task model and assign static priories accordingly
+//
+// run with TRACE_OS and see the threads running at different priority
+// run with TRACE_TIME and see the time for each interaction with the run-time
+// or run on bare metal and see the assignment of ISRs and priorities
+
+Task t (int id, int arg) {
+    #>printf("task t%d, arg %d\n", id, arg);<#
+}
+
+Reset {
+    #>printf("User reset\n");<#
+    async after 1 s before 1 s t (1, 75);   
+    async before 2 s t (2, 75*2);      
+}
+-------------------------------------------------------------------------------  
+Each task invocation (task instance) is associated with a baseline and a 
+deadline (absolute points in time) defining a permissible execution window.
+(Relating scheduling theory the baseline is the release time for the task.)
+
+The baseline for the Reset is 0, while the deadline is Infinite.
+
+Each message m in -core defines the permissible execution window (for the 
+receiving task instance), i.e.
+baseline(m) = baseline(sender) + after
+deadline(m) = baseline(sender) + after + before 
+
+
+    async after 1 s before 1 s t (1, 75);   
+
+gives an absolute baseline of 1s, baseline(Reset)=0s + after=1s, 
+and an absolute deadline of 2s, baseline(Reset)=0s + after=1s + before=1s 
+for the execution of the (first) task instance t (1, 75)
+
+while 
+    async before 2 s t (2, 75*2); 
+gives an absolute baseline of 0s, baseline(Reset)=0s + after=0s, and an 
+absolute deadline of 2s, baseline(Reset)=0s + after=0s + before=2s for the 
+execution of the (second) task instance t (2, 75*2)
+
+Notice:
+It is the obligation of the run-time system (and the underlying OS/platform) 
+to execute each message within its permissible execution window. 
+If it fails, the system is considered to be "faulty". For now we make the
+assumption that the system is schedulable by the run time system, later we 
+will discuss the problem of proving schedulability.
+
+Also this program is non-deterministic, while execution windows overlap.
+async after 1 s before 1 s t (1, 75) -> bl 1, ... ,dl 2
+async before 2 s t (2, 75*2)         -> bl 0, ..., dl 2
+ 
+Expected/valid outputs are:
+
+task t2, arg 150
+task t1, arg 75
+
+and
+
+task t1, arg 75
+task t2, arg 150
+
+Checkpoint!
+1) Make a change to the program Ex1d, (by changing a single time constant)
+   that ensures a deterministic behaviour rendering the output.
+   (You may assume the run-time behaviour to meet the specification.)
+
+task t2, arg 150
+task t1, arg 75
+ 
+2) Change the timing constants such that 
+t1 executes between bl 2s, ..., dl 3s
+t2 executes between bl 1s, ..., dl 2s
+
+B) Syntax (in EBNF like form)
+
+core:
+  | top*
+top:
+  | #> C-code <# 
+  | "Isr" before ID { stmt* }
+  | "Task" ID ( C-params ) { stmt* }
+  | "Func" ID ( C-params ) { stmt* }  
+  | "Reset" ( stmt* )
+  | "Idle" ( stmt* )   
+              
+stmt:
+  | #> C-code <#                                  
+  | "claim" ID { stmt* }
+  | "async" after? before? ID ( C-params ) ;             
+  | "pend" ID ;
+  | "sync" ID ( C-params ) ;
+  
+  
+after:
+  | "after" time                              
+
+before:
+  | "before" time          
+
+time:
+  | INTVAL tunit?
+
+tuint:
+  | "us" | "ms" | "s" 
+
+The above grammar gives the current syntax for the -core language.
+
+Let's have a look at Ex2.core:
+-------------------------------------------------------------------------------
+// Ex2.core
+// Per Lindgren (C) 2014
+//
+// This example shows:
+// 1) The chaining of tasks (e.g., idle->t1->t2)
+// 2) The role of Reset and Idle
+//
+// The Reset task is executed to end before any other tasks executed by the 
+// run-time system. This allows setting up a system in a "Reset" mode.
+//
+// When Reset is run-to-end the Idle task is triggered.
+// Idle is the only task that may never run-to-completion!
+
+// In this example we use the Idle to emulate an environment that triggers t1 
+// passing a character value.
+// 
+// Deadlines may be given explicitly (as in this case), else will be inherited 
+// from the sender. Priorities are automatically derived (shorter deadline 
+// gives higher priority.)
+// 
+// Both Reset and Idle have a baselines of 0s and an Infinite deadlines.
+// 
+// Use ABORT_DL to let the run-time abort on a deadline over-run
+// Use WARN_DL to let the run-time warn on a deadline over-run
+
+Task t1(char c) {
+    #>printf("t1: you entered :");
+    putc(c, stdout);
+    printf("\n");
+    <#
+    async after 5s before 100 ms t2(++c);
+}
+
+Task t2(char c) {
+    #>printf("t2: the next character is %c\n", c);<#    
+}
+
+Reset {
+    #>printf("User reset\n");<#
+}
+
+Idle {
+    #>
+    char c;
+    printf("enter a character (before 5s)\n");
+    c = getc(stdin);
+    <# 
+    async before 5 s t1(c);   
+}
+-------------------------------------------------------------------------------
+
+Tasks encountered so far (including the Reset task) are all expected to 
+run-to-end. However there is an exception to the rule, namely the Idle task.
+
+In the example above, it is used to trigger task t1 (which in turn triggers
+task t2). This can be seen as an "emulation" of an environment. 
+Without any specific knowledge of the environment, we cannot be sure that 
+that the waiting time will be bound (in this case someone enters a character).
+
+Another use of the Idle task is to implement a scheduler for background jobs 
+directly in the -core language without altering the run-time system.
+
+For a single-core system running on bare metal, the Idle task may be used 
+for implementing power-safe functionality. More on the bare-metal run-time
+system specifics later in section X.
+
+The run-to-end semantics of other tasks in the system allows us to wait for 
+external stimuli iff we can guarantee that the waiting is bound. 
+(Semantically it is seen as that the task is busy-waiting for the stimuli.)
+
+The reason behind the run-to-end semantics may not be evident yet but we
+will return to this shortly.
+
+Let us now have a look at our next example Ex2b.core:
+-------------------------------------------------------------------------------
+// Ex2b.core
+// Per Lindgren (C) 2014
+//
+// In general a periodic behaviour is better expressed as a cyclic async chain.
+// In this case task t1 sends a message to both task t2 and (itself) task t1.
+// We use shorter names t1, t2 so C code output becomes easier to inspect.
+//
+// The period will sum of afters that closes the cycle. To ensure consistency
+// the cycle should be triggered with before <= period
+
+Task t1(int i) {
+    #>printf("task1 %d\n", i);<#
+    async t2(i*2);
+    async after 2 s t1(i+1);
+}
+
+Task t2(int j) {
+    #>printf("task2 %d\n", j);<#    
+}
+
+Reset {
+    #>printf("User reset\n");<#
+    async before 2s t1(0); 
+}
+
+-------------------------------------------------------------------------------
+As seen above, a cyclic task chain expresses a periodic behaviour. 
+
+In this example
+    async after 1 s t1(i+1);
+results in the re-invocation of t1 after 1s.
+
+Cycles can involve multiple tasks, as seen in out next example Ex2.c:
+-------------------------------------------------------------------------------
+// Ex2c.core
+// Per Lindgren (C) 2014
+//
+// Also chained cycles are allowed
+
+Task t1(int i) {
+    #>printf("task1 %d\n", i);<#
+    async t2(i*2);          
+}
+
+Task t2(int j) {
+    #>printf("task2 %d\n", j);<#
+    async after 2 s t1(j+1);
+}
+
+Reset {
+    #>printf("User reset\n");<#
+    async before 2 s t1(0); 
+}
+
+-------------------------------------------------------------------------------
+The period of the tasks belonging to a cyclic chain is given by the sum of 
+the after definitions. In this case
+
+t1  async t2(i*2);          -> after 0 
+t2  async after 2 s t1(j+1);-> after 2s +
+-----------------------------------------
+period                               2s
+
+The compiler is able to detect and reject (potentially infinite task sets).
+This is illustrated by the example Ex2d.core:
+-------------------------------------------------------------------------------
+// Ex2d.core
+// Per Lindgren (C) 2014
+//
+// Multiple cycles are rejected (may cause infinite task sets)
+
+Task t1(int i) {
+    #>printf("task1 %d\n", i);<#
+    async after 1 s t1(i+1);
+    async t2(i*2);
+    async after 1 s t1(i+1);
+}
+
+Task t2(int j) {
+    #>printf("task2 %d\n", j);<#
+}
+
+Reset {
+    #>printf("User reset\n");<#
+    async before 1 s t1(0); 
+}
+
+-------------------------------------------------------------------------------
+Since the -core language leaves out the semantics of the embedded C-code,
+analysis of task sets is under the assumption that each statement of a task
+is executed no more than 1 time. More on the restriction on valid -core 
+programs in section X.
+
+Tasks with overlapping timing windows run concurrently to each other, i.e.
+execution order is non-deterministic and potentially even in parallel.
+The Ex2e.core gives such an example:
+-------------------------------------------------------------------------------
+// Ex2e.core
+// Per Lindgren (C) 2014
+//
+// Asynchronous messages may execute in parallel 
+// (depending on run-time system and underlying platform)
+
+Task t1(int i) {
+    #>printf("task1 %d\n", i);<#
+    async t2(i*2);
+    async t3(i*4);
+    #>printf("task1 end %d\n", i);<#
+}
+
+Task t2(int j) {
+    #>printf("task2 %d\n", j);
+    int i;
+    for (i = 0; i <5; i++) {
+        RT_usleep(RT_sec*1);
+        printf("inside task2 %d\n", i);
+    }
+    printf("task2 end %d\n", j);
+    <#
+}
+
+Task t3(int j) {
+    #>
+    printf("task3 %d\n", j);
+    RT_usleep(RT_sec*1);
+    int i;
+    for (i = 0; i <5; i++) {
+        RT_usleep(RT_sec*1);
+        printf("inside task3 %d\n", i);
+    }
+    printf("task3 end %d\n", j);
+    <#
+}
+
+Reset {
+    #>printf("User reset\n");<#
+    async t1(0); 
+}
+-------------------------------------------------------------------------------
+The run-time system(s) provides a platform independent wait construct
+
+RT_usleep(x) // sleep x microseconds
+ 
+and the constants
+
+RT_sec // 1000*1000
+RT_ms  // 1000
+
+(The precision of RT_usleep depends on the underlying run-time system and 
+platform.)
+
+Notice, that tasks t1 and t2 waits/blocks for external stimuli (in this case
+the expiring of time), tasks are still considered to be run-to-end (since
+we have a bound waiting time) and the program is valid.
+
+Checkpoint!
+
+1) Would you consider the program:
+-------------------------------------------------------------------------------
+Task t1(int i) {
+    #>printf("task1 %d\n", i);
+    char c = getc();
+    #>printf("you typed %c\n", c);
+    <#
+}
+
+Reset {
+    #>printf("User reset\n");<#
+    async t1(0); 
+}
+-------------------------------------------------------------------------------
+to be a valid -core program?
+
+If not, why?
+
+2) Complete the program below to emit the sequence by code only in Idle
+sec 1 
+sec 2
+sec 3
+-------------------------------------------------------------------------------
+Idle {
+    #>
+    RT_usleep(RT_sec * 1);
+    printf("sec 1\n");
+    ... your code here
+    <#
+}
+-------------------------------------------------------------------------------
+
+3) Complete the program below to emit the same sequence by using only async 
+statements in Reset.
+-------------------------------------------------------------------------------
+Task t1(int i) {
+    #>printf("sec %d\n", i);
+}
+
+Reset {
+    async after 1 s t1(1); 
+    ... your code here
+}
+-------------------------------------------------------------------------------
+
+4) Complete the program below to emit the same sequence by "aborting" the
+cyclic chain.
+
+-------------------------------------------------------------------------------
+Task t1(int i) {
+    #>printf("sec %d\n", i);
+    ... your code here
+    async after 1 s t1(1);
+}
+
+Reset {
+    async after 1 s t1(1); 
+}
+-------------------------------------------------------------------------------
+
+Now we will turn to the third set of examples, starting with Ex3.core
+-------------------------------------------------------------------------------
+// Ex3.core
+// Per Lindgren (C) 2014
+//
+// Critical sections are used to protect shared resources
+#>
+// Top level C-code in -core used e.g., to
+// define a shared variable point (x,y), protected by R
+volatile int x;
+volatile int y;
+<#
+
+Task t1() {
+    #>printf("task1\n");<#
+    // use TRACE/TRACE_OS to see the blocking when trying to claim R
+    claim R {
+        #>printf("task1 R claimed, point is (%d,%d)\n", x, y);<#
+    }
+}
+
+Task t2() {
+    #>printf("task2\n");<#
+    claim R {
+        #>
+        x=1;
+        printf("task2 R claimed\n");
+        RT_usleep(RT_sec*5);
+        y=1;
+        printf("task2 R released\n");
+        <#
+    }
+}
+
+Reset {
+    #>x = 0; y = 0;<#
+    #>printf("User reset\n");<#
+    async before 9 s t2();
+    async after 1 s before 10 s t1();     
+}
+-------------------------------------------------------------------------------
+The risk of races is inherent to concurrent programming, to this end the -core
+language provides named critical sections. I.e., only one task will at any
+time be inside each critical section of the program.
+
+In this case the only valid assignments of the point (x,y) is (0,0) and (1,1).
+(Without the use of the critical section R the assignment (1,0) could be 
+observed by task t1.)
+
+The program is "consistent", the specified timing windows and critical 
+sections do not exclude the possibility for scheduling.
+
+(Under threaded environments we just assume that the run-time will find a 
+feasible schedule, more on guarantees in section X.)
+
+Let us look at a counter example, Ex3b.core:
+-------------------------------------------------------------------------------
+// Ex3b.core
+// Per Lindgren (C) 2014
+
+... same as Ex3.core
+
+Reset {
+    x = 0; y = 0;
+    #>printf("User reset\n");<#
+    async before 1s t2(); // will take at least 5s, hence infeasible
+    async after 1 s before 10 s t1();     
+}
+-------------------------------------------------------------------------------
+In this case, the before timing requirement (1s) is infeasible, since the task 
+t2 will take at least 5s (the waiting time) to finish.
+
+The example Ex3c.core:
+-------------------------------------------------------------------------------
+// Ex3c.core
+// Per Lindgren (C) 2014
+
+... same as Ex3.core
+
+Reset {
+    x = 0; y = 0;
+    #>printf("User reset\n");<#
+    async before 6s t2();
+    async after 2 s before 3 s t1(); // R will be claimed by t2    
+}
+-------------------------------------------------------------------------------
+is also infeasible. 
+In this case the timing requirement on t2 is valid. 
+
+However, from the specification we can see that all feasible schedules will 
+lead to the claim of R (by t2) in the time between 2 and 3 s.
+
+This in turn precludes t2 from entering the critical section (R) during its
+complete permissible window, hence finding a possible schedule is infeasible.
+
+The compiler as of today does not perform this type of verification, it is up 
+to the programmer to provide a valid (consistent) program specification.
+
+Another potential problem of nested critical sections is deadlock.
+Ex3d.core gives such an example:
+-------------------------------------------------------------------------------
+// Ex3d.core
+// Per Lindgren (C) 2014
+//
+// Under threads (OSX/Linux/Win32) task execute in parallel and the dreaded 
+// deadlock problem may arise. A distinct feature of the -core language is it's 
+// static task and resource (critical section) structure.
+//  
+// By static (compile time) analysis on the task model the RTFM-core compiler 
+// reports potential deadlocks. A potential deadlock amounts to a cycle (of 
+// strongly connected components) in the gv_res output graph.
+//
+
+Task t1() {
+    #>printf("task1\n");<#
+    claim R1 {
+        #>printf("task1 R1 claimed\n");<#
+        #>RT_usleep(RT_sec*1);<#
+        claim R2 {
+            #>printf("task1 R2 claimed\n");<#
+        }
+    }
+}
+
+Task t2() {
+    #>printf("task2\n");<#
+    claim R2 {
+        #>printf("task2 R2 claimed\n");<#
+        #>RT_usleep(RT_sec*1);<#
+        claim R1 {
+            #>printf("task2 R1 claimed\n");<#
+        }
+    }
+}
+
+Reset {
+    #>printf("User reset\n");<#
+    async t1();
+    async t2();
+}
+-------------------------------------------------------------------------------
+In case both t1 and t2 have executed to the point where they have entered the
+critical sections defined by R1 and R2 respectively, the system deadlocks.
+
+For bare metal execution onto single core CPUs, analysis of the program by the compiler
+together with the run time system implementation will provide a deadlock free
+execution.
+
+Our current run-time systems using threads cannot guarantee deadlock free 
+execution. However, analysis done by the compiler will report a potential 
+deadlock, and the programmer can revise the program, to obtain a deadlock
+free system.
+
+Ex3d.core shows a deadlock free implementation for the same problem.
+-------------------------------------------------------------------------------
+// same as Ex3
+Task t2() {
+    #>printf("task2\n");<#
+    claim R1 { // moved outwards
+        #>printf("task2 R1 claimed\n");<#
+        claim R2 {
+            #>RT_usleep(RT_sec*1);<# // now also affects R1
+            #>printf("task2 R1,R2 claimed\n");<#
+        }
+    }
+}
+-------------------------------------------------------------------------------
+
+Checkpoint!
+Have a look at the program:
+-------------------------------------------------------------------------------
+#>
+// define a shared variable point (x,y), protected by R
+volatile int x;
+volatile int y;
+<#
+
+Task t1() {
+    #>printf("task1\n");<#
+    claim R {
+        #>printf("task1 R claimed, point is (%d,%d)\n", x, y);<#
+    }
+}
+
+Task t2() {
+    #>printf("task2\n");<#
+    claim R {
+        #>
+        x=1;
+        RT_usleep(RT_sec*5);
+        y=1;
+        <#
+    }
+}
+
+Task t3() {
+    x=3;
+    y=3;
+}
+
+Reset {
+    x = 0; y = 0;
+    #>printf("User reset\n");<#
+    async before 9 t2();
+    async after 1 s before 10 s t1();
+    async after 1 s before 10 s t3();     
+}
+-------------------------------------------------------------------------------
+
+1) Ensure that the program is race free by altering t3.
+
+2) Ensure that the program is deterministic where the point (x,y) is altered in 
+along the following sequence:
+(0,0)->(1,1)->(3,3)
+
+This should be done by changing the timing requirements on t3 only.
+
+Now we look at the fourth and final set of examples, stating with Ex4.core
+
+-------------------------------------------------------------------------------
+// Ex4.core
+// Per Lindgren (C) 2014
+//
+// In order to modularise program, functions (Func constructs) can be used.
+//
+// use TRACE to see that also synchronous chains are tracked
+Func void fun(int i) {
+    claim R {
+        #>
+        printf("task%d R claimed\n", i);
+        RT_usleep(RT_sec*5);
+        printf("task%d R released\n", i);
+        <#
+    }   
+}
+
+Task t1() {
+    #>printf("task1\n");<#
+    claim R {
+        #>printf("task1 R claimed\n");<#
+    }
+}
+
+Task t2() {
+    #>printf("task2\n");<#
+    sync fun(2);
+}
+
+Task t3() {
+    #>printf("task3\n");<#
+    sync fun(3);
+}
+
+Idle {
+    #>printf("User idle\n");<#
+    async t2();
+    async t3();
+    #>RT_usleep(RT_sec*1);<#
+    async t1();
+}
+-------------------------------------------------------------------------------
+In many cases it is desirable to use functions as a way to modularise the 
+design, and to reuse code.
+
+Ordinary C functions can be used, as long as they do not contain any -core
+constructs. The Func construct allows to declare -core functions.
+
+Programs may be further modularised into multiple files, as in Ex4b/c.core:
+-------------------------------------------------------------------------------
+// Ex4b.core
+// Per Lindgren (C) 2014
+
+// we can break out functionality into separate files
+Func void fun(int i) {
+    claim R {
+        #>
+        printf("task%d R claimed\n", i);
+        RT_usleep(RT_sec*5);
+        printf("task%d R released\n", i);
+        <#
+    }   
+}
+-------------------------------------------------------------------------------
+// Ex4c.core
+// Per Lindgren (C) 2014
+
+// We can include other .core code into our program.
+// Includes are transitive and to a global scope.
+
+include Ex4a.core
+
+Task t1() {
+    #>printf("task1\n");<#
+    claim R {
+        #>printf("task1 R claimed\n");<#
+    }
+}
+
+Task t2() {
+    #>printf("task2\n");<#
+    sync fun(2);
+}
+
+Task t3() {
+    #>printf("task3\n");<#
+    sync fun(3);
+}
+
+Idle {
+    #>printf("User idle\n");<#
+    async t2();
+    async t3();
+    #>RT_usleep(RT_sec*1);<#
+    async t1();
+}
+-------------------------------------------------------------------------------
+
+Notice that including is done to the global scope. We currently do not support
+name spaces. 
+
+#includes occurring in the inlined C code follow the C code include semantics, 
+and is seen as inlined C-code from a -core perspective.
+
+Checkpoint!
+Make a program in -core that uses all the mentioned features of the language
+- tasks with parameters and timing constraints
+- function(s) to protect access to some shared data
+- reset and idle constructs
+- split functionality into at least two files.
+
+This concludes the RTFM-core by example, hope you now feel comfortable to 
+understand -core programs, and able express your own problems in -core!
+
