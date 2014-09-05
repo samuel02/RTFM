@@ -479,7 +479,7 @@ int main() {
 	printf("-----------------------------------------------------------------------------------------------------------------------\n");
 	user_idle(user_idle_nr);
 
-	while (1)
+	while (!RTFM_exit_flag)
 		RT_sleep(RT_sec * 1); // zzzzzz to save CPU
 				/* code for cleanup omitted, we trust POSIX (Linux/OSX) to do the cleaning */
 }
