@@ -7,7 +7,7 @@
 #define NB_ENABLE 0
 #define NB_DISABLE 1
 
-int seconds = 0;
+int seconds = 108*60;
 char sequence[15];
 int seq_n = 0;
 const char* correct = "4 8 15 16 23 42";
@@ -67,13 +67,23 @@ void nonblock(int state) {
 Task updateTimer (){
   
   #>
-    seconds++;
+    seconds--;
   <#
+    #>
+  if (keepon != 0) {
+  <#
+    async after 1 s before 1 ms updateTimer ();
+  #>
+  }
+  <#
+  async before 20 ms updateOutput ();
 
+}
+
+Task updateOutput (){
   claim Sequence {
     #>
-    
-    printf("\r%05d\t\t>:%s", seconds, sequence);
+    printf("\r%03d%c[0;30;47m%02d%c[0;39;49m\t\t>:%s", seconds/60, 27, seconds%60, 27, sequence);
     int i;
     for (i=0; i<15-seq_n;i++) {
       printf("\b");
@@ -81,18 +91,7 @@ Task updateTimer (){
     fflush(stdout);
     <#
   }
-  #>
-  if (keepon != 0) {
-    <#
-    async after 200 ms before 200 ms updateTimer ();
-    #>
-  }
-  <#
 }
-
-// Task readUserInput {
-
-// }
 
 
 Reset {
@@ -101,7 +100,7 @@ Reset {
   //strcpy(sequence, "                   ", 20);
   strncpy(sequence, "               ", 15);
   <#
-  async after 500 ms updateTimer();
+  async after 5 ms updateTimer();
 }
 
 Idle {
@@ -117,8 +116,13 @@ Idle {
     if (new_input != 0) {
       c = fgetc(stdin);
       if (c == correct[seq_n]) {
-        sequence[seq_n] = c;
-        seq_n++;
+        <# claim Sequence { #>
+          sequence[seq_n] = c;
+          seq_n++;
+          <#
+        }
+        async before 20 ms updateOutput ();
+        #>
       } else {
         strncpy(sequence, "               ", 15);    
         seq_n = 0;
@@ -138,10 +142,9 @@ Idle {
   }
 
   nonblock(NB_DISABLE);
-
+  RT_exit();
 
   <#
-
 
 }
 
