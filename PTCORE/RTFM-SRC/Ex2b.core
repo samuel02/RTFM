@@ -11,7 +11,7 @@
 Task t1(int i) {
 	#>printf("task1 %d\n", i);<#
 	async t2(i*2);
-	async after 2 s t1(i+1);
+	async after 2s t1(i+1);
 }
 
 Task t2(int j) {

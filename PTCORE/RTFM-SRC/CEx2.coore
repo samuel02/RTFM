@@ -1,0 +1,25 @@
+// CEx2.coore
+// Per Lindgren ( C ) 2014
+//
+// Simple example
+
+class Root<> { 
+    Task t1 (char c) {
+        RT_printf("t1 : you entered : %c\n", c);
+        async after 5s before 100ms t2(c); // we have no operations on char yet
+    }      
+    
+    Task t2 (char c) {
+        RT_printf("t2: the same character is %c\n", c);
+    }
+
+    Reset {
+        RT_printf("User reset\n");
+    }
+     
+    Idle {
+        RT_printf("enter a character (before 5s)\n");
+        char c := RT_getc();
+        async before 5s t1 (c);
+    }
+}

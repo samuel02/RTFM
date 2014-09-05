@@ -30,6 +30,6 @@ class Root<> {
     Reset {
         async t2.tt(); // task2
         async t3.tt(); // task3
-        async after 1 s r.rt();
+        async after 1s r.rt();
     } 
 }

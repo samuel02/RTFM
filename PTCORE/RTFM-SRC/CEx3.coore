@@ -23,7 +23,7 @@ class Root<> {
     R<> r;
     Reset {
         RT_printf("User reset\n");
-        async before 9 s r.t2();
-        async after 1 s before 10 s r.t1();
+        async before 9s r.t2();
+        async after 1s before 10s r.t1();
     } 
 }
