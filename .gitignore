@@ -19,6 +19,7 @@ affinity
 #################
 RTFM-core-compiler/src/Common.ml
 RTFM-core-compiler/src/Error.ml
+RTFM-core-compiler/src/*.gv
 
 #################
 ## cOOre Compiler
