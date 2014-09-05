@@ -10,6 +10,9 @@ WINCORE/Default
 autogen.c
 PTCORE/Debug/makefile
 PTCORE/makefile
+PTCORE/PTCORE
+PTCORE/RTFM
+PTCORE/RTFM-PT/RTFM
 *.mk
 affinity
 *.native
