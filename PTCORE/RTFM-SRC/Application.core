@@ -1,92 +1,81 @@
-// Shared data structure
-// Protected by R_SData
+
+// Top-level C-code used for non-blocking user input
 #>
-typedef struct {
-	int x;
-	// ...
-} SData;
+	#include <termios.h>
 
-volatile SData sd;
+	#define NB_ENABLE 0
+	#define NB_DISABLE 1
 
-SData fast(SData fsd) {
-	printf("fast\n");
-	fsd.x = fsd.x*2;
-	return fsd;
-}
+	int seconds = 0;
 
-SData slow(SData ssd) {
-	printf("slow start\n");
-	RTFM_sleep(RTFM_sec(2)); // emulate slow caclulation
-	printf("slow end\n");
-	return ssd;
-}
+	/* Non-blocking user input */
+	int kbhit() {
+		struct timeval tv;
+	  fd_set fds;
+	  tv.tv_sec = 0;
+	  tv.tv_usec = 0;
+	  FD_ZERO(&fds);
+	  FD_SET(STDIN_FILENO, &fds); //STDIN_FILENO is 0
+	  select(STDIN_FILENO+1, &fds, NULL, NULL, &tv);
+	  return FD_ISSET(STDIN_FILENO, &fds);
+	}
 
-int readX() {
-	return RTFM_rand(100);
-}
+	void nonblock(int state) {
+	  struct termios ttystate;
 
-void writeX(int x) {
-	printf("writeX %d\n", x);	
-}
+	  //get the terminal state
+	  tcgetattr(STDIN_FILENO, &ttystate);
+
+	  if (state == NB_ENABLE) {
+	      //turn off canonical mode
+	      ttystate.c_lflag &= ~ICANON;
+	      //minimum of number input read.
+	      ttystate.c_cc[VMIN] = 1;
+	  } else if (state == NB_DISABLE) {
+	      //turn on canonical mode
+	      ttystate.c_lflag |= ICANON;
+	  }
+	  //set the terminal attributes.
+	  tcsetattr(STDIN_FILENO, TCSANOW, &ttystate);
+	}
 <#
 
-Reset {#> 
-	printf("User reset\n"); 
-	<# pend TIMER0_IRQHandler; #>
-	while (1) {
-		<# pend EINT0_IRQHandler; #>
-		//RTFM_sleep(RTFM_sec(RTFM_rand(5)+1)); // emulate sporatic envirnment 0..4 SEC
-		RTFM_sleep(RTFM_sec(RTFM_rand(5)+1)); // emulate sporatic envirnment 1..5 SEC
-	} 
-<#}
- 
-Func SData sd_get() { 
-	#> SData r; <#
-	claim R_SData {
-		#> r = sd; <#
-	}
-	#> return r; <#
+Reset {
+	#>printf("User reset\n");<#
 }
- 
-Func void sd_set(SData s) {
-	claim R_SData {
-		#> sd = s; <#
+
+Task updateTimer {
+	claim Timer {
+		seconds++;
 	}
-}	
+}
 
-Task compute 3 {#>
-	printf("calculate\n"); 
-	SData csd = <# sync sd_get(); #>;
-	csd = slow(csd); // do some fancy interpolation on csd
-	<# sync sd_set(csd); #>
-<#}
+Task readUserInput {
 
-ISR EINT0_IRQHandler 5 {#>
-	printf("EINT0_IRQHandler\n");	
-	SData rsd; 
-	rsd.x = readX(); // Read hardware
-	printf("read value %d\n", rsd.x);
-	rsd = fast(rsd); 
-	<# sync sd_set(rsd); #>
-<#} 				 
+}
 
-#>
-volatile int cnt = 0;
-#define MAX_CNT 3
-int nr_invok = 0;
-<#
- 
-ISR TIMER0_IRQHandler 7 {#>
-	printf("TIMER0_IRQHandler %d\n", ++nr_invok); 
-	SData wsd = <# sync sd_get(); #>;
-	writeX(wsd.x); // Write hardware
-	
-	cnt = (cnt + 1) % MAX_CNT; 
-	printf("cnt = %d\n", cnt);
-	if (cnt == 0) {
-		<# pend compute; #>;
-		printf("Tjoho");
-	}
-	RTFM_sleep(RTFM_sec(1)); // Emulate periodic behvior
-	<# pend TIMER0_IRQHandler; #>		
-<#}
+Idle {
+  #>
+	  char c;
+	  int i = 0;
+
+	  nonblock(NB_ENABLE);
+	  while(!i) {
+	      usleep(1);
+	      i = kbhit();
+	      if (i != 0) {
+	          c = fgetc(stdin);
+	          if (c == 'q')
+	              i = 1;
+	          else
+	              i = 0;
+	      }
+
+	      fprintf(stderr,"%d ", i);
+	  }
+	  printf("\n you hit %c. \n", c);
+	  nonblock(NB_DISABLE);
+  <#
+}
+
+
