@@ -5,10 +5,11 @@
 
 %token <string> ID
 %token <int>    INTVAL
+%token <int64>  TIME
 %token <string> STRINGVAL
 %token <string> CCODE
 %token <string> PARAMS
-%token MODULE INCLUDE ISR TASK FUNC RESET IDLE SYNC ASYNC PEND AFTER BEFORE PRIO CLAIM USEC MSEC SEC SC LCP RCP EOF
+%token MODULE INCLUDE ISR TASK FUNC RESET IDLE SYNC ASYNC PEND AFTER BEFORE PRIO CLAIM SC LCP RCP EOF
 
 %{
   open AST 
@@ -49,17 +50,15 @@ stmt:
   
 after:
   | AFTER time                              { $2 }
-  |                                         { Usec (0) }
+  |                                         { Usec (0L) }
 
 before:
   | BEFORE time                             { $2 }
-  |                                         { Usec (0) }
+  |                                         { Usec (0L) }
 
 time:
-  | INTVAL USEC                             { Usec($1) }                                                                       
-  | INTVAL MSEC                             { Msec($1) }
-  | INTVAL SEC                              { Sec($1) } 
-  | INTVAL                                  { Usec($1) }
+  | TIME                                    { Usec($1) }
+  | INTVAL                                  { Usec(Int64.of_int $1) }
 
 prio:
   | PRIO INTVAL                             { $2 }

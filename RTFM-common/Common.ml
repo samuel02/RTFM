@@ -85,20 +85,20 @@ let string_of_backend = function
   | CLANG	-> "CLANG"
  
 type time =
-  | Usec of int
-  | Msec of int
-  | Sec  of int
+  | Usec of int64
+  | Msec of int64
+  | Sec  of int64
   | Infinite
  
 let string_of_time = function 
-  | Usec i   -> string_of_int i ^ " us"
-  | Msec i   -> string_of_int i ^ " ms"
-  | Sec  i   -> string_of_int i ^ " s"
+  | Usec i   -> Int64.to_string i ^ "us"
+  | Msec i   -> Int64.to_string i ^ "ms"
+  | Sec  i   -> Int64.to_string i ^ "s"
   | Infinite -> "Infinite"
  
 let usec_of_time = function
   | Usec i   -> i
-  | Msec i   -> 1000 * i
-  | Sec i    -> 1000 * 1000 * i  
-  | Infinite -> max_int (* compatible over 32/64 bit systems *)
+  | Msec i   -> Int64.mul 1000L i
+  | Sec i    -> Int64.mul 1000000L i  
+  | Infinite -> Int64.max_int (* compatible over 32/64 bit systems *)
      

@@ -60,7 +60,7 @@ let task_of_p topl =
                 p_stderr ("l i_dl = " ^ string_of_time i_dl ^ nl);
                 *)
                 
-                if (usec_of_time be != 0) then async_err_handling ("Explicit deadline not allowed for closing cyclic task chains, in async " ^ id ^ "!");
+                if (usec_of_time be != 0L) then async_err_handling ("Explicit deadline not allowed for closing cyclic task chains, in async " ^ id ^ "!");
                 if (usec_of_time af  < usec_of_time i_dl) then async_err_handling ("Closing async cycle before deadline not allowed, in async " ^ id ^ "!"); 
                 ITask (Infinite, p_dl, new_path, p, al, sl) :: 
                 tasks (nr-1) i_bl i_dl path aal afl sal sfl l
@@ -77,8 +77,8 @@ let task_of_p topl =
                     p_stderr ("i_bl = " ^ string_of_time i_bl ^ nl);
                     p_stderr ("i_dl = " ^ string_of_time i_dl ^ nl);
                   *)  
-                    let new_bl = if (usec_of_time af == 0) then (Usec(0)) else af in
-                    let new_dl = if (usec_of_time be == 0) then Usec ((usec_of_time i_dl) - (usec_of_time new_bl)) else be in 
+                    let new_bl = if (usec_of_time af == 0L) then (Usec(0L)) else af in
+                    let new_dl = if (usec_of_time be == 0L) then Usec (Int64.sub (usec_of_time i_dl) (usec_of_time new_bl)) else be in 
                     
                     ITask (Infinite, new_dl, new_path, new_path, al, sl) ::           (* the new task                                     *)
                     tasks nr new_bl new_dl new_path ((id, (new_path, new_dl))::aal) afl [] [] sl @  (* tasks created by the new task                    *)
@@ -92,8 +92,8 @@ let task_of_p topl =
     | TopC (c) -> [IC (c)]
    (* | Isr (p, id, sl) -> IIsr (p, id, sl) :: tasks 0 Usec(p) id [] [] [] [] sl *)
     | TaskDef(id, par, sl) -> [ITaskType (id, par)]
-    | Reset (sl) -> IReset (sl) :: tasks 1 (Sec(0)) Infinite "reset" [] [] [] [] sl
-    | Idle (sl) -> IIdle (sl) :: tasks 1 (Sec(0)) Infinite "idle" [] [] [] [] sl
+    | Reset (sl) -> IReset (sl) :: tasks 1 (Sec(0L)) Infinite "reset" [] [] [] [] sl
+    | Idle (sl) -> IIdle (sl) :: tasks 1 (Sec(0L)) Infinite "idle" [] [] [] [] sl
     | _ -> raise (UnMatched)
   
   in
@@ -111,8 +111,8 @@ let spec_of_p topl =
     | Async (af, be, id, par) :: l -> 
       let nrsyncs = mcount id sal in
       let new_path = (path ^ "_" ^ id ^ "_" ^ string_of_int nrsyncs) in
-      let new_dl = if (usec_of_time be == 0) then Usec ((usec_of_time i_dl) - (usec_of_time af)) else be in
-      if usec_of_time new_dl < 0 then async_err_handling ("Negative deadline for async " ^ id ^ nl); 
+      let new_dl = if (usec_of_time be == 0L) then Usec (Int64.sub (usec_of_time i_dl) (usec_of_time af)) else be in
+      if usec_of_time new_dl < 0L then async_err_handling ("Negative deadline for async " ^ id ^ nl); 
       Async (af, new_dl, new_path, par) :: stmts i_dl path (id::sal) sfl l
     | s :: l -> s :: stmts i_dl path sal sfl l
   
