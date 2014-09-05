@@ -1,81 +1,148 @@
 
 // Top-level C-code used for non-blocking user input
 #>
-	#include <termios.h>
+#include <termios.h>
+#include <string.h>
 
-	#define NB_ENABLE 0
-	#define NB_DISABLE 1
+#define NB_ENABLE 0
+#define NB_DISABLE 1
 
-	int seconds = 0;
+int seconds = 0;
+char sequence[15];
+int seq_n = 0;
+const char* correct = "4 8 15 16 23 42";
+int keepon = 1;
 
-	/* Non-blocking user input */
-	int kbhit() {
-		struct timeval tv;
-	  fd_set fds;
-	  tv.tv_sec = 0;
-	  tv.tv_usec = 0;
-	  FD_ZERO(&fds);
-	  FD_SET(STDIN_FILENO, &fds); //STDIN_FILENO is 0
-	  select(STDIN_FILENO+1, &fds, NULL, NULL, &tv);
-	  return FD_ISSET(STDIN_FILENO, &fds);
-	}
+/* Non-blocking user input */
+int kbhit() {
+  struct timeval tv;
+  fd_set fds;
+  tv.tv_sec = 0;
+  tv.tv_usec = 0;
+  FD_ZERO(&fds);
+  FD_SET(STDIN_FILENO, &fds); //STDIN_FILENO is 0
+  select(STDIN_FILENO+1, &fds, NULL, NULL, &tv);
+  return FD_ISSET(STDIN_FILENO, &fds);
+}
 
-	void nonblock(int state) {
-	  struct termios ttystate;
+void nonblock(int state) {
+  struct termios ttystate;
 
-	  //get the terminal state
-	  tcgetattr(STDIN_FILENO, &ttystate);
+  //get the terminal state
+  tcgetattr(STDIN_FILENO, &ttystate);
 
-	  if (state == NB_ENABLE) {
-	      //turn off canonical mode
-	      ttystate.c_lflag &= ~ICANON;
-	      //minimum of number input read.
-	      ttystate.c_cc[VMIN] = 1;
-	  } else if (state == NB_DISABLE) {
-	      //turn on canonical mode
-	      ttystate.c_lflag |= ICANON;
-	  }
-	  //set the terminal attributes.
-	  tcsetattr(STDIN_FILENO, TCSANOW, &ttystate);
-	}
+  if (state == NB_ENABLE) {
+    //turn off canonical mode
+    ttystate.c_lflag &= ~ICANON;
+    //minimum of number input read.
+    ttystate.c_cc[VMIN] = 1;
+  } else if (state == NB_DISABLE) {
+    //turn on canonical mode
+    ttystate.c_lflag |= ICANON;
+  }
+  //set the terminal attributes.
+  tcsetattr(STDIN_FILENO, TCSANOW, &ttystate);
+
+  if (state == NB_ENABLE) {
+    struct termios oldt;
+    tcgetattr(STDIN_FILENO, &oldt);
+    struct termios newt = oldt;
+    newt.c_lflag &= ~ECHO;
+    tcsetattr(STDIN_FILENO, TCSANOW, &newt);
+  } else if (state == NB_DISABLE) {
+    struct termios oldt;
+    tcgetattr(STDIN_FILENO, &oldt);
+    struct termios newt = oldt;
+    newt.c_lflag |= ECHO;
+    tcsetattr(STDIN_FILENO, TCSANOW, &newt);
+  }
+}
+
 <#
 
+
+
+
+
+Task updateTimer (){
+  
+  #>
+    seconds++;
+  <#
+
+  claim Sequence {
+    #>
+    
+    printf("\r%05d\t\t>:%s", seconds, sequence);
+    int i;
+    for (i=0; i<15-seq_n;i++) {
+      printf("\b");
+    }
+    fflush(stdout);
+    <#
+  }
+  #>
+  if (keepon != 0) {
+    <#
+    async after 200 ms before 200 ms updateTimer ();
+    #>
+  }
+  <#
+}
+
+// Task readUserInput {
+
+// }
+
+
 Reset {
-	#>printf("User reset\n");<#
-}
-
-Task updateTimer {
-	claim Timer {
-		seconds++;
-	}
-}
-
-Task readUserInput {
-
+  #>
+  printf("User reset\n");
+  //strcpy(sequence, "                   ", 20);
+  strncpy(sequence, "               ", 15);
+  <#
+  async after 500 ms updateTimer();
 }
 
 Idle {
   #>
-	  char c;
-	  int i = 0;
+  char c;
+  int new_input = 0;
 
-	  nonblock(NB_ENABLE);
-	  while(!i) {
-	      usleep(1);
-	      i = kbhit();
-	      if (i != 0) {
-	          c = fgetc(stdin);
-	          if (c == 'q')
-	              i = 1;
-	          else
-	              i = 0;
-	      }
+  nonblock(NB_ENABLE);
 
-	      fprintf(stderr,"%d ", i);
-	  }
-	  printf("\n you hit %c. \n", c);
-	  nonblock(NB_DISABLE);
+  while(keepon) {
+    usleep(1);
+    new_input = kbhit();
+    if (new_input != 0) {
+      c = fgetc(stdin);
+      if (c == correct[seq_n]) {
+        sequence[seq_n] = c;
+        seq_n++;
+      } else {
+        strncpy(sequence, "               ", 15);    
+        seq_n = 0;
+      }
+
+      if (c == 'q') {
+        keepon = 0;
+        nonblock(NB_DISABLE);
+
+
+      } else {
+        keepon = 1;
+      }
+    }
+
+    //fprintf(stderr,"%d ", i);
+  }
+
+  nonblock(NB_DISABLE);
+
+
   <#
+
+
 }
 
 
