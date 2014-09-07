@@ -72,6 +72,7 @@ let c_rt_of_i dlp spec v r =
           | ',' -> ';'
           | c   -> c
         in
+        (* alternative solution suing the ITaskDefType for generating typedef, not used, and may be omitted in th future *)
         (* let par = lookup_itasktype_par oid topl in *)
         (* "typedef struct {" ^ String.map tpar par ^ ";} ARG_" ^ id ^ "; // type definition for arguments" ^ nl ^ *)
         "typedef struct {" ^ String.map tpar al ^ ";} ARG_" ^ id ^ "; // type definition for arguments" ^ nl ^ 
@@ -85,22 +86,27 @@ let c_rt_of_i dlp spec v r =
     | _ -> raise (UnMatched)
   
   in
-  (* generate code for instances *)
-  (* let rec stmts path sl =
-    let nr_ref = ref 0 in
-    myconcat nl (mymap (stmt path nr_ref) sl) 
-     and stmt path nr_ref = function
- *)
+ 
   let rec stmts path sl = myconcat nl (mymap (stmt path) sl)
   and stmt path = function
     | Claim (r, csl)          -> "RTFM_lock(RTFM_id, " ^ r ^ ");" ^ nl ^ (stmts path) csl ^ "RTFM_unlock(RTFM_id, " ^ r ^ ");"
-    | Pend (_, id)            -> "RTFM_pend(RTFM_id, " ^ id ^ "_nr);"
-    | Async (af, be, id, par) ->
-        "arg_" ^ id ^ " = (ARG_" ^ id ^ "){" ^ par ^ "}; " ^ nl ^
-        "RTFM_pend(" ^ string_of_int (usec_of_time af) ^ ", " ^ string_of_int (usec_of_time be) ^ ", RTFM_id, " ^ id ^ "_nr);"
+    | Pend (be, id, par)      -> 
+      "arg_" ^ id ^ " = (ARG_" ^ id ^ "){" ^ par ^ "};" ^ nl ^
+      "RTFM_pend(" ^ string_of_int (usec_of_time be) ^ ",  RTFM_id, " ^ id ^ "_nr);" 
+    | Async (mi, af, be, id, par) ->
+        (
+        match mi with
+        | Some i -> "RT_msg " ^ i ^ " = "
+        | None   -> ""
+        ) ^ 
+        "(" ^ "arg_" ^ id ^ " = (ARG_" ^ id ^ "){" ^ par ^ "}, " ^ 
+        "RTFM_async(" ^ string_of_int (usec_of_time af) ^ ", " ^ string_of_int (usec_of_time be) ^ ", RTFM_id, " ^ id ^ "_nr));"
+        
     | Sync ( id, par )        -> id ^ pass_par par ^ ";"
     
     | ClaimC (c)              -> String.trim c
+    | Halt (s)                -> "RT_halt(" ^ s ^ ");"
+    | Abort (par)             -> "RT_abort(" ^ par ^ ");" 
   
   and top = function
     | IIsr (p, id, sl)                -> "void " ^ id ^ "(int RTFM_id) {" ^ nl ^ (stmts id) sl ^ "}"

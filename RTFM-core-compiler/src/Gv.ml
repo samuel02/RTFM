@@ -15,6 +15,8 @@ type dstmt =
   | DotPend of int * string * string 
   | DotAsync of int * string * string
   | DotC of int * string 
+  | DotHalt of int
+  | DotAbort of int * string
 and
   dstmts =
   | Ds of string * dstmt list 
@@ -49,6 +51,9 @@ let d_of_ds =
     | DotPend (i, _, s)          -> record_line i ("pend " ^ s)
     | DotAsync (i, _, s)         -> record_line i ("async " ^ s)
     | DotC (i, s)                -> record_line i ("#&gt; " ^ strip (String.sub s 0 (min 8 (String.length s))) ^ "...&lt;#")  
+    | DotHalt (i)                -> record_line i ("halt " )
+    | DotAbort (i, par)          -> record_line i ("abort (" ^ par ^ ")" )
+    
     
 (* create records for the program *)    
 let d_of_dt rl d =
@@ -109,11 +114,13 @@ let gv_of_spec dlp rml spec =
     if opt.debug then p_stderr ("--- generating unique label " ^ string_of_int !label ^ " ----"^ nl ); 
     let i = !label in
     match s with
-      | Claim (cr, cs)           -> let de = cr ^ "_" ^ t in DotClaim (i, cr, t, de, Ds (de , stmts de tp cs))
-      | Sync (sid, _)            -> DotSync (i, t, sid) 
-      | Pend (af, pid)           -> DotPend (i, t, pid)
-      | Async (af, prio, id, al) -> DotAsync (i, t, id)
-      | ClaimC (s)               -> DotC (i, s)
+      | Claim (cr, cs)               -> let de = cr ^ "_" ^ t in DotClaim (i, cr, t, de, Ds (de , stmts de tp cs))
+      | Sync (sid, _)                -> DotSync (i, t, sid) 
+      | Pend (_, pid,_)              -> DotPend (i, t, pid)
+      | Async (mi, af, prio, id, al) -> DotAsync (i, t, id)
+      | ClaimC (s)                   -> DotC (i, s)
+      | Halt (s)                     -> DotHalt (i)
+      | Abort (par)                  -> DotAbort (i, par)
          
   in
   (* parse the program entry points *)

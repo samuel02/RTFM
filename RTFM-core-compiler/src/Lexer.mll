@@ -34,9 +34,11 @@ rule lex = parse
   | "pend"               { PEND }                               (* statements *)
   | "sync"               { SYNC }
   | "async"              { ASYNC }
+  | "halt"               { HALT }
   | "claim"              { CLAIM }
   | "after"              { AFTER }
   | "before"             { BEFORE }
+  | "abort"              { ABORT }
 (*| "prio"               { PRIO } *)
   
   | "ISR"                { ISR }                                (* top level *)
@@ -52,6 +54,8 @@ rule lex = parse
   | '{'                  { LCP }                                (* delimeters *)
   | '}'                  { RCP }
   | ';'                  { SC } 
+  
+  | ":="                 { ASSIGN }
   
   | digits as i          { INTVAL (int_of_string i) }           (* literals/values *)
   | cite (str as s) cite { STRINGVAL (s) }

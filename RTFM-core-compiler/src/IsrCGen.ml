@@ -67,7 +67,7 @@ let assign_isr v p =
     | _ :: l  -> isrs v l
   in isrs v p
   
-
+(*
 let assign_task v p =
   (* task *)
   let rec tasks v ils = match ils with
@@ -91,6 +91,7 @@ let assign_vectors v p =
   
 let assign_tasks v p = 
   List.map snd (assign_task v p)
+*)
  
 (*
 let assign_vector v p =
@@ -146,7 +147,7 @@ let isrv_to_c_isr_nr vl =
 let rec task_vector p = match p with
   | []                         -> []
   | Isr (_, id, s) :: l        -> (U, id) :: task_vector l 
-  | Task (_, id, pa, _, _) :: l-> (U, id) :: task_vector l
+(*  | Task (_, id, pa, _, _) :: l-> (U, id) :: task_vector l *)
   | _ :: l                     -> task_vector l
 
 

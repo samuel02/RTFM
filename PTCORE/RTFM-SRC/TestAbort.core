@@ -1,0 +1,21 @@
+// TestAbort.core
+// Per Lindgren (C) 2014
+//
+// Example showing the use of both pend and abort
+Task task_to_abort() {
+	#> printf("Task to abort, not aborted\n");<#
+}
+
+Task task_print(char c) {
+	#> printf("Char entered %c, Current time !!!! %f\n", c, RT_time_to_float(RT_get_bl()));<#
+}
+
+Idle {
+	#> printf("User Idle\n"); <#
+	m := async after 5s task_to_abort();
+	#>
+	char c = getc(stdin);
+	<#
+	abort (m);
+	pend before 1s task_print(c);
+}
