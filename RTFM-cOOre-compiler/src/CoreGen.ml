@@ -18,8 +18,8 @@ let rec c_defs_of_classDef ce path argl cd =
     | IdExp (idl)               -> p ^ String.concat "_" idl
     | CallExp (m, el)           -> c_e ^ " sync " ^ p ^ String.concat "_" m ^ string_par c_of_expr el ^ "; " ^ e_c
     | AsyncExp (af, be, il, el) -> c_e ^ " async" ^
-      (if (usec_of_time af > 0) then " after " ^ string_of_time af else "") ^
-      (if (usec_of_time be > 0) then " before " ^ string_of_time be else "") ^ 
+      (if (usec_of_time af > 0L) then " after " ^ string_of_time af else "") ^
+      (if (usec_of_time be > 0L) then " before " ^ string_of_time be else "") ^ 
       " " ^ p ^ String.concat "_" il ^ string_par c_of_expr el ^ "; " ^ e_c      
     | PendExp _                 -> raise (RtfmError ("PendExp not implemented"))
     | IntExp (i)                -> string_of_int i
@@ -56,8 +56,8 @@ let rec c_defs_of_classDef ce path argl cd =
   
   (* state initialization *)
   let c_state_of_classDecl = function
-    | CPVar (t, i, e)       -> string_of_pType t ^ " " ^ p ^ i ^ " = " ^ c_of_expr e
-    | _ -> raise (UnMatched)
+    | CPVar (t, i, e) -> string_of_pType t ^ " " ^ p ^ i ^ " = " ^ c_of_expr e
+    | _               -> raise (UnMatched)
   in
   
   (* method declarations *)
@@ -68,12 +68,12 @@ let rec c_defs_of_classDef ce path argl cd =
         ^ tab ^ c_e ^ " } " ^ e_c ^ nl
     in
     function
-    | CMDecl (t, i, al, sl)  ->
+    | CMDecl (t, i, al, sl) ->
         c_e ^ " Func " ^ string_of_pType t ^ " " ^ p ^ i ^ string_par c_of_mPArg al ^ "{" ^ nl
         ^ claim_stmts sl
         ^ c_e ^ " } " ^ e_c
         
-    | CTaskDecl (i, al, sl)     -> 
+    | CTaskDecl (i, al, sl) -> 
       let c_data_of_mPArg path = function
         | MPArg (t, i) -> string_of_pType t ^ " " ^ path ^ "_" ^ i 
         
@@ -82,15 +82,15 @@ let rec c_defs_of_classDef ce path argl cd =
         claim_stmts sl ^
         c_e ^ " } " ^ e_c 
   
-    | CResetDecl (sl)           -> 
+    | CResetDecl (sl)       -> 
         c_e ^ " " ^ "Reset {" ^ nl ^ 
         claim_stmts sl ^
         c_e ^ " } " ^ e_c
-    | CIdleDecl (sl)            -> 
+    | CIdleDecl (sl)        -> 
         c_e ^ " " ^ "Idle {" ^ nl ^ 
         claim_stmts sl ^
         c_e ^ " } " ^ e_c
-    | _ -> raise (UnMatched)
+    | _                     -> raise (UnMatched)
   in
   
   (* span tree recusively *)
@@ -98,7 +98,7 @@ let rec c_defs_of_classDef ce path argl cd =
     | COVar (o, al, i) ->
         let cd = myass o ce in
         c_defs_of_classDef ce (p ^ i) (List.map c_of_expr al) cd
-    | _ -> raise (UnMatched)
+    | _                -> raise (UnMatched)
   in
   
   match cd with

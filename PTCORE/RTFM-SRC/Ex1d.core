@@ -14,7 +14,7 @@ Task t (int id, int arg) {
 
 Reset {
     #>printf("User reset\n");<#
-    async after 1 s before 1 s t (1, 75);   
-    async before 2 s t (2, 75*2);      
+    async after 1s before 1s t (1, 75);   
+    async before 2s t (2, 75*2);      
 }
 

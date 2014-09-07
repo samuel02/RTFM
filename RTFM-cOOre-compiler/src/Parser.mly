@@ -8,8 +8,8 @@
 %token <bool>   BOOLVAL
 %token <char>   CHARVAL
 %token <string> STRVAL
+%token <int64>  TIME
 %token TASK ISR RESET IDLE PEND ASYNC AFTER BEFORE (* PRIO *) CLASS RETURN 
-%token USEC MSEC SEC
 %token RT_SLEEP RT_PRINTF RT_RAND RT_GETC RT_PUTC
 %token ASSIGN COMMA LT GT LP RP LCP RCP DOT SC
 %token INT CHAR BOOL BYTE VOID 
@@ -84,17 +84,15 @@ ids:
 
 after:
   | AFTER time                                               { $2 }
-  |                                                          { Usec (0) }
+  |                                                          { Usec (0L) }
 
 before:
   | BEFORE time                                              { $2 }
-  |                                                          { Usec (0) }
+  |                                                          { Usec (0L) }
 
 time:
-  | INTVAL USEC                                              { Usec($1) }                                                                       
-  | INTVAL MSEC                                              { Msec($1) }
-  | INTVAL SEC                                               { Sec($1) } 
-  | INTVAL                                                   { Usec($1) }  
+  | TIME                                                     { Usec($1) }
+  | INTVAL                                                   { Usec(Int64.of_int $1) }
 
 (*  
 prio:                 

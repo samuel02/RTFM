@@ -28,7 +28,7 @@ Task t1(char c) {
 	putc(c, stdout);
 	printf("\n");
 	<#
-    async after 5s before 100 ms t2(++c);
+    async after 5s before 100ms t2(++c);
 }
 
 Task t2(char c) {
@@ -45,5 +45,5 @@ Idle {
     printf("enter a character (before 5s)\n");
     c = getc(stdin);
     <# 
-    async before 5 s t1(c);   
+    async before 5s t1(c);   
 }

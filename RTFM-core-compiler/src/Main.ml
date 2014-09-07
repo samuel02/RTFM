@@ -70,7 +70,7 @@ let main () =
     
     let rm = ceiling_spec spec dlp in
     if opt.verbose then begin
-      p_stderr ("Mapping from deadlines to priorities: " ^ myconcat "," (mymap (fun (a, b) -> "(" ^ string_of_int a ^ ", " ^ string_of_int b ^ ")") dlp) );
+      p_stderr ("Mapping from deadlines to priorities: " ^ myconcat "," (mymap (fun (a, b) -> "(" ^ Int64.to_string a ^ ", " ^ string_of_int b ^ ")") dlp) );
       p_stderr ("Resource ceilings:" ^ nl ^ string_of_r rm );
       p_stderr ("Tasks/ISRs per priority: " ^ nl ^ string_of (pl_spec dlp spec rm) );
     end;

@@ -36,14 +36,14 @@ let rec string_of_r r = match r with
 
 (* lookup id -> prog -> stmts *)
 let rec lookup id p = match p with
-  | []                                                  -> failwith("Failed to lookup Func " ^ id)
+  | []                                                     -> failwith("Failed to lookup Func " ^ id)
   | FuncDef (_, fid, _, sl) :: l when (compare id fid = 0) -> sl
-  | _ :: l                                              -> lookup id l
+  | _ :: l                                                 -> lookup id l
 
 let rec lookup_ifunc id p = match p with
-  | []                                                   -> failwith("Failed to lookup IFunc " ^ id)
+  | []                                                      -> failwith("Failed to lookup IFunc " ^ id)
   | IFunc (_, _, fid, _, sl) :: l when (compare id fid = 0) -> sl
-  | _ :: l                                               -> lookup_ifunc id l
+  | _ :: l                                                  -> lookup_ifunc id l
 
 (* priorities from deadlines *)
 let dl_to_pr spec =
@@ -71,7 +71,7 @@ let dl_to_pr spec =
 let pr_of_dl dlp dl =
   try
     List.assoc dl dlp 
-  with _ -> raise (RtfmError("Internal Error looking up priority for deadline " ^ string_of_int dl))  
+  with _ -> raise (RtfmError("Internal Error looking up priority for deadline " ^ Int64.to_string dl))  
 
 let string_of_dl dlp dl =
   string_of_int (pr_of_dl dlp (usec_of_time dl))
@@ -105,30 +105,6 @@ let ceiling_spec spec dlp =
   in
   (* prog *)
   tops [] spec
-
-  
-(* associative list (id, [names]) *)
-(*
-let pl dlp topl rl =
-  let rec add (p, id) pl = match pl with
-    | []                            -> [(p, [id])]          (* add new *)
-    | (lp, idl) :: l when (p = lp)  -> (p, id:: idl) :: l   (* add to existing *)
-    | e :: l                        -> e :: (add (p, id) l)
-  
-  and top pl t = match t with
-    | []                           -> pl
-    | Isr (p, id,  _) :: l         -> let pl' = add (p, id ) pl in top pl' l
-    | Task (dl, id, pa,  _, _) :: l-> let pl' = add (pr_of_dl dlp dl, id ) pl in top pl' l
-    | _ :: l                       -> top pl l
-  
-  and res pl rl = match rl with
-    | []           -> pl
-    | (id, p) :: l -> let pl' = add (p, "[" ^ id ^ "]") pl in res pl' l
-  
-  in
-  let isrs = top [] topl in
-  List.sort (fun (a, _) (b, _) -> a - b) (res isrs rl)
-*)
 
 (* associative list (id, [names]) *)
 let pl_spec dlp spec rl =

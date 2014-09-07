@@ -47,9 +47,9 @@ rule lex = parse
   | "Reset"              { RESET }
   | "Idle"               { IDLE }
   
-  | "us"                 { USEC }                               (* time *)
-  | "ms"                 { MSEC }
-  | "s"                  { SEC }
+  | (digits as d) "us"   { TIME(Int64.of_string d) }            (* time *)
+  | (digits as d) "ms"   { TIME(Int64.mul (Int64.of_string d) 1000L) }
+  | (digits as d) "s"    { TIME(Int64.mul (Int64.of_string d) 1000000L) }
   
   | '{'                  { LCP }                                (* delimeters *)
   | '}'                  { RCP }

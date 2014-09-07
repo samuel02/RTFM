@@ -34,5 +34,5 @@ Reset {
 	#>x = 0; y = 0;<#
     #>printf("User reset\n");<#
     async before 1s t2(); // will take at least 5s, hence infeasible
-    async after 1 s before 10 s t1();     
+    async after 1s before 10s t1();     
 }

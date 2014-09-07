@@ -10,12 +10,12 @@ Task t1(int i) {
 
 Task t2(int j) {
 	#>printf("task2 %d\n", j);<#
-	async after 2 s t1(j+1);
+	async after 2s t1(j+1);
 }
 
 Reset {
 	#>printf("User reset\n");<#
-	async before 2 s t1(0); 
+	async before 2s t1(0); 
 }
 
 

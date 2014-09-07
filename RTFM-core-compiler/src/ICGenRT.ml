@@ -92,7 +92,7 @@ let c_rt_of_i dlp spec v r =
     | Claim (r, csl)          -> "RTFM_lock(RTFM_id, " ^ r ^ ");" ^ nl ^ (stmts path) csl ^ "RTFM_unlock(RTFM_id, " ^ r ^ ");"
     | Pend (be, id, par)      -> 
       "arg_" ^ id ^ " = (ARG_" ^ id ^ "){" ^ par ^ "};" ^ nl ^
-      "RTFM_pend(" ^ string_of_int (usec_of_time be) ^ ",  RTFM_id, " ^ id ^ "_nr);" 
+      "RTFM_pend(" ^ Int64.to_string (usec_of_time be) ^ ",  RTFM_id, " ^ id ^ "_nr);" 
     | Async (mi, af, be, id, par) ->
         (
         match mi with
@@ -100,8 +100,8 @@ let c_rt_of_i dlp spec v r =
         | None   -> ""
         ) ^ 
         "(" ^ "arg_" ^ id ^ " = (ARG_" ^ id ^ "){" ^ par ^ "}, " ^ 
-        "RTFM_async(" ^ string_of_int (usec_of_time af) ^ ", " ^ string_of_int (usec_of_time be) ^ ", RTFM_id, " ^ id ^ "_nr));"
-        
+        "RTFM_async(" ^ Int64.to_string (usec_of_time af) ^ ", " ^ Int64.to_string (usec_of_time be) ^ ", RTFM_id, " ^ id ^ "_nr));"
+
     | Sync ( id, par )        -> id ^ pass_par par ^ ";"
     
     | ClaimC (c)              -> String.trim c

@@ -34,5 +34,5 @@ Reset {
 	#>x = 0; y = 0;<#
     #>printf("User reset\n");<#
     async before 6s t2();
-    async after 2 s before 3 s t1();  // R will be claimed by t2    
+    async after 2s before 3s t1();  // R will be claimed by t2    
 }
