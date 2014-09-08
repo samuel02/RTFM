@@ -1,22 +1,14 @@
 // CEx2.coore
-<<<<<<< HEAD
-// Per Lindgren (C) 2014
-=======
 // Per Lindgren ( C ) 2014
->>>>>>> 017ea6fff651befaab81883f3daec3fd53649447
 //
 // Simple example
 
-class Root<> { 
+class Root<> {
     Task t1 (char c) {
         RT_printf("t1 : you entered : %c\n", c);
-<<<<<<< HEAD
-        async after 5 s before 100 ms t2(c); // we have no operations on char yet
-=======
         async after 5s before 100ms t2(c); // we have no operations on char yet
->>>>>>> 017ea6fff651befaab81883f3daec3fd53649447
-    }      
-    
+    }
+
     Task t2 (char c) {
         RT_printf("t2: the same character is %c\n", c);
     }
@@ -24,14 +16,10 @@ class Root<> {
     Reset {
         RT_printf("User reset\n");
     }
-     
+
     Idle {
         RT_printf("enter a character (before 5s)\n");
         char c := RT_getc();
-<<<<<<< HEAD
-        async before 5 s t1 (c);
-=======
         async before 5s t1 (c);
->>>>>>> 017ea6fff651befaab81883f3daec3fd53649447
     }
 }
