@@ -37,19 +37,9 @@ void setup_tty(int state) {
 <#
 
 Task updateTimer (){
-
-  #>
-    seconds--;
-  <#
-    #>
-  if (keepon != 0) {
-  <#
-    async after 1 s before 1 s updateTimer ();
-  #>
-  }
-  <#
+  #> seconds--; <#
+  async after 1 s before 1 s updateTimer ();
   async before 20 ms updateOutput ();
-
 }
 
 Task updateOutput (){
@@ -69,7 +59,6 @@ Task updateOutput (){
 Reset {
   #>
   printf("User reset\n");
-  //strcpy(sequence, "                   ", 20);
   strncpy(sequence, "               ", 15);
   <#
   async after 5 ms updateTimer();
