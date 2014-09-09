@@ -1,4 +1,3 @@
-
 // Top-level C-code used for non-blocking user input
 #>
 #include <termios.h>
@@ -12,18 +11,6 @@ char sequence[15];
 int seq_n = 0;
 const char* correct = "4 8 15 16 23 42";
 int keepon = 1;
-
-/* Non-blocking user input */
-int kbhit() {
-  struct timeval tv;
-  fd_set fds;
-  tv.tv_sec = 0;
-  tv.tv_usec = 0;
-  FD_ZERO(&fds);
-  FD_SET(STDIN_FILENO, &fds); //STDIN_FILENO is 0
-  select(STDIN_FILENO+1, &fds, NULL, NULL, &tv);
-  return FD_ISSET(STDIN_FILENO, &fds);
-}
 
 void setup_tty(int state) {
   struct termios ttystate;
@@ -47,22 +34,17 @@ void setup_tty(int state) {
   //set the terminal attributes.
   tcsetattr(STDIN_FILENO, TCSANOW, &ttystate);
 }
-
 <#
 
-
-
-
-
 Task updateTimer (){
-  
+
   #>
     seconds--;
   <#
     #>
   if (keepon != 0) {
   <#
-    async after 1 s before 1 ms updateTimer ();
+    async after 1 s before 1 s updateTimer ();
   #>
   }
   <#
@@ -101,41 +83,33 @@ Idle {
   setup_tty(ENABLE);
 
   while(keepon) {
-    usleep(1);
-    new_input = kbhit();
+
+    new_input = fgetc(stdin);
+
     if (new_input != 0) {
-      c = fgetc(stdin);
-      if (c == correct[seq_n]) {
-        <# claim Sequence { #>
-          sequence[seq_n] = c;
+
+      if (new_input == correct[seq_n]) {
+        <#
+          claim Sequence {
+        #>
+          sequence[seq_n] = new_input;
           seq_n++;
-          <#
+        <#
         }
         async before 20 ms updateOutput ();
         #>
       } else {
-        strncpy(sequence, "               ", 15);    
+        // Reset user input string
+        strncpy(sequence, "               ", 15);
         seq_n = 0;
       }
 
-      if (c == 'q') {
-        keepon = 0;
-        nonblock(NB_DISABLE);
-
-
-      } else {
-        keepon = 1;
-      }
+      if (new_input == 'q') keepon = 0;
     }
-
-    //fprintf(stderr,"%d ", i);
   }
 
   setup_tty(DISABLE);
   RT_exit();
 
   <#
-
 }
-
-
