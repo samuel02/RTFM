@@ -5,13 +5,14 @@
 
 #define ENABLE 0
 #define DISABLE 1
-#define ORIGINAL_TIME 108
+#define ORIGINAL_TIME 108 * 60
 
 volatile int seconds = ORIGINAL_TIME;
 char sequence[15];
 int seq_n = 0;
 const char* correct = "4 8 15 16 23 42";
 int keepon = 1;
+int frequency = 0;
 
 void setup_tty(int state) {
   struct termios ttystate;
@@ -35,17 +36,35 @@ void setup_tty(int state) {
   //set the terminal attributes.
   tcsetattr(STDIN_FILENO, TCSANOW, &ttystate);
 }
+
+void make_sound() {
+  printf("\07");
+}
+
+void set_frequency() {
+  if(seconds <= 240 && seconds > 60) {
+    frequency = 1;
+  } else if(seconds <= 60 && seconds > 10) {
+    frequency = 2;
+  } else if(seconds <= 10 && seconds > 0) {
+    frequency = 3;
+  }
+}
+
 <#
 
 Task updateTimer () {
   claim Seconds {
     #> seconds--; <#
   }
-  async after 1 s before 1 s updateTimer ();
+
+  #> set_frequency(); <#
+
+  async after 1 s updateTimer ();
   async before 20 ms updateOutput ();
 }
 
-Task updateOutput (){
+Task updateOutput () {
   claim Sequence {
     #>
     printf("\r%03d%c[0;30;47m%02d%c[0;39;49m\t\t>:%s", seconds/60, 27, seconds%60, 27, sequence);
@@ -58,13 +77,30 @@ Task updateOutput (){
   }
 }
 
+Task threeSecondBeep () {
+  #> if (frequency == 1) make_sound(); <#
+  async after 3 s before 3 s threeSecondBeep();
+}
+
+Task twoSecondBeep () {
+  #> if (frequency == 2) make_sound(); <#
+  async after 2 s before 2 s twoSecondBeep();
+}
+
+Task oneSecondBeep () {
+  #> if (frequency == 3) make_sound(); <#
+  async after 1 s before 1 s oneSecondBeep();
+}
 
 Reset {
   #>
-  printf("User reset\n");
+  printf("User reset!!\n");
   strncpy(sequence, "               ", 15);
   <#
-  async after 5 ms updateTimer();
+  async updateTimer();
+  async threeSecondBeep();
+  async twoSecondBeep();
+  async oneSecondBeep();
 }
 
 Idle {
@@ -75,7 +111,6 @@ Idle {
   setup_tty(ENABLE);
 
   while(keepon) {
-
     new_input = fgetc(stdin);
 
     if (new_input != 0) {
@@ -91,7 +126,6 @@ Idle {
 
         #>
         if (strncmp(correct, sequence, strlen(correct)) == 0) {
-          printf("\07");
         <#
           claim Seconds {
             #> seconds = ORIGINAL_TIME; <#
