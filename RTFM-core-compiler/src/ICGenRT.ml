@@ -129,7 +129,8 @@ let c_rt_of_i dlp spec v r =
   in
   "// RTFM-core for RTFM-RT" ^ nl ^
   info ^ nl ^
+  deb ("Includes etc.") ^ myconcat nl (mymap c_top spec) ^
   deb ("Resources and ceilings") ^ c_of_r r ^
   deb ("Entry points") ^ c_entry_of_top spec ^
   deb ("Argument instances") ^ myconcat nl (mymap c_entry_inst spec) ^ nl ^
-  deb ("Application") ^ myconcat nl (mymap c_top spec) ^ myconcat nl (mymap top spec)
+  deb ("Application") ^ myconcat nl (mymap top spec)
