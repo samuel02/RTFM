@@ -8,9 +8,9 @@
 #define ORIGINAL_TIME 108 * 60
 
 volatile int seconds = ORIGINAL_TIME;
-char sequence[15];
+char sequence[16];
 int seq_n = 0;
-const char* correct = "4 8 15 16 23 42";
+const char* correct = "4 8 15 16 23 42\n";
 int keepon = 1;
 int frequency = 0;
 
@@ -67,9 +67,9 @@ Task updateTimer () {
 Task updateOutput () {
   claim Sequence {
     #>
-    printf("\r%03d%c[0;30;47m%02d%c[0;39;49m\t\t>:%s", seconds/60, 27, seconds%60, 27, sequence);
+    printf("\r%03d%c[0;30;47m%02d%c[0;39;49m\t\t\x1b[32m>:%s\x1b[0m", seconds/60, 27, seconds%60, 27, sequence);
     int i;
-    for (i=0; i<15-seq_n;i++) {
+    for (i=0; i<16-seq_n;i++) {
       printf("\b");
     }
     fflush(stdout);
@@ -95,7 +95,7 @@ Task oneSecondBeep () {
 Reset {
   #>
   printf("User reset!!\n");
-  strncpy(sequence, "               ", 15);
+  strncpy(sequence, "                ", 16);
   <#
   async updateTimer();
   async threeSecondBeep();
@@ -130,6 +130,10 @@ Idle {
           claim Seconds {
             #> seconds = ORIGINAL_TIME; <#
           }
+          claim Sequence {
+            #> strncpy(sequence, "                ", 16); <#
+          }
+          #> seq_n = 0; <#
         #>
         }
         <#
@@ -138,7 +142,7 @@ Idle {
         #>
       } else {
         // Reset user input string
-        strncpy(sequence, "               ", 15);
+        strncpy(sequence, "                ", 16);
         seq_n = 0;
       }
 
