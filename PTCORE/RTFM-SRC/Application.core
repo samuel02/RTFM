@@ -14,6 +14,9 @@ const char* correct = "4 8 15 16 23 42\n";
 int keepon = 1;
 int frequency = 0;
 
+// Function for setting up the terminal
+// to work in non-canonical mode and disable
+// echoing.
 void setup_tty(int state) {
   struct termios ttystate;
 
@@ -25,12 +28,12 @@ void setup_tty(int state) {
     ttystate.c_lflag &= ~ICANON;
     //minimum of number input read.
     ttystate.c_cc[VMIN] = 1;
-    // enable echo
+    // disable echo
     ttystate.c_lflag &= ~ECHO;
   } else if (state == DISABLE) {
     //turn on canonical mode
     ttystate.c_lflag |= ICANON;
-    // disable echoing
+    // enable echoing
     ttystate.c_lflag |= ECHO;
   }
   //set the terminal attributes.
@@ -41,6 +44,7 @@ void make_sound() {
   printf("\07");
 }
 
+// Set beep frequency for some intervals
 void set_frequency() {
   if(seconds <= 240 && seconds > 60) {
     frequency = 1;
@@ -53,6 +57,9 @@ void set_frequency() {
 
 <#
 
+// Task that will call itself and update
+// the timer every second also it will update
+// the output.
 Task updateTimer () {
   claim Seconds {
     #> seconds--; <#
@@ -60,10 +67,11 @@ Task updateTimer () {
 
   #> set_frequency(); <#
 
+  async before 20 ms updateOutput();
   async after 1 s updateTimer ();
-  async before 20 ms updateOutput ();
 }
 
+// Update the user interface
 Task updateOutput () {
   claim Sequence {
     #>
@@ -77,24 +85,31 @@ Task updateOutput () {
   }
 }
 
+// Will cause a beep every third second if
+// frequency is set to one otherwise silent.
 Task threeSecondBeep () {
   #> if (frequency == 1) make_sound(); <#
   async after 3 s before 3 s threeSecondBeep();
 }
 
+// Will cause a beep every second second if
+// frequency is set to one otherwise silent.
 Task twoSecondBeep () {
   #> if (frequency == 2) make_sound(); <#
   async after 2 s before 2 s twoSecondBeep();
 }
 
+// Will cause a beep every second if
+// frequency is set to one otherwise silent.
 Task oneSecondBeep () {
   #> if (frequency == 3) make_sound(); <#
   async after 1 s before 1 s oneSecondBeep();
 }
 
+// Start timer task as well as beep tasks
 Reset {
   #>
-  printf("User reset!!\n");
+  printf("User reset!!!\n");
   strncpy(sequence, "                ", 16);
   <#
   async updateTimer();
@@ -103,18 +118,22 @@ Reset {
   async oneSecondBeep();
 }
 
+
 Idle {
   #>
   char c;
   int new_input = 0;
 
+  // Enter non-canonical mode and disable echoing
   setup_tty(ENABLE);
 
   while(keepon) {
+    // Check if there is any user input
     new_input = fgetc(stdin);
 
     if (new_input != 0) {
 
+      // Check if input is part of correct sequence
       if (new_input == correct[seq_n]) {
         <#
           claim Sequence {
@@ -125,12 +144,15 @@ Idle {
         }
 
         #>
+        // Check if user has entered the entire correct sequence
         if (strncmp(correct, sequence, strlen(correct)) == 0) {
         <#
           claim Seconds {
+            // Reset timer
             #> seconds = ORIGINAL_TIME; <#
           }
           claim Sequence {
+            // Reset user input
             #> strncpy(sequence, "                ", 16); <#
           }
           #> seq_n = 0; <#
@@ -146,10 +168,12 @@ Idle {
         seq_n = 0;
       }
 
+      // Break loop if user hits key q
       if (new_input == 'q') keepon = 0;
     }
   }
 
+  // Enable canonical mode and echoing.
   setup_tty(DISABLE);
   RT_exit();
 
