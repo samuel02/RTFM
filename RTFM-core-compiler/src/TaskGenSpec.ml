@@ -86,6 +86,27 @@ let task_of_p topl =
                 | _ -> raise (RtfmError("failed lookup: [" ^ id ^ "]")) 
               end
         end    
+		| Pend (be, id, par ) :: l -> 
+      begin
+          let nrpends = mcount id ((List.map fst) sal) in
+          let new_path = path ^ "_" ^ id ^ "_" ^ string_of_int nrpends in
+              begin
+                match Env.lookup_task id topl with
+                | TaskDef (_, al, sl) ->
+                    let new_bl = (Usec(0)) in
+                    let new_dl = 
+                      if (usec_of_time be == 0) then 
+                        raise (RtfmError("Explicit deadline for pend required")) 
+                      else be in 
+                    (* the new task *)
+                    ITask (Infinite, new_dl, new_path, new_path, al, sl) :: 
+                    (* tasks created by the new task *)
+                    tasks nr new_bl new_dl new_path ((id, (new_path, new_dl))::aal) afl [] [] sl @ 
+                    (* the remaining statements *)
+                    tasks nr i_bl i_dl path aal afl ((id, (new_path, new_dl))::sal) sfl l 
+                | _ -> raise (RtfmError("failed lookup: [" ^ id ^ "]")) 
+              end
+      end
     | _ :: l -> tasks nr i_bl i_dl path aal afl sal sfl l                             (* analyse next statement                           *)
   
   and tasktop = function
@@ -114,6 +135,10 @@ let spec_of_p topl =
       let new_dl = if (usec_of_time be == 0) then Usec ((usec_of_time i_dl) - (usec_of_time af)) else be in
       if usec_of_time new_dl < 0 then async_err_handling ("Negative deadline for async " ^ id ^ nl); 
       Async (af, new_dl, new_path, par) :: stmts i_dl path (id::sal) sfl l
+    | Pend (be, id, par) :: l -> 
+      let nrpends = mcount id sal in
+      let new_path = (path ^ "_" ^ id ^ "_" ^ string_of_int nrpends) in
+      Pend (be, new_path, par) :: stmts i_dl path (id::sal) sfl l
     | s :: l -> s :: stmts i_dl path sal sfl l
   
   and spectop = function
