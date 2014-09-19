@@ -1,9 +1,24 @@
+
+Task test_task2() {
+  #> printf("Async task\n"); <#
+}
+
+Task test_task() {
+  #> printf("Pending task\n"); <#
+}
+
 Reset {
   #> printf("Reset!!"); <#
 }
 
 Idle {
-  #> printf("Hello"); <#
-  halt;
-  #> printf("Should not be shown!"); <#
+  #> printf("Hello\n"); <#
+  #> while(1) { <#
+    async after 3 s test_task2();
+    pend before 2 s test_task();
+
+    #>  sleep(4);
+    printf("Good morning!\n");
+  }<#
+
 }

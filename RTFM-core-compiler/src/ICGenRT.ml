@@ -99,7 +99,7 @@ let c_rt_of_i dlp spec v r =
         "RTFM_pend(" ^ string_of_int (usec_of_time be) ^ ",  RTFM_id, " ^ id ^ "_nr);"
     | Async (af, be, id, par) ->
         "arg_" ^ id ^ " = (ARG_" ^ id ^ "){" ^ par ^ "}; " ^ nl ^
-        "RTFM_pend(" ^ string_of_int (usec_of_time af) ^ ", " ^ string_of_int (usec_of_time be) ^ ", RTFM_id, " ^ id ^ "_nr);"
+        "RTFM_async(" ^ string_of_int (usec_of_time af) ^ ", " ^ string_of_int (usec_of_time be) ^ ", RTFM_id, " ^ id ^ "_nr);"
     | Sync ( id, par )        -> id ^ pass_par par ^ ";"
 
     | ClaimC (c)              -> String.trim c
