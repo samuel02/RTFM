@@ -1,92 +1,9 @@
-// Shared data structure
-// Protected by R_SData
-#>
-typedef struct {
-	int x;
-	// ...
-} SData;
-
-volatile SData sd;
-
-SData fast(SData fsd) {
-	printf("fast\n");
-	fsd.x = fsd.x*2;
-	return fsd;
+Reset {
+  #> printf("Reset!!"); <#
 }
 
-SData slow(SData ssd) {
-	printf("slow start\n");
-	RTFM_sleep(RTFM_sec(2)); // emulate slow caclulation
-	printf("slow end\n");
-	return ssd;
+Idle {
+  #> printf("Hello"); <#
+  halt;
+  #> printf("Should not be shown!"); <#
 }
-
-int readX() {
-	return RTFM_rand(100);
-}
-
-void writeX(int x) {
-	printf("writeX %d\n", x);	
-}
-<#
-
-Reset {#> 
-	printf("User reset\n"); 
-	<# pend TIMER0_IRQHandler; #>
-	while (1) {
-		<# pend EINT0_IRQHandler; #>
-		//RTFM_sleep(RTFM_sec(RTFM_rand(5)+1)); // emulate sporatic envirnment 0..4 SEC
-		RTFM_sleep(RTFM_sec(RTFM_rand(5)+1)); // emulate sporatic envirnment 1..5 SEC
-	} 
-<#}
- 
-Func SData sd_get() { 
-	#> SData r; <#
-	claim R_SData {
-		#> r = sd; <#
-	}
-	#> return r; <#
-}
- 
-Func void sd_set(SData s) {
-	claim R_SData {
-		#> sd = s; <#
-	}
-}	
-
-Task compute 3 {#>
-	printf("calculate\n"); 
-	SData csd = <# sync sd_get(); #>;
-	csd = slow(csd); // do some fancy interpolation on csd
-	<# sync sd_set(csd); #>
-<#}
-
-ISR EINT0_IRQHandler 5 {#>
-	printf("EINT0_IRQHandler\n");	
-	SData rsd; 
-	rsd.x = readX(); // Read hardware
-	printf("read value %d\n", rsd.x);
-	rsd = fast(rsd); 
-	<# sync sd_set(rsd); #>
-<#} 				 
-
-#>
-volatile int cnt = 0;
-#define MAX_CNT 3
-int nr_invok = 0;
-<#
- 
-ISR TIMER0_IRQHandler 7 {#>
-	printf("TIMER0_IRQHandler %d\n", ++nr_invok); 
-	SData wsd = <# sync sd_get(); #>;
-	writeX(wsd.x); // Write hardware
-	
-	cnt = (cnt + 1) % MAX_CNT; 
-	printf("cnt = %d\n", cnt);
-	if (cnt == 0) {
-		<# pend compute; #>;
-		printf("Tjoho");
-	}
-	RTFM_sleep(RTFM_sec(1)); // Emulate periodic behvior
-	<# pend TIMER0_IRQHandler; #>		
-<#}
