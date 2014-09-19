@@ -42,8 +42,7 @@ top:
 stmt:
   | CCODE                                   { ClaimC ($1) }
   | CLAIM ID LCP stmt* RCP                  { Claim ($2, $4) }
-  | PEND ID SC                              { Pend (0, $2) }
-  | PEND AFTER INTVAL ID SC                 { Pend ($3, $4) }
+  | PEND after ID PARAMS SC                 { Pend ($2, $3, $4) }
   | ASYNC after before ID PARAMS SC         { Async ($2, $3, $4, $5) }
   | SYNC ID PARAMS SC                       { Sync ($2, $3) }
   | HALT SC                                 { Halt }

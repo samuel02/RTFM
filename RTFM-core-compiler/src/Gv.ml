@@ -113,7 +113,7 @@ let gv_of_spec dlp rml spec =
     match s with
       | Claim (cr, cs)           -> let de = cr ^ "_" ^ t in DotClaim (i, cr, t, de, Ds (de , stmts de tp cs))
       | Sync (sid, _)            -> DotSync (i, t, sid)
-      | Pend (af, pid)           -> DotPend (i, t, pid)
+      | Pend (af, pid, arg)      -> DotPend (i, t, pid)
       | Async (af, prio, id, al) -> DotAsync (i, t, id)
       | ClaimC (s)               -> DotC (i, s)
       | Halt                     -> DotHalt (i)

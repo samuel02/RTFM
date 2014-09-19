@@ -94,7 +94,9 @@ let c_rt_of_i dlp spec v r =
   let rec stmts path sl = myconcat nl (mymap (stmt path) sl)
   and stmt path = function
     | Claim (r, csl)          -> "RTFM_lock(RTFM_id, " ^ r ^ ");" ^ nl ^ (stmts path) csl ^ "RTFM_unlock(RTFM_id, " ^ r ^ ");"
-    | Pend (_, id)            -> "RTFM_pend(RTFM_id, " ^ id ^ "_nr);"
+    | Pend (be, id, par)      ->
+        "arg_" ^ id ^ " = (ARG_" ^ id ^ "){" ^ par ^ "};" ^ nl ^
+        "RTFM_pend(" ^ string_of_int (usec_of_time be) ^ ",  RTFM_id, " ^ id ^ "_nr);"
     | Async (af, be, id, par) ->
         "arg_" ^ id ^ " = (ARG_" ^ id ^ "){" ^ par ^ "}; " ^ nl ^
         "RTFM_pend(" ^ string_of_int (usec_of_time af) ^ ", " ^ string_of_int (usec_of_time be) ^ ", RTFM_id, " ^ id ^ "_nr);"
