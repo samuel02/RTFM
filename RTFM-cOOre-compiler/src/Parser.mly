@@ -6,7 +6,7 @@
 %token <string> ID
 %token <int>    INTVAL
 %token <bool>   BOOLVAL
-%token <char>   CHARVAL
+%token <char>   CHARVAL MATH
 %token <string> STRVAL
 %token TASK ISR RESET IDLE PEND ASYNC AFTER BEFORE (* PRIO *) CLASS RETURN 
 %token USEC MSEC SEC
@@ -73,6 +73,7 @@ expr:
   | ids                                                      { IdExp ($1) }
   | ids LP params RP                                         { CallExp ($1, $3) }
   | INTVAL                                                   { IntExp ($1) }
+  | expr MATH expr                                           { MathExp ($2, $1, $3) }
   | CHARVAL                                                  { CharExp ($1) }
   | BOOLVAL                                                  { BoolExp ($1) }
   | RT_RAND LP expr RP                                       { RT_Rand ($3) }

@@ -13,6 +13,7 @@ type expr =
     | AsyncExp  of time * time * id list * expr list      (* after before id[.id]? (exprs) *)
     | PendExp   of id list
     | IntExp    of int
+    | MathExp   of char * expr * expr
     | CharExp   of char
     | BoolExp   of bool
     | RT_Rand   of expr
@@ -68,6 +69,7 @@ let rec string_of_expr = function
     | AsyncExp (af, be, il, el) -> "async after " ^ string_of_time af ^ " before " ^ string_of_time be ^ " " ^ String.concat "." il ^ string_par string_of_expr el
     | PendExp (il)              -> "pend " ^ String.concat "." il
     | IntExp (i)                -> string_of_int i
+    | MathExp (e, a, b)         -> string_of_expr a ^ " " ^ String.make 1 e ^ " " ^ string_of_expr b ^ "// MathExp"
     | CharExp (c)               -> ecit ^ String.make 1 c ^ ecit
     | BoolExp (b)               -> string_of_bool b
     | RT_Rand (e)               -> "RT_rand(" ^ string_of_expr e ^ ")"

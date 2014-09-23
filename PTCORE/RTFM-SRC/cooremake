@@ -1,0 +1,9 @@
+#! /bin/sh
+
+in=$1
+
+../../RTFM-cOOre-compiler/src/Main.native -i $1 -o ${in%.*}.core
+../../RTFM-core-compiler/src/Main.native -i ${in%.*}.core -o ../Application/autogen.c
+gcc ../RTFM-PT/RTFM-PT.c -o ${in%.*} -lpthread
+
+
