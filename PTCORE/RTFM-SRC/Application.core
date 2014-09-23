@@ -16,6 +16,6 @@ Idle {
   #>
   char c = getc(stdin);
   <#
-  abort (m);
+  abort m;
   pend before 1 s task_print(c);
 }

@@ -43,7 +43,7 @@ let task_of_p topl =
               tasks nr i_bl i_dl path aal afl sal (id::sfl) l           (* add function id to sfl and anlyse remaining statements         *)
           | _ -> raise (RtfmError("failed lookup: [" ^ id ^ "]"))
         end
-    | Async (af, be, id, _) :: l ->
+    | Async (handle, af, be, id, _) :: l ->
         begin
           let nrsyncs = mcount id ((List.map fst) sal) in
           let new_path = path ^ "_" ^ id ^ "_" ^ string_of_int nrsyncs in
@@ -129,12 +129,12 @@ let spec_of_p topl =
       let nrsyncs = mcount id sfl in
       let new_path = (path ^ "_" ^ id ^ "_" ^ string_of_int nrsyncs) in
       Sync (new_path, par) :: stmts i_dl path sal (id::sfl) l
-    | Async (af, be, id, par) :: l ->
+    | Async (handle, af, be, id, par) :: l ->
       let nrsyncs = mcount id sal in
       let new_path = (path ^ "_" ^ id ^ "_" ^ string_of_int nrsyncs) in
       let new_dl = if (usec_of_time be == 0) then Usec ((usec_of_time i_dl) - (usec_of_time af)) else be in
       if usec_of_time new_dl < 0 then async_err_handling ("Negative deadline for async " ^ id ^ nl);
-      Async (af, new_dl, new_path, par) :: stmts i_dl path (id::sal) sfl l
+      Async (handle, af, new_dl, new_path, par) :: stmts i_dl path (id::sal) sfl l
     | Pend (be, id, par) :: l ->
       let nrpends = mcount id sal in
       let new_path = (path ^ "_" ^ id ^ "_" ^ string_of_int nrpends) in

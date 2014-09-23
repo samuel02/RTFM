@@ -38,6 +38,7 @@ rule lex = parse
   | "claim"              { CLAIM }
   | "after"              { AFTER }
   | "before"             { BEFORE }
+  | "abort"              { ABORT }
 (*| "prio"               { PRIO } *)
 
   | "ISR"                { ISR }                                (* top level *)

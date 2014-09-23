@@ -33,9 +33,10 @@ let string_of_spec tl =
     | Claim (id, s)           -> t ^ "Claim " ^ id ^ op ^ stmts t s ^ t ^ cl
     | Pend (af, id, par)      -> t ^ "Pend after" ^ string_of_time af ^ " " ^ id ^ " (" ^ par ^ ")"
     | Sync (id, par )         -> t ^ "Sync " ^ id ^ "#>" ^ par ^ "<#"
-    | Async (af, pr, id, par) -> t ^ "Async after " ^ string_of_time af ^ " before " ^ string_of_time pr ^ " " ^ id ^ " (" ^ par ^ ")"
+    | Async (handle, af, pr, id, par) ->  t ^ assign_string handle ^ "Async after " ^ string_of_time af ^ " before " ^ string_of_time pr ^ " " ^ id ^ " (" ^ par ^ ")"
     | ClaimC (c)              -> t ^ "#> " ^ c ^ "<#"
     | Halt                    -> t ^ "Halt"
+    | Abort (m)               -> t ^ "Abort " ^ m
   in
   myconcat nl (mymap top tl)
 

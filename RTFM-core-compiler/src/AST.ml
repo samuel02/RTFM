@@ -17,9 +17,10 @@ type stmt =
   | Claim     of string * stmt list                             (* res_id, stmts                    *)
   | Pend      of time * string * string                         (* deadline, task_id, par_c         *)
   | Sync      of string * string                                (* func_id, par_c                   *)
-  | Async     of time * time * string * string                  (* expr, prio, task_id, par_c       *)
+  | Async     of string * time * time * string * string         (* handle, before, after, task_id, par_c *)
   | ClaimC    of string                                         (* code_c                           *)
   | Halt                                                        (* halt takes no arguments *)
+  | Abort     of string                                         (* handle *)
 
 type top =
   | TopC      of string                                         (* code_c                           *)
@@ -68,9 +69,10 @@ let string_of_tops tl =
     | Claim (id, s)           -> t ^ "Claim " ^ id ^ op ^ stmts t s ^ t ^ cl
     | Pend (af, id, par)      -> t ^ "Pend after" ^ string_of_time af ^ " " ^ id ^ "(#>" ^ par ^ "<#)"
     | Sync (id, par )         -> t ^ "Sync " ^ id ^ "(#>" ^ par ^ "<#)"
-    | Async (af, pr, id, par) -> t ^ "Async after " ^ string_of_time af ^ " before " ^ string_of_time pr ^ " " ^ id ^ "(#>" ^ par ^ "<#)"
+    | Async (handle, af, pr, id, par) -> t ^ assign_string handle ^ "Async after " ^ string_of_time af ^ " before " ^ string_of_time pr ^ " " ^ id ^ "(#>" ^ par ^ "<#)"
     | ClaimC (c)              -> t ^ "#> CCODE <#"
     | Halt                    -> t ^ "--- our new halt ---"
+    | Abort (handle)          -> t ^ "Abort " ^ handle
   in
   myconcat nl (mymap top tl)
 

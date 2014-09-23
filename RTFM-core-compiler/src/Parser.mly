@@ -8,7 +8,7 @@
 %token <string> STRINGVAL
 %token <string> CCODE
 %token <string> PARAMS
-%token MODULE INCLUDE ISR TASK FUNC RESET IDLE SYNC ASYNC PEND AFTER BEFORE (* PRIO *) CLAIM USEC MSEC SEC SC LCP RCP EOF HALT ASSIGN
+%token MODULE INCLUDE ISR TASK FUNC RESET IDLE SYNC ASYNC PEND AFTER BEFORE (* PRIO *) CLAIM USEC MSEC SEC SC LCP RCP EOF HALT ASSIGN ABORT
 
 %{
   open AST
@@ -42,10 +42,11 @@ top:
 stmt:
   | CCODE                                               { ClaimC ($1) }
   | CLAIM ID LCP stmt* RCP                              { Claim ($2, $4) }
-  | PEND after ID PARAMS SC                             { Pend ($2, $3, $4) }
+  | PEND before ID PARAMS SC                            { Pend ($2, $3, $4) }
   | assignment ASYNC after before ID PARAMS SC          { Async ($1, $3, $4, $5, $6) }
   | SYNC ID PARAMS SC                                   { Sync ($2, $3) }
   | HALT SC                                             { Halt }
+  | ABORT ID SC                                         { Abort($2) }
 
 after:
   | AFTER time                              { $2 }

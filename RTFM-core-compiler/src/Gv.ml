@@ -16,6 +16,7 @@ type dstmt =
   | DotAsync of int * string * string
   | DotC of int * string
   | DotHalt of int
+  | DotAbort of int * string * string
 and
   dstmts =
   | Ds of string * dstmt list
@@ -51,6 +52,7 @@ let d_of_ds =
     | DotAsync (i, _, s)         -> record_line i ("async " ^ s)
     | DotC (i, s)                -> record_line i ("#&gt; " ^ strip (String.sub s 0 (min 8 (String.length s))) ^ "...&lt;#")
     | DotHalt (i)                -> record_line i ("halt")
+    | DotAbort (i, _, s)         -> record_line i ("abort " ^ s)
 
 (* create records for the program *)
 let d_of_dt rl d =
@@ -72,6 +74,7 @@ let d_of_dt rl d =
     | DotSync (i, ft, id)                   -> ft ^ ":L" ^ string_of_int i ^ ":e -> " ^ id ^ ":n [arrowhead = none, arrowtail = none]" ^ nl
     | DotPend (i, ft, id)                   -> ft ^ ":L" ^ string_of_int i ^ ":e -> " ^ (* "ISR_" ^ *) id ^ ":n [dir = both, arrowtail = invempty, arrowhead = none, style=dotted]" ^ nl
     | DotAsync (i, ft, id)                  -> ft ^ ":L" ^ string_of_int i ^ ":e -> " ^ (* "ISR_" ^ *) id ^ ":n [dir = both, arrowtail = invempty, arrowhead = none, style=dotted]" ^ nl
+    | DotAbort (i, ft, id)                  -> ft ^ ":L" ^ string_of_int i ^ ":e -> " ^  id ^ ":n [dir = both, arrowtail = invempty, arrowhead = none, style=dotted]" ^ nl
     | _ -> ""
 
   in
@@ -114,9 +117,10 @@ let gv_of_spec dlp rml spec =
       | Claim (cr, cs)           -> let de = cr ^ "_" ^ t in DotClaim (i, cr, t, de, Ds (de , stmts de tp cs))
       | Sync (sid, _)            -> DotSync (i, t, sid)
       | Pend (af, pid, arg)      -> DotPend (i, t, pid)
-      | Async (af, prio, id, al) -> DotAsync (i, t, id)
+      | Async (handle, af, prio, id, al) -> DotAsync (i, t, id)
       | ClaimC (s)               -> DotC (i, s)
       | Halt                     -> DotHalt (i)
+      | Abort (s)                -> DotAbort (i, t, s)
 
   in
   (* parse the program entry points *)

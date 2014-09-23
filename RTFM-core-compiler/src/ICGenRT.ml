@@ -97,13 +97,18 @@ let c_rt_of_i dlp spec v r =
     | Pend (be, id, par)      ->
         "arg_" ^ id ^ " = (ARG_" ^ id ^ "){" ^ par ^ "};" ^ nl ^
         "RTFM_pend(" ^ string_of_int (usec_of_time be) ^ ",  RTFM_id, " ^ id ^ "_nr);"
-    | Async (af, be, id, par) ->
-        "arg_" ^ id ^ " = (ARG_" ^ id ^ "){" ^ par ^ "}; " ^ nl ^
-        "RTFM_async(" ^ string_of_int (usec_of_time af) ^ ", " ^ string_of_int (usec_of_time be) ^ ", RTFM_id, " ^ id ^ "_nr);"
+    | Async (handle, af, be, id, par) ->
+        if handle = "" then
+          "arg_" ^ id ^ " = (ARG_" ^ id ^ "){" ^ par ^ "}; " ^ nl ^
+          "RTFM_async(" ^ string_of_int (usec_of_time af) ^ ", " ^ string_of_int (usec_of_time be) ^ ", RTFM_id, " ^ id ^ "_nr);"
+        else
+          "arg_" ^ id ^ " = (ARG_" ^ id ^ "){" ^ par ^ "}; " ^ nl ^
+          "RTFM_msg " ^ handle ^ " = " ^ "RTFM_async(" ^ string_of_int (usec_of_time af) ^ ", " ^ string_of_int (usec_of_time be) ^ ", RTFM_id, " ^ id ^ "_nr);"
     | Sync ( id, par )        -> id ^ pass_par par ^ ";"
 
     | ClaimC (c)              -> String.trim c
     | Halt                    -> "RT_halt();"
+    | Abort (m)               -> "RT_abort(" ^ m ^ ");"
 
   and top = function
     | IIsr (p, id, sl)                -> "void " ^ id ^ "(int RTFM_id) {" ^ nl ^ (stmts id) sl ^ "}"
