@@ -37,11 +37,19 @@ class Root <> {
 			RT_printf("%d, %d, %d\n", f, b, a);	
 			RT_printf("%d, %d, %d\n", f, b, a);	
 			if (2) {			
-				RT_printf("Nested tabs");	
+				RT_printf("Nested if");	
+			}
+			while (2) {			
+				RT_printf("Nested while");	
 			}
 
 		}
-		if (1) {}
+		while (2) {			
+			RT_printf("while");	
+		}
+		if (2) {			
+			RT_printf("while");	
+		}
 	}
 
 }

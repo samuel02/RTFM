@@ -111,6 +111,7 @@ stmt:
   | ID ASSIGN expr SC                                        { Assign ($1, $3) }
   | RETURN expr SC                                           { Return ($2) }
   | IF LP expr RP LCP stmt* RCP                              { If($3, $6) }
+  | WHILE LP expr RP LCP stmt* RCP                           { While($3, $6) }
   | RT_SLEEP LP expr RP SC                                   { RT_Sleep ($3) }
   | RT_PRINTF LP STRVAL COMMA params RP SC                   { RT_Printf ($3, $5) }
   | RT_PRINTF LP STRVAL RP SC                                { RT_Printf ($3, []) }
