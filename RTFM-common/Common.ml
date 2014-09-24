@@ -23,6 +23,10 @@ let ecit  = "\'"
 let e_c   = "#>"
 let c_e   = "<#"
 
+let sc = ";"
+let scc = ';'
+
+
 (* Error handling *)
 exception RtfmError of string
 exception UnMatched
