@@ -74,6 +74,7 @@ expr:
   | ids LP params RP                                         { CallExp ($1, $3) }
   | INTVAL                                                   { IntExp ($1) }
   | expr MATH expr                                           { MathExp ($2, $1, $3) }
+  | LP expr RP                                               { ParExp ($2) }
   | CHARVAL                                                  { CharExp ($1) }
   | BOOLVAL                                                  { BoolExp ($1) }
   | RT_RAND LP expr RP                                       { RT_Rand ($3) }
