@@ -63,9 +63,9 @@ type prog =
     | Prog      of classDef list
 
 (* pretty printing *)
-let string_par m l = " (" ^ String.concat ", " (mymap m l) ^ ") "
-let string_pp m l  = " <" ^ String.concat ", " (mymap m l) ^ "> "
-let string_cur m l = " {" ^ String.concat ", " (mymap m l) ^ "} "
+let string_par m l = " (" ^ String.concat ", " (List.map m l) ^ ") "
+let string_pp m l  = " <" ^ String.concat ", " (List.map m l) ^ "> "
+let string_cur m l = " {" ^ String.concat ", " (List.map m l) ^ "} "
 
 let rec string_of_expr = function
     | IdExp (idl)               -> String.concat "." idl
