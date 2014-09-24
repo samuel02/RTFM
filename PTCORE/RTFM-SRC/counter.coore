@@ -13,11 +13,13 @@ class Timer<> {
 	IO<> output;
 
 	Task tick () {
-		seconds := seconds    -1;
+		seconds := seconds-1;
 		output.print(seconds);
 
 		if (seconds) {
 			async after 1 s tick();
+		} else {
+			output.print(999);
 		}
 	}
 
