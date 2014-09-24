@@ -9,6 +9,8 @@
 typedef int64_t RTFM_time;
 #define RT_time					RTFM_time
 
+int RTFM_exit_flag = 0;
+
 // prototypes
 RTFM_time RTFM_get_bl(int id);
 void RTFM_set_bl(int id);
@@ -30,5 +32,6 @@ RTFM_time time_get();
 #define RT_printf(...) 			{ printf( __VA_ARGS__ ); }
 #define RT_getc()				( getc(stdin) )
 #define RT_putc(c)				{ putc(c, stdout); }
+#define RT_exit()				{ RTFM_exit_flag = 1; }
 
 #endif /* RTFM_RT_H_ */

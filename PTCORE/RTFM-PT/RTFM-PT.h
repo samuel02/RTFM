@@ -17,5 +17,4 @@ void user_idle(int);
 void RTFM_lock(int, int);
 void RTFM_unlock(int, int);
 void RTFM_pend(RTFM_time, RTFM_time, int, int);
-
 #endif /* RTFM_PT_H_ */
