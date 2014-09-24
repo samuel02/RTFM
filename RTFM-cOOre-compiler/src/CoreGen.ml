@@ -43,6 +43,7 @@ let rec c_defs_of_classDef ce path argl cd =
     | Return (e)        -> ti ^ tab ^ "return " ^ c_of_expr e ^ sc ^ nl
     | If (e, sl)        -> ti ^ tab ^ "if ( " ^ c_of_expr e ^ " )" ^ op ^ String.concat ("") (List.map (c_of_stmt (ti^tab)) sl) ^ ti ^ tab ^ cl ^ nl
     | Else (sl)         -> ti ^ tab ^ "else" ^ op ^ String.concat ("") (List.map (c_of_stmt (ti^tab)) sl) ^ ti ^ tab ^ cl ^ nl
+    | While (e, sl)     -> ti ^ tab ^ "while ( " ^ c_of_expr e ^ " )" ^ op ^ String.concat ("") (List.map (c_of_stmt (ti^tab)) sl) ^ ti ^ tab ^ cl ^ nl
     | RT_Sleep (e)      -> ti ^ tab ^ "RT_sleep(" ^ c_of_expr e ^ ")"  ^ sc ^ nl
     | RT_Printf (s, el) -> ti ^ tab ^ "RT_printf(" ^ String.concat ", " ((ec ^ s ^ ec) :: List.map c_of_expr el) ^ ")" ^ sc ^ nl
     | RT_Putc (e)       -> ti ^ tab ^ "RT_putc(" ^ c_of_expr e ^ ")"  ^ sc ^ nl
