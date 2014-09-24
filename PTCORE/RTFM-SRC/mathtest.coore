@@ -38,6 +38,9 @@ class Root <> {
 			RT_printf("%d, %d, %d\n", f, b, a);	
 			if (2) {			
 				RT_printf("Nested if");	
+			} else {
+				RT_printf("else");	
+
 			}
 			while (a == 2 ) {			
 				while (a >= 2 ) {			
@@ -54,7 +57,7 @@ class Root <> {
 			RT_printf("while");	
 		}
 		if (2) {			
-			RT_printf("while");	
+			RT_printf("if");	
 		}
 	}
 
