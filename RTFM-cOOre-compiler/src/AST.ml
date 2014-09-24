@@ -94,8 +94,8 @@ let rec string_of_stmt = function
     | MPVar (t, i, e)   -> tab ^ tab ^ string_of_pType t ^ " " ^ i ^ " := " ^ string_of_expr e ^ sc ^ nl
     | Assign (i, e)     -> tab ^ tab ^ i ^ " := " ^ string_of_expr e ^ sc ^ nl
     | Return (e)        -> tab ^ tab ^ "return " ^ string_of_expr e ^ sc ^ nl
-    | If (e, sl)        -> tab ^ tab ^ "if ( " ^ string_of_expr e ^ " )" ^ op ^ tab ^ myconcat (tab) (List.map string_of_stmt sl) ^ tab ^ cl ^ nl
-    | Else (sl)         -> tab ^ tab ^ "else" ^ op ^ tab ^ myconcat (tab) (List.map string_of_stmt sl) ^ tab ^ cl ^ nl
+    | If (e, sl)        -> tab ^ tab ^ "if ( " ^ string_of_expr e ^ " )" ^ op ^ tab ^ String.concat (tab) (List.map string_of_stmt sl) ^ tab ^ cl ^ nl
+    | Else (sl)         -> tab ^ tab ^ "else" ^ op ^ tab ^ String.concat (tab) (List.map string_of_stmt sl) ^ tab ^ cl ^ nl
     | RT_Sleep (e)      -> tab ^ tab ^ "RT_sleep(" ^ string_of_expr e ^ ")" ^ sc ^ nl
     | RT_Printf (s, el) -> tab ^ tab ^ "RT_printf(" ^ String.concat ", " (s :: List.map string_of_expr el) ^ ")" ^ sc ^ nl
     | RT_Putc (e)       -> tab ^ tab ^ "RT_putc(" ^ string_of_expr e ^ ")" ^ sc ^ nl
@@ -109,28 +109,28 @@ let string_of_classDecl = function
     | COVar (o, el, i)       -> tab ^ o ^ string_pp string_of_expr el ^ i ^ ";"
     | CMDecl (t, i, al, sl)  ->
             tab ^ string_of_pType t ^ " " ^ i ^ string_par string_of_mPArg al ^ "{" ^ nl
-            ^ myconcat "" (List.map string_of_stmt sl)
+            ^ String.concat "" (List.map string_of_stmt sl)
             ^ tab ^ "}"
     | CTaskDecl (i, al, sl ) ->
       tab ^ "TaskDef " ^ i ^ " " ^ string_par string_of_mPArg al ^ "{" ^ nl ^
-      myconcat "" (List.map string_of_stmt sl) ^
+      String.concat "" (List.map string_of_stmt sl) ^
       tab ^ "}"
     | CIsrDecl (pr, i, sl)   ->
       tab ^ "ISR @prio " ^ string_of_int pr  ^ i ^ " {" ^ nl ^
-      myconcat "" (List.map string_of_stmt sl) ^
+      String.concat "" (List.map string_of_stmt sl) ^
       tab ^ "}"
     | CResetDecl (sl)        -> tab ^ "Reset {" ^ nl
-         ^ myconcat "" (List.map string_of_stmt sl)
+         ^ String.concat "" (List.map string_of_stmt sl)
         ^ tab ^ "}"
     | CIdleDecl (sl)         -> tab ^ "Idle {" ^ nl
-         ^ myconcat "" (List.map string_of_stmt sl)
+         ^ String.concat "" (List.map string_of_stmt sl)
         ^ tab ^ "}"
 
 
 let string_of_classDef = function
     | ClassDef (i, cal, cdl) ->
             "class " ^ i ^ string_pp string_of_classArg cal ^ " {" ^ nl
-            ^ myconcat nl (List.map string_of_classDecl cdl)
+            ^ String.concat nl (List.map string_of_classDecl cdl)
             ^ "} " ^ nl
 
 let string_of_prog = function

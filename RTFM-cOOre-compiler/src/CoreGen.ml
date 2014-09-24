@@ -60,7 +60,7 @@ let rec c_defs_of_classDef ce path argl cd =
 
   (* state initialization *)
   let c_state_of_classDecl = function
-    | CPVar (t, i, e)       -> string_of_pType t ^ " " ^ p ^ i ^ " = " ^ c_of_expr e
+    | CPVar (t, i, e)       -> string_of_pType t ^ " " ^ p ^ i ^ " = " ^ c_of_expr e ^ sc
     | _ -> raise (UnMatched)
   in
 
@@ -68,7 +68,7 @@ let rec c_defs_of_classDef ce path argl cd =
   let c_md_of_classDecl =
     let claim_stmts sl =
         tab ^ "claim " ^ r ^ " { " ^ e_c ^ nl
-        ^ myconcat "" (List.map (c_of_stmt tab) sl)
+        ^ String.concat "" (List.map (c_of_stmt tab) sl)
         ^ tab ^ c_e ^ " } " ^ e_c ^ nl
     in
     function
@@ -109,14 +109,14 @@ let rec c_defs_of_classDef ce path argl cd =
   | ClassDef (i, cal, cdl) ->
       deb ("generating RTFM-core code for " ^ i ^ ":" ^ path) ^
       deb ("method prototypes for " ^ i ^ ":" ^ path) ^
-      (* myconcat (";" ^ nl) (mymap c_mp_of_classDecl cdl) ^ nl ^   *)
+      (* String.concat (";" ^ nl) (mymap c_mp_of_classDecl cdl) ^ nl ^   *)
       deb ("class instance parameters for " ^ i ^ ":" ^ path) ^
-      myconcat (";" ^ nl) (List.map2 c_of_classArg cal argl) ^ nl ^
+      String.concat (";" ^ nl) (List.map2 c_of_classArg cal argl) ^ nl ^
       deb ("class instance variables for " ^ i ^ ":" ^ path) ^
-      myconcat (";" ^ nl) (mymap c_state_of_classDecl cdl) ^ nl ^
-      myconcat nl (mymap c_ioi_of_classDecl cdl) ^  (* span each object instance recursively *)
+      String.concat (";" ^ nl) (mymap c_state_of_classDecl cdl) ^ nl ^
+      String.concat nl (mymap c_ioi_of_classDecl cdl) ^  (* span each object instance recursively *)
       deb ("methods declarations for " ^ i ^ ":" ^ path) ^
-      myconcat nl (mymap c_md_of_classDecl cdl) ^ nl
+      String.concat nl (mymap c_md_of_classDecl cdl) ^ nl
 
 let c_of_Prog p =
   let ce = cEnv_of_classDef p in
