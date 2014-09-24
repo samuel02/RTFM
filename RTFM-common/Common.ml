@@ -29,7 +29,10 @@ let scc = ';'
 
 (* Error handling *)
 exception RtfmError of string
-(*exception UnMatched*)
+exception UnMatched
+exception UnMatched2
+exception UnMatched3
+exception UnMatched4
 
 (*let rec mymap m = function
     | []     -> []
