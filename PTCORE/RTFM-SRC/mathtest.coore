@@ -26,7 +26,7 @@ class Root <> {
 	Reset {
 		t1.f();
 		f := 13;
-		b := (1*3)+3;
+		b := (1*3)+3 + 4<=3;
 
 		// assignemnts from other variables
 		a := 1 + 3 - (4 / (7*b)) -      6/7 + f;
@@ -39,8 +39,14 @@ class Root <> {
 			if (2) {			
 				RT_printf("Nested if");	
 			}
-			while (2) {			
-				RT_printf("Nested while");	
+			while (a == 2 ) {			
+				while (a >= 2 ) {			
+					while (a <= 2 ) {			
+						while (a != 2 ) {			
+							RT_printf("Nested while");	
+						}
+					}
+				}
 			}
 
 		}

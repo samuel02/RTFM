@@ -24,6 +24,7 @@ let rec c_defs_of_classDef ce path argl cd =
     | PendExp _                 -> raise (RtfmError ("PendExp not implemented"))
     | IntExp (i)                -> string_of_int i
     | MathExp (e, a, b)         -> c_of_expr a ^ " " ^ String.make 1 e ^ " " ^ c_of_expr b
+    | CompExp (s, e1, e2)       -> string_of_expr e1 ^ " " ^ s ^ " " ^ string_of_expr e2
     | ParExp (e)                -> "(" ^ c_of_expr e ^ ")"
     | CharExp (c)               -> ecit ^ String.make 1 c ^ ecit
     | BoolExp (b)               -> string_of_bool b

@@ -18,6 +18,7 @@ type expr =
     | CharExp   of char
     | BoolExp   of bool
     | RT_Rand   of expr
+    | CompExp   of string * expr * expr
     | RT_Getc
 
 type pType =
@@ -78,7 +79,9 @@ let rec string_of_expr = function
     | BoolExp (b)               -> string_of_bool b
     | RT_Rand (e)               -> "RT_rand(" ^ string_of_expr e ^ ")"
     | RT_Getc                   -> "RT_getc()"
-  
+    | CompExp (s, e1, e2)       -> string_of_expr e1 ^ " " ^ s ^ " " ^ string_of_expr e2
+
+
 let string_of_pType = function
     | Int  -> "int"
     | Char -> "char"

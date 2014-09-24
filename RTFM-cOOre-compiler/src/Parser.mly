@@ -7,7 +7,7 @@
 %token <int>    INTVAL
 %token <bool>   BOOLVAL
 %token <char>   CHARVAL MATH
-%token <string> STRVAL
+%token <string> STRVAL COMPARE
 %token TASK ISR RESET IDLE PEND ASYNC AFTER BEFORE (* PRIO *) CLASS RETURN 
 %token USEC MSEC SEC
 %token RT_SLEEP RT_PRINTF RT_RAND RT_GETC RT_PUTC
@@ -75,6 +75,7 @@ expr:
   | ids LP params RP                                         { CallExp ($1, $3) }
   | INTVAL                                                   { IntExp ($1) }
   | expr MATH expr                                           { MathExp ($2, $1, $3) }
+  | expr COMPARE expr                                        { CompExp ($2, $1, $3) }
   | LP expr RP                                               { ParExp ($2) }
   | CHARVAL                                                  { CharExp ($1) }
   | BOOLVAL                                                  { BoolExp ($1) }
@@ -116,4 +117,4 @@ stmt:
   | RT_PRINTF LP STRVAL COMMA params RP SC                   { RT_Printf ($3, $5) }
   | RT_PRINTF LP STRVAL RP SC                                { RT_Printf ($3, []) }
   | RT_PUTC LP expr RP SC                                    { RT_Putc ($3) }
-    
+

@@ -22,6 +22,7 @@ let id      = ['A'-'Z' 'a'-'z' '_']['0'-'9' 'A'-'Z' 'a'-'z' '_']*
 let digits  = ['0'-'9']+
 let math    = ['+' '-' '*' '/' '%']
 let str     = [^ '\"']* 
+let compare = "==" | "!=" | ">=" | "<="
 
 (* lexing rules *)  
 rule lex = parse
@@ -64,6 +65,8 @@ rule lex = parse
   | ')'                    { RP }
   | '.'                    { DOT }
   | ';'                    { SC } 
+
+  | compare as s           { COMPARE (s) }
   
   | "us"                   { USEC }                               (* time *)
   | "ms"                   { MSEC }
