@@ -29,11 +29,11 @@ let scc = ';'
 
 (* Error handling *)
 exception RtfmError of string
-exception UnMatched
+(*exception UnMatched*)
 
-let rec mymap m = function
+(*let rec mymap m = function
     | []     -> []
-    | e :: l -> try (m e) :: mymap m l with UnMatched -> mymap m l
+    | e :: l -> try (m e) :: mymap m l with UnMatched -> mymap m l*)
 
 (*let rec myconcat s = function
     | []     -> ""

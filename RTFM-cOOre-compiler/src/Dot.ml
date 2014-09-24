@@ -20,7 +20,7 @@ let gv_of_p ce p =
 
   and gv_of_cd path = function
     | ClassDef (i, cal, cdl) ->
-        String.concat nl (mymap (gv_of_cdl path) cdl)
+        String.concat nl (List.map (gv_of_cdl path) cdl)
   in
 
   let ce = cEnv_of_classDef p in
