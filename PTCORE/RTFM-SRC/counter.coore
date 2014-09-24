@@ -9,20 +9,20 @@ class IO<> {
 
 
 class Timer<> {
-	int seconds := 108;
+	int seconds := 8;
 	IO<> output;
 
 	Task tick () {
 		seconds := seconds    -1;
 		output.print(seconds);
 
-		//if seconds != 0 {
+		if (seconds) {
 			async after 1 s tick();
-		//}
+		}
 	}
 
 	void init () {
-		seconds := 108;
+		seconds := 8;
 		//async every 1 s tick();
 	}
 }

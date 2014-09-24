@@ -43,6 +43,11 @@ rule lex = parse
     
   | "class"                { CLASS }                               (* RTFM-cOOre related *) 
   | "return"               { RETURN }
+
+  | "if"                   { IF }
+  | "else"                 { ELSE }
+  | "while"                { WHILE }
+  (*| "for"                  { FOR } Possible future work*)
      
   | "int"                  { INT }                                 (* primitive types *)                                                                      
   | "char"                 { CHAR }

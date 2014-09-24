@@ -30,7 +30,18 @@ class Root <> {
 
 		// assignemnts from other variables
 		a := 1 + 3 - (4 / (7*b)) -      6/7 + f;
-		RT_printf("%d, %d, %d\n", f, b, a);
+		if (a) {
+			RT_printf("%d, %d, %d\n", f, b, a);			
+
+			// Comment
+			RT_printf("%d, %d, %d\n", f, b, a);	
+			RT_printf("%d, %d, %d\n", f, b, a);	
+			if (2) {			
+				RT_printf("Nested tabs");	
+			}
+
+		}
+		if (1) {}
 	}
 
 }

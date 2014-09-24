@@ -36,14 +36,15 @@ let rec c_defs_of_classDef ce path argl cd =
     | MPArg (t, i) -> string_of_pType t ^ " " ^ p ^ i
   in
   
-  let c_of_stmt ti = function
-    | ExpStmt (e)       -> ti ^ tab ^ c_of_expr e
-    | MPVar (t, i, e)   -> ti ^ tab ^ string_of_pType t ^ " " ^ p ^ i ^ " = " ^ c_of_expr e
-    | Assign (i, e)     -> ti ^ tab ^ p ^ i ^ " = " ^ c_of_expr e
-    | Return (e)        -> ti ^ tab ^ "return " ^ c_of_expr e
-    | RT_Sleep (e)      -> ti ^ tab ^ "RT_sleep(" ^ c_of_expr e ^ ")" 
-    | RT_Printf (s, el) -> ti ^ tab ^ "RT_printf(" ^ String.concat ", " ((ec ^ s ^ ec) :: List.map c_of_expr el) ^ ")"
-    | RT_Putc (e)       -> ti ^ tab ^ "RT_putc(" ^ c_of_expr e ^ ")" 
+  let rec c_of_stmt ti = function
+    | ExpStmt (e)       -> ti ^ tab ^ c_of_expr e ^ sc ^ nl
+    | MPVar (t, i, e)   -> ti ^ tab ^ string_of_pType t ^ " " ^ p ^ i ^ " = " ^ c_of_expr e ^ sc ^ nl
+    | Assign (i, e)     -> ti ^ tab ^ p ^ i ^ " = " ^ c_of_expr e ^ sc ^ nl
+    | Return (e)        -> ti ^ tab ^ "return " ^ c_of_expr e ^ sc ^ nl
+    | If (e, sl)        -> ti ^ tab ^ "if ( " ^ c_of_expr e ^ " )" ^ op ^ String.concat ("") (List.map (c_of_stmt (ti^tab)) sl) ^ ti ^ tab ^ cl ^ nl
+    | RT_Sleep (e)      -> ti ^ tab ^ "RT_sleep(" ^ c_of_expr e ^ ")"  ^ sc ^ nl
+    | RT_Printf (s, el) -> ti ^ tab ^ "RT_printf(" ^ String.concat ", " ((ec ^ s ^ ec) :: List.map c_of_expr el) ^ ")" ^ sc ^ nl
+    | RT_Putc (e)       -> ti ^ tab ^ "RT_putc(" ^ c_of_expr e ^ ")"  ^ sc ^ nl
   in
   
   let c_of_classArg cal arg = match cal with
@@ -66,7 +67,7 @@ let rec c_defs_of_classDef ce path argl cd =
   let c_md_of_classDecl = 
     let claim_stmts sl =
         tab ^ "claim " ^ r ^ " { " ^ e_c ^ nl
-        ^ myconcat (";" ^ nl) (List.map (c_of_stmt tab) sl)
+        ^ myconcat "" (List.map (c_of_stmt tab) sl)
         ^ tab ^ c_e ^ " } " ^ e_c ^ nl
     in
     function

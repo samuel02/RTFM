@@ -13,6 +13,7 @@
 %token RT_SLEEP RT_PRINTF RT_RAND RT_GETC RT_PUTC
 %token ASSIGN COMMA LT GT LP RP LCP RCP DOT SC
 %token INT CHAR BOOL BYTE VOID 
+%token IF ELSE WHILE
 %token EOF
   
 %{
@@ -109,6 +110,7 @@ stmt:
   | pType ID ASSIGN expr SC                                  { MPVar ($1, $2, $4) }  
   | ID ASSIGN expr SC                                        { Assign ($1, $3) }
   | RETURN expr SC                                           { Return ($2) }
+  | IF LP expr RP LCP stmt* RCP                              { If($3, $6) }
   | RT_SLEEP LP expr RP SC                                   { RT_Sleep ($3) }
   | RT_PRINTF LP STRVAL COMMA params RP SC                   { RT_Printf ($3, $5) }
   | RT_PRINTF LP STRVAL RP SC                                { RT_Printf ($3, []) }
