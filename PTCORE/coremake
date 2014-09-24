@@ -1,4 +1,0 @@
-#!/bin/sh
-
-make -C /Users/samuelnilsson/Dropbox/projects/rtfm/RTFM-core-compiler/src $1
-gcc ./RTFM-PT/*.c -o PTCORE -lpthread -D TRACE_TIME
