@@ -14,22 +14,22 @@ let gv_of_p ce p =
         let cd = myass o ce in
         po ^ " [label = " ^ ec ^ o ^ enl ^ i ^ ec ^ "]" ^ nl ^
         path ^ " -> " ^ po ^ nl ^
-        
+
         gv_of_cd (po) cd
     | _ -> raise UnMatched
-  
+
   and gv_of_cd path = function
     | ClassDef (i, cal, cdl) ->
-        myconcat nl (mymap (gv_of_cdl path) cdl)
+        String.concat nl (mymap (gv_of_cdl path) cdl)
   in
-  
+
   let ce = cEnv_of_classDef p in
   let cd =
     try
       List.assoc "Root" ce
     with
     | _ -> raise (RtfmError ("Root not defined"))
-  
+
   in
   "digraph RTFM {" ^ nl
   ^ "Root [shape=diamond]" ^ nl
@@ -45,16 +45,16 @@ let cycle_of_p ce p =
   let rec cycle_of_cdl path = function
     | COVar (o, el, i) ->
         let po = o ^ ":" ^ i in
-        if List.mem po path then raise (RtfmError ("Cyclic instances in " ^ myconcat "-> " (List.rev path) ^ po));
-        
+        if List.mem po path then raise (RtfmError ("Cyclic instances in " ^ String.concat "-> " (List.rev path) ^ po));
+
         let cd = myass o ce in
         cycle_of_cd (po :: path) cd
     | _                -> () (* unit value *)
-  
+
   and cycle_of_cd path = function
     | ClassDef (i, cal, cdl) ->
         (List.iter (cycle_of_cdl path) cdl)
-  
+
   in
   let ce = cEnv_of_classDef p in
   let cd =
@@ -62,7 +62,7 @@ let cycle_of_p ce p =
       List.assoc "Root" ce
     with
     | _ -> raise (RtfmError ("Root not defined"))
-  
+
   in
   cycle_of_cd ["Root"] cd
 
