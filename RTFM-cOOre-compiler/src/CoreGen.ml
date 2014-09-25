@@ -63,7 +63,7 @@ let rec c_defs_of_classDef ce path argl cd =
   (* state initialization *)
   let c_state_of_classDecl = function
     | CPVar (t, i, e)       -> string_of_pType t ^ " " ^ p ^ i ^ " = " ^ c_of_expr e ^ sc
-    | _ -> raise (UnMatched)
+    | _ -> ""(*raise (UnMatched)*)
   in
 
   (* method declarations *)
@@ -96,7 +96,7 @@ let rec c_defs_of_classDef ce path argl cd =
         c_e ^ " " ^ "Idle {" ^ nl ^
         claim_stmts sl ^
         c_e ^ " } " ^ e_c
-    | _ -> raise (UnMatched)
+    | _ -> "" (*raise (UnMatched)*)
   in
 
   (* span tree recusively *)
@@ -104,7 +104,7 @@ let rec c_defs_of_classDef ce path argl cd =
     | COVar (o, al, i) ->
         let cd = myass o ce in
         c_defs_of_classDef ce (p ^ i) (List.map c_of_expr al) cd
-    | _ -> raise (UnMatched)
+    | _ -> "" (*raise (UnMatched)*)
   in
 
   match cd with

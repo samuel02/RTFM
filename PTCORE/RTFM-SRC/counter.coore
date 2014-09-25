@@ -19,7 +19,7 @@ class Timer<> {
 		if (seconds) {
 			async after 1 s tick();
 		} else {
-			output.print(999);
+			RT_printf("System failure!!\n");
 		}
 	}
 

@@ -23,6 +23,8 @@ class Root <> {
 	int a := 0;
 	t<9> t1;
 
+	Idle {}
+
 	Reset {
 		t1.f();
 		f := 13;
