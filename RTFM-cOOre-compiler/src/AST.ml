@@ -3,7 +3,7 @@
 
 (* RTFM-cOOre/AST *)
 
-open Common 
+open Common
 
 type id = string
 
@@ -18,6 +18,7 @@ type expr =
     | CharExp   of char
     | BoolExp   of bool
     | RT_Rand   of expr
+    | CompExp   of string * expr * expr
     | RT_Getc
 
 type pType =
@@ -35,11 +36,14 @@ type stmt =
     | MPVar     of pType * id * expr
     | Assign    of id * expr
     | Return    of expr
+    | If        of expr * stmt list
+    | Else      of stmt list
+    | While     of expr * stmt list
     | RT_Sleep  of expr
     | RT_Printf of string * expr list
-    | RT_Putc   of expr    
+    | RT_Putc   of expr
 
- 
+
 type classArg =
     | CPArg     of pType * id
     | CMArg     of pType * pType list * id
@@ -60,9 +64,9 @@ type prog =
     | Prog      of classDef list
 
 (* pretty printing *)
-let string_par m l = " (" ^ String.concat ", " (mymap m l) ^ ") "
-let string_pp m l  = " <" ^ String.concat ", " (mymap m l) ^ "> "
-let string_cur m l = " {" ^ String.concat ", " (mymap m l) ^ "} "
+let string_par m l = " (" ^ String.concat ", " (List.map m l) ^ ") "
+let string_pp m l  = " <" ^ String.concat ", " (List.map m l) ^ "> "
+let string_cur m l = " {" ^ String.concat ", " (List.map m l) ^ "} "
 
 let rec string_of_expr = function
     | IdExp (idl)               -> String.concat "." idl
@@ -76,7 +80,8 @@ let rec string_of_expr = function
     | BoolExp (b)               -> string_of_bool b
     | RT_Rand (e)               -> "RT_rand(" ^ string_of_expr e ^ ")"
     | RT_Getc                   -> "RT_getc()"
-  
+    | CompExp (s, e1, e2)       -> string_of_expr e1 ^ " " ^ s ^ " " ^ string_of_expr e2
+
 let string_of_pType = function
     | Int  -> "int"
     | Char -> "char"
@@ -87,14 +92,17 @@ let string_of_pType = function
 let string_of_mPArg = function
     | MPArg (t, i) -> string_of_pType t ^ " " ^ i
 
-let string_of_stmt = function
-    | ExpStmt (e)       -> tab ^ tab ^ string_of_expr e
-    | MPVar (t, i, e)   -> tab ^ tab ^ string_of_pType t ^ " " ^ i ^ " := " ^ string_of_expr e
-    | Assign (i, e)     -> tab ^ tab ^ i ^ " := " ^ string_of_expr e
-    | Return (e)        -> tab ^ tab ^ "return " ^ string_of_expr e
-    | RT_Sleep (e)      -> tab ^ tab ^ "RT_sleep(" ^ string_of_expr e ^ ")"
-    | RT_Printf (s, el) -> tab ^ tab ^ "RT_printf(" ^ String.concat ", " (s :: List.map string_of_expr el) ^ ")"
-    | RT_Putc (e)       -> tab ^ tab ^ "RT_putc(" ^ string_of_expr e ^ ")"
+let rec string_of_stmt ti = function
+    | ExpStmt (e)       -> ti ^ string_of_expr e ^ sc ^ nl
+    | MPVar (t, i, e)   -> ti ^ string_of_pType t ^ " " ^ i ^ " := " ^ string_of_expr e ^ sc ^ nl
+    | Assign (i, e)     -> ti ^ i ^ " := " ^ string_of_expr e ^ sc ^ nl
+    | Return (e)        -> ti ^ "return " ^ string_of_expr e ^ sc ^ nl
+    | If (e, sl)        -> ti ^ "if ( " ^ string_of_expr e ^ " )" ^ op ^ String.concat ("") (List.map (string_of_stmt (ti ^ tab)) sl) ^ ti ^ cl ^ nl
+    | Else (sl)         -> ti ^ "else" ^ op ^ tab ^ String.concat (tab) (List.map (string_of_stmt (ti ^ tab)) sl) ^ ti ^ cl ^ nl
+    | While (e, sl)     -> ti ^ "while ( " ^ string_of_expr e ^ " )" ^ op ^ String.concat ("") (List.map (string_of_stmt (ti ^ tab)) sl) ^ ti ^ cl ^ nl
+    | RT_Sleep (e)      -> ti ^ "RT_sleep(" ^ string_of_expr e ^ ")" ^ sc ^ nl
+    | RT_Printf (s, el) -> ti ^ "RT_printf(" ^ String.concat ", " (s :: List.map string_of_expr el) ^ ")" ^ sc ^ nl
+    | RT_Putc (e)       -> ti ^ "RT_putc(" ^ string_of_expr e ^ ")" ^ sc ^ nl
 
 let string_of_classArg = function
     | CPArg (t, i)      -> string_of_pType t ^ " " ^ i
@@ -105,28 +113,28 @@ let string_of_classDecl = function
     | COVar (o, el, i)       -> tab ^ o ^ string_pp string_of_expr el ^ i ^ ";"
     | CMDecl (t, i, al, sl)  ->
             tab ^ string_of_pType t ^ " " ^ i ^ string_par string_of_mPArg al ^ "{" ^ nl
-            ^ myconcat (";" ^ nl) (List.map string_of_stmt sl)
+            ^ String.concat "" (List.map (string_of_stmt (tab^tab)) sl)
             ^ tab ^ "}"
-    | CTaskDecl (i, al, sl ) -> 
-      tab ^ "TaskDef " ^ i ^ " " ^ string_par string_of_mPArg al ^ "{" ^ nl ^ 
-      myconcat (";" ^ nl) (List.map string_of_stmt sl) ^ 
+    | CTaskDecl (i, al, sl ) ->
+      tab ^ "TaskDef " ^ i ^ " " ^ string_par string_of_mPArg al ^ "{" ^ nl ^
+      String.concat "" (List.map (string_of_stmt (tab^tab)) sl) ^
       tab ^ "}"
-    | CIsrDecl (pr, i, sl)   -> 
-      tab ^ "ISR @prio " ^ string_of_int pr  ^ i ^ " {" ^ nl ^ 
-      myconcat (";" ^ nl) (List.map string_of_stmt sl) ^ 
+    | CIsrDecl (pr, i, sl)   ->
+      tab ^ "ISR @prio " ^ string_of_int pr  ^ i ^ " {" ^ nl ^
+      String.concat "" (List.map (string_of_stmt (tab^tab)) sl) ^
       tab ^ "}"
-    | CResetDecl (sl)        -> tab ^ "Reset {" ^ nl 
-         ^ myconcat (";" ^ nl) (List.map string_of_stmt sl)
+    | CResetDecl (sl)        -> tab ^ "Reset {" ^ nl
+         ^ String.concat "" (List.map (string_of_stmt (tab^tab)) sl)
         ^ tab ^ "}"
-    | CIdleDecl (sl)         -> tab ^ "Idle {" ^ nl 
-         ^ myconcat (";" ^ nl) (List.map string_of_stmt sl)
+    | CIdleDecl (sl)         -> tab ^ "Idle {" ^ nl
+         ^ String.concat "" (List.map (string_of_stmt (tab^tab)) sl)
         ^ tab ^ "}"
 
 
 let string_of_classDef = function
     | ClassDef (i, cal, cdl) ->
             "class " ^ i ^ string_pp string_of_classArg cal ^ " {" ^ nl
-            ^ myconcat nl (List.map string_of_classDecl cdl) 
+            ^ String.concat nl (List.map string_of_classDecl cdl)
             ^ "} " ^ nl
 
 let string_of_prog = function

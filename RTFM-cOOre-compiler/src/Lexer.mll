@@ -22,6 +22,7 @@ let id      = ['A'-'Z' 'a'-'z' '_']['0'-'9' 'A'-'Z' 'a'-'z' '_']*
 let digits  = ['0'-'9']+
 let math    = ['+' '-' '*' '/' '%']
 let str     = [^ '\"']* 
+let compare = "==" | "!=" | ">=" | "<="
 
 (* lexing rules *)  
 rule lex = parse
@@ -43,6 +44,11 @@ rule lex = parse
     
   | "class"                { CLASS }                               (* RTFM-cOOre related *) 
   | "return"               { RETURN }
+
+  | "if"                   { IF }
+  | "else"                 { ELSE }
+  | "while"                { WHILE }
+  (*| "for"                  { FOR } Possible future work*)
      
   | "int"                  { INT }                                 (* primitive types *)                                                                      
   | "char"                 { CHAR }
@@ -59,6 +65,8 @@ rule lex = parse
   | ')'                    { RP }
   | '.'                    { DOT }
   | ';'                    { SC } 
+
+  | compare as s           { COMPARE (s) }
   
   | "us"                   { USEC }                               (* time *)
   | "ms"                   { MSEC }

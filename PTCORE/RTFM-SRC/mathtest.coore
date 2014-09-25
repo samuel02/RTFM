@@ -23,14 +23,44 @@ class Root <> {
 	int a := 0;
 	t<9> t1;
 
+	Idle {}
+
 	Reset {
 		t1.f();
 		f := 13;
-		b := (1*3)+3;
+		b := (1*3)+3 + 4<=3;
 
 		// assignemnts from other variables
 		a := 1 + 3 - (4 / (7*b)) -      6/7 + f;
-		RT_printf("%d, %d, %d\n", f, b, a);
+		if (a) {
+			RT_printf("%d, %d, %d\n", f, b, a);			
+
+			// Comment
+			RT_printf("%d, %d, %d\n", f, b, a);	
+			RT_printf("%d, %d, %d\n", f, b, a);	
+			if (2) {			
+				RT_printf("Nested if");	
+			} else {
+				RT_printf("else");	
+
+			}
+			while (a == 2 ) {			
+				while (a >= 2 ) {			
+					while (a <= 2 ) {			
+						while (a != 2 ) {			
+							RT_printf("Nested while");	
+						}
+					}
+				}
+			}
+
+		}
+		while (2) {			
+			RT_printf("while");	
+		}
+		if (2) {			
+			RT_printf("if");	
+		}
 	}
 
 }
