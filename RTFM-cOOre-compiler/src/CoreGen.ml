@@ -123,12 +123,12 @@ let rec c_defs_of_classDef ce path argl cd =
       deb ("method prototypes for " ^ i ^ ":" ^ path) ^
       (* String.concat (";" ^ nl) (List.map c_mp_of_classDecl cdl) ^ nl ^   *)
       deb ("class instance parameters for " ^ i ^ ":" ^ path) ^
-      String.concat (";" ^ nl) (List.map2 c_of_classArg cal argl) ^ sc ^ nl ^
+      String.concat "" (List.map2 c_of_classArg cal argl) ^ nl ^
       deb ("class instance variables for " ^ i ^ ":" ^ path) ^
-      String.concat (";" ^ nl) (List.map c_state_of_classDecl cdl) ^ nl ^
-      String.concat nl (List.map c_ioi_of_classDecl cdl) ^  (* span each object instance recursively *)
+      String.concat (nl) (List.map c_state_of_classDecl cdl) ^ nl ^
+      String.concat (nl) (List.map c_ioi_of_classDecl cdl) ^  (* span each object instance recursively *)
       deb ("methods declarations for " ^ i ^ ":" ^ path) ^
-      String.concat nl (List.map c_md_of_classDecl cdl) ^ nl
+      String.concat (nl) (List.map c_md_of_classDecl cdl) ^ nl
 
 let c_of_Prog p =
   let ce = cEnv_of_classDef p in
