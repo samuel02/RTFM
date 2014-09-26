@@ -80,7 +80,7 @@ let rec string_of_expr = function
     | ParExp (e)                -> "(" ^ string_of_expr e ^ ")"
     | CharExp (c)               -> ecit ^ String.make 1 c ^ ecit
     | BoolExp (b)               -> string_of_bool b
-    | StrExp (s)                -> "a" ^ s ^ "a"
+    | StrExp (s)                -> "\"" ^ s ^ "\""
     | RT_Rand (e)               -> "RT_rand(" ^ string_of_expr e ^ ")"
     | RT_Getc                   -> "RT_getc()"
     | CompExp (s, e1, e2)       -> string_of_expr e1 ^ " " ^ s ^ " " ^ string_of_expr e2
@@ -91,7 +91,7 @@ let string_of_pType = function
     | Bool -> "bool"
     | Byte -> "byte"
     | Void -> "void"
-    | String -> "char[]"
+    | String -> "string"
 
 let string_of_mPArg = function
     | MPArg (t, i) -> string_of_pType t ^ " " ^ i
