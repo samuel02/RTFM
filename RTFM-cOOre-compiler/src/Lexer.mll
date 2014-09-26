@@ -64,6 +64,8 @@ rule lex = parse
   | '}'                    { RCP }
   | '('                    { LP }
   | ')'                    { RP }
+  | '['                    { LSQ }
+  | ']'                    { RSQ }
   | '.'                    { DOT }
   | ';'                    { SC } 
 

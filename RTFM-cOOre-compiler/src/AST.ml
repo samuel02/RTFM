@@ -20,6 +20,7 @@ type expr =
     | StrExp    of string
     | RT_Rand   of expr
     | CompExp   of string * expr * expr
+    | IndexExp  of id list * expr
     | RT_Getc
 
 type pType =
@@ -72,6 +73,7 @@ let string_cur m l = " {" ^ String.concat ", " (List.map m l) ^ "} "
 
 let rec string_of_expr = function
     | IdExp (idl)               -> String.concat "." idl
+    | IndexExp (idl, e)           -> String.concat "." idl ^ "[" ^ string_of_expr e ^ "]"
     | CallExp (m, el)           -> String.concat "." m ^ string_par string_of_expr el
     | AsyncExp (af, be, il, el) -> "async after " ^ string_of_time af ^ " before " ^ string_of_time be ^ " " ^ String.concat "." il ^ string_par string_of_expr el
     | PendExp (il)              -> "pend " ^ String.concat "." il

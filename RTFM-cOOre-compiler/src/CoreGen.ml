@@ -33,6 +33,7 @@ let rec c_defs_of_classDef ce path argl cd =
 
   let rec c_of_expr = function
     | IdExp (idl)               -> p ^ String.concat "_" idl
+    | IndexExp (idl, e)            -> p ^ String.concat "_" idl ^ "[" ^ c_of_expr e ^ "]"
     | CallExp (m, el)           -> c_e ^ " sync " ^ p ^ String.concat "_" m ^ string_par c_of_expr el ^ "; " ^ e_c
     | AsyncExp (af, be, il, el) -> c_e ^ " async" ^
       (if (usec_of_time af > 0) then " after " ^ string_of_time af else "") ^
