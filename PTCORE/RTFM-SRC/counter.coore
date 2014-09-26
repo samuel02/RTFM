@@ -1,9 +1,35 @@
-
-
-
 class IO<> {
-	void print(int i) {
-		RT_printf("%d\n", i);
+
+	void print(int seconds) {
+		//RT_printf("\r%03d%c[0;30;47m%02d%c[0;39;49m\t\t\x1b[32m>:%s\x1b[0m\n", seconds/60, 27, seconds%60, 27, sequence);
+		RT_printf("%d", seconds)
+	}
+}
+
+class Sequence<> {
+	string sequence := "               ";
+	string correct := "4 8 15 16 23 42";
+	int sequence_cursor = 0;
+
+	void update_sequence(char c) {
+		sequence[sequence_cursor] = c;
+	}
+
+	void increment_sequence_cursor() {
+		sequence_cursor = sequence_cursor + 1;
+	}
+
+	bool is_correct_char(char c) {
+		return c == correct[sequence_cursor]
+	}
+
+	bool is_complete() {
+		return sequence_cursor == 15;
+	}
+
+	void reset() {
+		sequence_cursor := 0;
+		sequence := "                ";
 	}
 }
 
@@ -23,19 +49,38 @@ class Timer<> {
 		}
 	}
 
-	void init () {
+	void reset () {
 		seconds := 8;
-		//async every 1 s tick();
 	}
 }
 
 
 class Root<> {
 	Timer<> t;
-
+	Sequence<> s;
 
 	Reset {
-		t.init();
 		async after 1 s t.tick();
+	}
+
+	Idle {
+		char c;
+		bool running := true;
+
+		while(running) {
+			if(c = RT_getc()) {
+				if(s.is_correct_char(c)) {
+					s.update_sequence(c);
+					s.increment_sequence_cursor();
+				}
+
+				if(s.is_complete()) {
+					t.reset()
+					s.reset()
+				}
+
+				if(c == 'q') running := 0;
+			}
+		}
 	}
 }
