@@ -52,6 +52,7 @@ rule lex = parse
      
   | "int"                  { INT }                                 (* primitive types *)                                                                      
   | "char"                 { CHAR }
+  | "string"               { STRING }
   | "bool"                 { BOOL }
   | "void"                 { VOID }
                           

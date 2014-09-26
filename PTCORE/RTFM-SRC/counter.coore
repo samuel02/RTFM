@@ -3,13 +3,13 @@
 
 class IO<> {
 	void print(int i) {
-		RT_printf("%d\n", i);
+		RT_printf("\t%d\n", i);
 	}
 }
 
 
 class Timer<> {
-	int seconds := 8;
+	int seconds := 0;
 	IO<> output;
 
 	Task tick () {
@@ -24,18 +24,103 @@ class Timer<> {
 	}
 
 	void init () {
-		seconds := 8;
+		seconds := 108;
 		//async every 1 s tick();
 	}
+
 }
 
 
 class Root<> {
 	Timer<> t;
+	int n := 1;
 
+	Idle {
+		while (1) {
+			char c := RT_getc();
+			RT_printf("%i\n", n);
+			if ( c != ' ') {
+				if ( n == 1 ) {
+					if ( c == '4' ) {
+						n := 2;
+					} else {
+						n := 0;
+					}
+				}
+				if ( n == 3 ) {
+					if ( c == '8' ) {
+						n := 4;
+					} else {
+						n := 0;
+					}
+				}
+				if ( n == 4 ) {
+					if ( c == '1' ) {
+						n := 5;
+					} else {
+						n := 0;
+					}
+				}
+				if ( n == 6 ) {
+					if ( c == '5' ) {
+						n := 7;
+					} else {
+						n := 0;
+					}
+				}
+				if ( n == 7 ) {
+					if ( c == '1' ) {
+						n := 8;
+					} else {
+						n := 0;
+					}
+				}
+				if ( n == 8 ) {
+					if ( c == '6' ) {
+						n := 9;
+					} else {
+						n := 0;
+					}
+				}
+				if ( n == 9 ) {
+					if ( c == '2' ) {
+						n := 10;
+					} else {
+						n := 0;
+					}
+				}
+				if ( n == 10 ) {
+					if ( c == '3' ) {
+						n := 11;
+					} else {
+						n := 0;
+					}
+				}
+				if ( n == 11 ) {
+					if ( c == '4' ) {
+						n := 12;
+					} else {
+						n := 0;
+					}
+				}
+				if ( n == 12 ) {
+					if ( c == '2' ) {
+						n := 13;
+						t.init();
+						RT_printf("Timer reset");
+					} else {
+						n := 0;
+					}
+				}
+			}
+		}
+	}
 
 	Reset {
 		t.init();
+		
+		
+
 		async after 1 s t.tick();
 	}
 }

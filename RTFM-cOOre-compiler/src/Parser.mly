@@ -12,7 +12,7 @@
 %token USEC MSEC SEC
 %token RT_SLEEP RT_PRINTF RT_RAND RT_GETC RT_PUTC
 %token ASSIGN COMMA LT GT LP RP LCP RCP DOT SC
-%token INT CHAR BOOL BYTE VOID
+%token INT CHAR BOOL BYTE VOID STRING
 %token IF ELSE WHILE
 %token EOF
 
@@ -64,6 +64,7 @@ pType:
   | BOOL                                                     { Bool }
   | BYTE                                                     { Byte }
   | VOID                                                     { Void }
+  | STRING                                                   { String }
 
 params:
   plist = separated_list(COMMA, expr)                        { plist }
@@ -79,6 +80,7 @@ expr:
   | LP expr RP                                               { ParExp ($2) }
   | CHARVAL                                                  { CharExp ($1) }
   | BOOLVAL                                                  { BoolExp ($1) }
+  | STRVAL                                                   { StrExp ($1) }
   | RT_RAND LP expr RP                                       { RT_Rand ($3) }
   | RT_GETC LP RP                                            { RT_Getc }
 

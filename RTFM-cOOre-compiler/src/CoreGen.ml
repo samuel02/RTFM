@@ -14,6 +14,15 @@ let rec c_defs_of_classDef ce path argl cd =
   let p = path ^ "_" in
   let r = "RES_" ^ p in
 
+  let c_array_from_string str = 
+    let rec list_car ch = match ch with 
+      | "" -> [] 
+      | ch -> ("\'" ^ (String.sub ch 0 1 ) ^"\'") :: (list_car (String.sub ch 1 ( (String.length ch)-1) ) )
+    in
+    "[" ^ String.concat ", "  (list_car str) ^ "]"
+  in
+
+
   let rec c_of_expr = function
     | IdExp (idl)               -> p ^ String.concat "_" idl
     | CallExp (m, el)           -> c_e ^ " sync " ^ p ^ String.concat "_" m ^ string_par c_of_expr el ^ "; " ^ e_c
@@ -27,6 +36,7 @@ let rec c_defs_of_classDef ce path argl cd =
     | CompExp (s, e1, e2)       -> c_of_expr e1 ^ " " ^ s ^ " " ^ c_of_expr e2
     | ParExp (e)                -> "(" ^ c_of_expr e ^ ")"
     | CharExp (c)               -> ecit ^ String.make 1 c ^ ecit
+    | StrExp (s)                -> c_array_from_string s
     | BoolExp (b)               -> string_of_bool b
     | RT_Rand (e)               -> "RT_rand(" ^ c_of_expr e ^ ")"
     | RT_Getc                   -> "RT_getc()"
@@ -96,7 +106,7 @@ let rec c_defs_of_classDef ce path argl cd =
         c_e ^ " " ^ "Idle {" ^ nl ^
         claim_stmts sl ^
         c_e ^ " } " ^ e_c
-    | _ -> "" (*raise (UnMatched)*)
+    | _ -> ""(*raise (UnMatched)*)
   in
 
   (* span tree recusively *)
