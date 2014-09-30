@@ -14,13 +14,22 @@
 class Root<> {
 	int a := 2;
 	string s1 := "hello";
-	string aa :=  37;
+	//string aa :=  37;
 
-	Idle {}
+
 
 	Reset {
 		RT_printf("%s", s1);
+		RT_printf("%c", s1[0]);
+		RT_printf("%c", s1[1]);
+		RT_printf("%c", s1[2]);
 		RT_printf("%c", s1[3]);
+		RT_printf("%c", s1[4]);
+		RT_printf("%c", s1[5]);
+		RT_printf("%c", s1[6]);
+		RT_printf("%c", s1[7]);
+		RT_printf("%c", s1[8]);
+
 	}
 
 }

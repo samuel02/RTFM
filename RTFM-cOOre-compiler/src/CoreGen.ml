@@ -84,17 +84,10 @@ let rec c_defs_of_classDef ce path argl cd =
   in
 
   (* state initialization *)
-  let c_state_of_classDecl = 
-    let is_strexpr = function
-      | StrExp (_)  -> true
-      | _           -> false
-    in
-    function
-    (*| CPVar (t, i, e) when t == String   -> "char"^ " " ^ p ^ i ^ "[" ^ string_of_int ((String.length (string_of_expr e))-2) ^ "]"^" = " ^ c_of_string_type e ^ sc*)
-    | CPVar (t, i, e) when (( t == String) &&  ( is_strexpr e) ) -> "int " ^p^i^"_len" ^ " = " ^ string_of_int ((String.length (string_of_expr e))-2) ^ sc ^ nl^ "char[" ^ "" ^ "]" ^ " " ^ p ^ i ^ " = " ^ c_of_string_type e ^ sc
-    | CPVar (t, i, e) when t != String -> c_of_pType t ^ " " ^ p ^ i ^ " = " ^ c_of_expr e ^ sc
-    | CPVar (t, i , e) -> raise (RtfmError("Value " ^ string_of_expr e ^ " of " ^ i ^ " of type " ^ string_of_pType t ^ " is not compatible with string type"))
-    | _ -> raise (RtfmError("unmatched"))
+  let c_state_of_classDecl = function
+    | CPVar (t, i, e) when t == String    -> "char"^ " " ^ p ^ i ^ "[" ^ string_of_int ((String.length (string_of_expr e))-2) ^ "]"^" = " ^ c_of_string_type e ^ sc
+    | CPVar (t, i, e)                     -> c_of_pType t ^ " " ^ p ^ i ^ " = " ^ c_of_expr e ^ sc
+    | _ -> "" (*raise (RtfmError("unmatched1111"))*)
   in
 
   (* method declarations *)
