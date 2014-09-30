@@ -48,23 +48,26 @@ let rec c_defs_of_classDef ce path argl cd =
     | BoolExp (b)               -> string_of_bool b
     | RT_Rand (e)               -> "RT_rand(" ^ c_of_expr e ^ ")"
     | RT_Getc                   -> "RT_getc()"
+    | StrExp (_)                -> ""
 
   in
   let c_of_string_type = function
     | StrExp (s)                -> c_array_from_string s
+    | _ -> "" (*raise (UnMatched)*)
   in
   let c_of_mPArg = function
     | MPArg (t, i) -> c_of_pType t ^ " " ^ p ^ i
   in
 
   let rec c_of_stmt ti = function
+    | Stmt (sl)         -> ti ^ String.concat (tab) (List.map (c_of_stmt (ti)) sl) ^ nl
     | ExpStmt (e)       -> ti ^ tab ^ c_of_expr e ^ sc ^ nl
     | MPVar (t, i, e)   -> ti ^ tab ^ c_of_pType t ^ " " ^ p ^ i ^ " = " ^ c_of_expr e ^ sc ^ nl
     | Assign (i, e)     -> ti ^ tab ^ p ^ i ^ " = " ^ c_of_expr e ^ sc ^ nl
     | Return (e)        -> ti ^ tab ^ "return " ^ c_of_expr e ^ sc ^ nl
-    | If (e, sl)        -> ti ^ tab ^ "if ( " ^ c_of_expr e ^ " )" ^ op ^ String.concat ("") (List.map (c_of_stmt (ti^tab)) sl) ^ ti ^ tab ^ cl ^ nl
-    | Else (sl)         -> ti ^ tab ^ "else" ^ op ^ String.concat ("") (List.map (c_of_stmt (ti^tab)) sl) ^ ti ^ tab ^ cl ^ nl
-    | While (e, sl)     -> ti ^ tab ^ "while ( " ^ c_of_expr e ^ " )" ^ op ^ String.concat ("") (List.map (c_of_stmt (ti^tab)) sl) ^ ti ^ tab ^ cl ^ nl
+    | If (e, s)         -> ti ^ tab ^ "if ( " ^ c_of_expr e ^ " ) {" ^ c_of_stmt (ti^tab) s ^"}" ^nl
+    | Else (s)          -> ti ^ tab ^ "else {" ^ c_of_stmt (ti^tab) s ^ "}"^nl
+    | While (e, s)      -> ti ^ tab ^ "while ( " ^ c_of_expr e ^ " ) {" ^ c_of_stmt (ti^tab) s ^ "}"^nl
     | RT_Sleep (e)      -> ti ^ tab ^ "RT_sleep(" ^ c_of_expr e ^ ")"  ^ sc ^ nl
     | RT_Printf (s, el) -> ti ^ tab ^ "RT_printf(" ^ String.concat ", " ((ec ^ s ^ ec) :: List.map c_of_expr el) ^ ")" ^ sc ^ nl
     | RT_Putc (e)       -> ti ^ tab ^ "RT_putc(" ^ c_of_expr e ^ ")"  ^ sc ^ nl
@@ -82,11 +85,9 @@ let rec c_defs_of_classDef ce path argl cd =
 
   (* state initialization *)
   let c_state_of_classDecl = function
-    (*| CPVar (t, i, e) when t == String   -> "int " ^p^i^"_len" ^ nl^ "char[" ^ "" ^ "]" ^ " " ^ p ^ i ^ " = " ^ c_of_string_type e ^ sc*)
-    | CPVar (t, i, e) when t == String   -> "char"^ " " ^ p ^ i ^ "[" ^ string_of_int ((String.length (string_of_expr e))-2) ^ "]"^" = " ^ c_of_string_type e ^ sc ^"// CPVar with string type"
-                                                                        (* Length of string excluding citation *)
-    | CPVar (t, i, e)                    -> c_of_pType t ^ " " ^ p ^ i ^ " = " ^ c_of_expr e ^ sc
-    | _ -> ""(*raise (UnMatched)*)
+    | CPVar (t, i, e) when t == String    -> "char"^ " " ^ p ^ i ^ "[" ^ string_of_int ((String.length (string_of_expr e))-2) ^ "]"^" = " ^ c_of_string_type e ^ sc
+    | CPVar (t, i, e)                     -> c_of_pType t ^ " " ^ p ^ i ^ " = " ^ c_of_expr e ^ sc
+    | _ -> "" (*raise (RtfmError("unmatched1111"))*)
   in
 
   (* method declarations *)

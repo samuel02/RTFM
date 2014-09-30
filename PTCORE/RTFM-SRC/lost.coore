@@ -1,0 +1,106 @@
+// Lost.coore
+// Per Lindgren (C) 2014
+//
+// LOST example
+// adding only IF expr stmt (ELSE stmt)? and WHILE stmt
+// I changed stmt* into single stmt 
+// stmt: 
+//  | { stmt }
+// … 
+// to allow 
+// if ()
+//   single_statement;
+// if () {
+//   stmt_1;
+//   stmt_2;
+//   … 
+// }
+// Expressions also invole unary operands (-, !, etc.)
+// and binary (infix) operands (*, +, -, >=, <=, ==, !=, etc.)
+// (my solution did not implement (||, &&), hence the if () if () below) 
+// Be sure that you define the semantics for your operators, this is refered to the PRIORITY 
+// a OP1 b OP2 c -> a (OP1 (b OP2 c))
+// or
+// a OP1 b OP2 c -> ((a OP1 b) OP2 c)
+// according to each operator. 
+// In OCaml/Menhir this is defined by the order of the matching sequence. See documentation for Menhir.
+// 4.1.4 Priority and associativity
+//
+// Also the case, when you have the same operator many times, this is refered to as either left or right ASSOCIATIVE
+// a OP1 b OP1 c -> ((a OP1 b) OP1 c), or ((a OP1 b) OP1 c)
+// In OCaml/Mehir this is geiven as a predicate for the token.
+//
+// Either you have to define the semantics yourself or follow the rules of a given language, C, java, OCaml, 
+// just be sure it is DEFINED and accordingly implmented in your -cOOre!
+//
+
+class Counter<> {
+  int cnt := 108;
+  
+  Task tick() {
+    RT_printf("[%d]\n", cnt);
+    async after 1s tick();
+    cnt := cnt - 1; 
+  }
+  
+  void reset() {
+    cnt := 108;
+  }
+}
+
+
+class Root<> { 
+    int i := 0; // state
+    Counter<> cnt;
+    
+    int getnum() {
+      //int v2 := 0;
+      int res := RT_getc() - '0';
+      if (res >= 0) {
+        if (res <= 9) {
+          int v2 := RT_getc() - '0';
+          if (v2 >= 0) {
+            if (v2 <= 9) {
+              res := (res * 10) + v2;
+              int c := RT_getc();  
+            }  
+          }
+        }
+      } 
+      return res;       
+    }
+    
+    void check(int ref) {
+      int in := getnum();
+      RT_printf("res %d\n", in);
+      if (in == ref) {
+        RT_printf (" - %d OK\n", ref);
+        i := i + 1;
+      } else {
+        RT_printf (" - %d expected at %d, FAIL reset\n", ref, i);
+        i := 0;
+      }
+      //return i;
+    }
+    
+    Reset {
+      async after 0s cnt.tick();
+    }
+    
+    Idle {
+        RT_printf("Enter sequence 4 8 15 16 23 42 \n");
+        while (1) {
+            if (i==0) {check (4);}
+            if (i==1) {check (8);}
+            if (i==2) {check (15);}
+            if (i==3) {check (16);}
+            if (i==4) {check (23);}
+            if (i==5) {check (42);}
+            if (i==6) {
+              RT_printf (" - correct sequence - reset counter\n");
+              cnt.reset();
+              i := 0;  
+            }
+        }                  
+    }
+}
