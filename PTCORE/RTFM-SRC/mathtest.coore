@@ -42,11 +42,10 @@ class Root <> {
 			// Comment
 			RT_printf("%d, %d, %d\n", f, b, a);	
 			RT_printf("%d, %d, %d\n", f, b, a);	
-			if (2) {			
-				RT_printf("Nested if");	
-			} else {
-				RT_printf("else");	
-
+			if (2) 	RT_printf("Nested if");	
+			else {
+				RT_printf("else");
+				RT_printf("else");
 			}
 			while (a == 2 ) {			
 				while (a >= 2 ) {			

@@ -14,6 +14,7 @@
 class Root<> {
 	int a := 2;
 	string s1 := "hello";
+	string aa :=  37;
 
 	Idle {}
 
