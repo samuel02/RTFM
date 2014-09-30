@@ -11,8 +11,8 @@
 %token TASK ISR RESET IDLE PEND ASYNC AFTER BEFORE (* PRIO *) CLASS RETURN 
 %token USEC MSEC SEC
 %token RT_SLEEP RT_PRINTF RT_RAND RT_GETC RT_PUTC
-%token ASSIGN COMMA LT GT LP RP LCP RCP DOT SC
-%token INT CHAR BOOL BYTE VOID
+%token ASSIGN COMMA LT GT LP RP LCP RCP DOT SC LSQ RSQ
+%token INT CHAR BOOL BYTE VOID STRING
 %token IF ELSE WHILE
 %token EOF
 
@@ -64,6 +64,7 @@ pType:
   | BOOL                                                     { Bool }
   | BYTE                                                     { Byte }
   | VOID                                                     { Void }
+  | STRING                                                   { String }
 
 params:
   plist = separated_list(COMMA, expr)                        { plist }
@@ -72,6 +73,7 @@ expr:
   | ASYNC after before ids LP params RP                      { AsyncExp ($2, $3, $4, $6) }
   | PEND ids                                                 { PendExp ($2) }
   | ids                                                      { IdExp ($1) }
+  | ids LSQ expr RSQ                                         { IndexExp ($1, $3) }
   | ids LP params RP                                         { CallExp ($1, $3) }
   | INTVAL                                                   { IntExp ($1) }
   | expr MATH expr                                           { MathExp ($2, $1, $3) }
@@ -79,6 +81,7 @@ expr:
   | LP expr RP                                               { ParExp ($2) }
   | CHARVAL                                                  { CharExp ($1) }
   | BOOLVAL                                                  { BoolExp ($1) }
+  | STRVAL                                                   { StrExp ($1) }
   | RT_RAND LP expr RP                                       { RT_Rand ($3) }
   | RT_GETC LP RP                                            { RT_Getc }
 

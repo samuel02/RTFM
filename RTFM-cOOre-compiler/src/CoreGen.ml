@@ -14,8 +14,26 @@ let rec c_defs_of_classDef ce path argl cd =
   let p = path ^ "_" in
   let r = "RES_" ^ p in
 
+  let c_array_from_string str = 
+    let rec list_car ch = match ch with 
+      | "" -> [] 
+      | ch -> ("\'" ^ (String.sub ch 0 1 ) ^"\'") :: (list_car (String.sub ch 1 ( (String.length ch)-1) ) )
+    in
+    "{" ^ String.concat ", "  (list_car str) ^ "}"
+  in
+
+  let c_of_pType = function
+    | Int  -> "int"
+    | Char -> "char"
+    | Bool -> "bool"
+    | Byte -> "byte"
+    | Void -> "void"
+    | String -> "char[]"
+  in
+
   let rec c_of_expr = function
     | IdExp (idl)               -> p ^ String.concat "_" idl
+    | IndexExp (idl, e)            -> p ^ String.concat "_" idl ^ "[" ^ c_of_expr e ^ "]"
     | CallExp (m, el)           -> c_e ^ " sync " ^ p ^ String.concat "_" m ^ string_par c_of_expr el ^ "; " ^ e_c
     | AsyncExp (af, be, il, el) -> c_e ^ " async" ^
       (if (usec_of_time af > 0) then " after " ^ string_of_time af else "") ^
@@ -32,14 +50,16 @@ let rec c_defs_of_classDef ce path argl cd =
     | RT_Getc                   -> "RT_getc()"
 
   in
-
+  let c_of_string_type = function
+    | StrExp (s)                -> c_array_from_string s
+  in
   let c_of_mPArg = function
-    | MPArg (t, i) -> string_of_pType t ^ " " ^ p ^ i
+    | MPArg (t, i) -> c_of_pType t ^ " " ^ p ^ i
   in
 
   let rec c_of_stmt ti = function
     | ExpStmt (e)       -> ti ^ tab ^ c_of_expr e ^ sc ^ nl
-    | MPVar (t, i, e)   -> ti ^ tab ^ string_of_pType t ^ " " ^ p ^ i ^ " = " ^ c_of_expr e ^ sc ^ nl
+    | MPVar (t, i, e)   -> ti ^ tab ^ c_of_pType t ^ " " ^ p ^ i ^ " = " ^ c_of_expr e ^ sc ^ nl
     | Assign (i, e)     -> ti ^ tab ^ p ^ i ^ " = " ^ c_of_expr e ^ sc ^ nl
     | Return (e)        -> ti ^ tab ^ "return " ^ c_of_expr e ^ sc ^ nl
     | If (e, sl)        -> ti ^ tab ^ "if ( " ^ c_of_expr e ^ " )" ^ op ^ String.concat ("") (List.map (c_of_stmt (ti^tab)) sl) ^ ti ^ tab ^ cl ^ nl
@@ -51,18 +71,21 @@ let rec c_defs_of_classDef ce path argl cd =
   in
 
   let c_of_classArg cal arg = match cal with
-    | CPArg (t, i)      -> "const " ^ string_of_pType t ^ " " ^ p ^ i ^ " = " ^ arg
+    | CPArg (t, i)      -> "const " ^ c_of_pType t ^ " " ^ p ^ i ^ " = " ^ arg ^ sc
     | CMArg (t, tl, i ) ->
       let nri = ref 0 in (* ugly but works to blend in some imperative stuff *)
-      let argin t = nri := !nri + 1; string_of_pType t ^ " i" ^ string_of_int !nri in
+      let argin t = nri := !nri + 1; c_of_pType t ^ " i" ^ string_of_int !nri in
       let nro = ref 0 in
       let argout t = nro := !nro + 1; "i" ^ string_of_int !nro in
-      c_e ^ " Func " ^ string_of_pType t ^ " " ^ p ^ i ^ string_par argin tl ^ " { sync " ^ arg ^ string_par argout tl ^ "; } " ^ e_c
+      c_e ^ " Func " ^ c_of_pType t ^ " " ^ p ^ i ^ string_par argin tl ^ " { sync " ^ arg ^ string_par argout tl ^ "; } " ^ e_c
   in
 
   (* state initialization *)
   let c_state_of_classDecl = function
-    | CPVar (t, i, e)       -> string_of_pType t ^ " " ^ p ^ i ^ " = " ^ c_of_expr e ^ sc
+    (*| CPVar (t, i, e) when t == String   -> "int " ^p^i^"_len" ^ nl^ "char[" ^ "" ^ "]" ^ " " ^ p ^ i ^ " = " ^ c_of_string_type e ^ sc*)
+    | CPVar (t, i, e) when t == String   -> "char"^ " " ^ p ^ i ^ "[" ^ string_of_int ((String.length (string_of_expr e))-2) ^ "]"^" = " ^ c_of_string_type e ^ sc ^"// CPVar with string type"
+                                                                        (* Length of string excluding citation *)
+    | CPVar (t, i, e)                    -> c_of_pType t ^ " " ^ p ^ i ^ " = " ^ c_of_expr e ^ sc
     | _ -> ""(*raise (UnMatched)*)
   in
 
@@ -75,13 +98,13 @@ let rec c_defs_of_classDef ce path argl cd =
     in
     function
     | CMDecl (t, i, al, sl)  ->
-        c_e ^ " Func " ^ string_of_pType t ^ " " ^ p ^ i ^ string_par c_of_mPArg al ^ "{" ^ nl
+        c_e ^ " Func " ^ c_of_pType t ^ " " ^ p ^ i ^ string_par c_of_mPArg al ^ "{" ^ nl
         ^ claim_stmts sl
         ^ c_e ^ " } " ^ e_c
 
     | CTaskDecl (i, al, sl)     ->
       let c_data_of_mPArg path = function
-        | MPArg (t, i) -> string_of_pType t ^ " " ^ path ^ "_" ^ i
+        | MPArg (t, i) -> c_of_pType t ^ " " ^ path ^ "_" ^ i
 
         in
         c_e ^ " " ^ "Task " ^ p ^ i ^ string_par (c_data_of_mPArg path) al ^ " { "  ^ nl ^
@@ -96,7 +119,7 @@ let rec c_defs_of_classDef ce path argl cd =
         c_e ^ " " ^ "Idle {" ^ nl ^
         claim_stmts sl ^
         c_e ^ " } " ^ e_c
-    | _ -> "" (*raise (UnMatched)*)
+    | _ -> ""(*raise (UnMatched)*)
   in
 
   (* span tree recusively *)

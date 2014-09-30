@@ -1,0 +1,25 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+class Root<> {
+	int a := 2;
+	string s1 := "hello";
+
+	Idle {}
+
+	Reset {
+		RT_printf("%s", s1);
+		RT_printf("%c", s1[3]);
+	}
+
+}

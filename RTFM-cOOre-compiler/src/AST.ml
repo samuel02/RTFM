@@ -17,13 +17,16 @@ type expr =
     | ParExp    of expr
     | CharExp   of char
     | BoolExp   of bool
+    | StrExp    of string
     | RT_Rand   of expr
     | CompExp   of string * expr * expr
+    | IndexExp  of id list * expr
     | RT_Getc
 
 type pType =
     | Int
     | Char
+    | String
     | Bool
     | Byte
     | Void
@@ -70,6 +73,7 @@ let string_cur m l = " {" ^ String.concat ", " (List.map m l) ^ "} "
 
 let rec string_of_expr = function
     | IdExp (idl)               -> String.concat "." idl
+    | IndexExp (idl, e)           -> String.concat "." idl ^ "[" ^ string_of_expr e ^ "]"
     | CallExp (m, el)           -> String.concat "." m ^ string_par string_of_expr el
     | AsyncExp (af, be, il, el) -> "async after " ^ string_of_time af ^ " before " ^ string_of_time be ^ " " ^ String.concat "." il ^ string_par string_of_expr el
     | PendExp (il)              -> "pend " ^ String.concat "." il
@@ -78,6 +82,7 @@ let rec string_of_expr = function
     | ParExp (e)                -> "(" ^ string_of_expr e ^ ")"
     | CharExp (c)               -> ecit ^ String.make 1 c ^ ecit
     | BoolExp (b)               -> string_of_bool b
+    | StrExp (s)                -> "\"" ^ s ^ "\""
     | RT_Rand (e)               -> "RT_rand(" ^ string_of_expr e ^ ")"
     | RT_Getc                   -> "RT_getc()"
     | CompExp (s, e1, e2)       -> string_of_expr e1 ^ " " ^ s ^ " " ^ string_of_expr e2
@@ -88,6 +93,7 @@ let string_of_pType = function
     | Bool -> "bool"
     | Byte -> "byte"
     | Void -> "void"
+    | String -> "string"
 
 let string_of_mPArg = function
     | MPArg (t, i) -> string_of_pType t ^ " " ^ i
