@@ -60,14 +60,14 @@ let rec c_defs_of_classDef ce path argl cd =
   in
 
   let rec c_of_stmt ti = function
-    | Stmt (sl)         -> ti ^ op  ^ tab ^  String.concat (tab) (List.map (c_of_stmt (ti)) sl) ^ ti ^ "}" ^ nl
+    | Stmt (sl)         -> ti ^ String.concat (tab) (List.map (c_of_stmt (ti)) sl) ^ nl
     | ExpStmt (e)       -> ti ^ tab ^ c_of_expr e ^ sc ^ nl
     | MPVar (t, i, e)   -> ti ^ tab ^ c_of_pType t ^ " " ^ p ^ i ^ " = " ^ c_of_expr e ^ sc ^ nl
     | Assign (i, e)     -> ti ^ tab ^ p ^ i ^ " = " ^ c_of_expr e ^ sc ^ nl
     | Return (e)        -> ti ^ tab ^ "return " ^ c_of_expr e ^ sc ^ nl
-    | If (e, s)         -> ti ^ tab ^ "if ( " ^ c_of_expr e ^ " )" ^ c_of_stmt (ti^tab) s
-    | Else (s)          -> ti ^ tab ^ "else" ^ c_of_stmt (ti^tab) s
-    | While (e, s)      -> ti ^ tab ^ "while ( " ^ c_of_expr e ^ " )" ^ c_of_stmt (ti^tab) s
+    | If (e, s)         -> ti ^ tab ^ "if ( " ^ c_of_expr e ^ " ) {" ^ c_of_stmt (ti^tab) s ^"}" ^nl
+    | Else (s)          -> ti ^ tab ^ "else {" ^ c_of_stmt (ti^tab) s ^ "}"^nl
+    | While (e, s)      -> ti ^ tab ^ "while ( " ^ c_of_expr e ^ " ) {" ^ c_of_stmt (ti^tab) s ^ "}"^nl
     | RT_Sleep (e)      -> ti ^ tab ^ "RT_sleep(" ^ c_of_expr e ^ ")"  ^ sc ^ nl
     | RT_Printf (s, el) -> ti ^ tab ^ "RT_printf(" ^ String.concat ", " ((ec ^ s ^ ec) :: List.map c_of_expr el) ^ ")" ^ sc ^ nl
     | RT_Putc (e)       -> ti ^ tab ^ "RT_putc(" ^ c_of_expr e ^ ")"  ^ sc ^ nl
