@@ -16,7 +16,7 @@ let gv_of_p ce p =
         path ^ " -> " ^ po ^ nl ^
 
         gv_of_cd (po) cd
-    | _ -> raise UnMatched
+    | _ -> "" (*raise UnMatched*)
 
   and gv_of_cd path = function
     | ClassDef (i, cal, cdl) ->

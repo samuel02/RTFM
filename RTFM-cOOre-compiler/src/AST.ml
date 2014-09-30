@@ -17,13 +17,16 @@ type expr =
     | ParExp    of expr
     | CharExp   of char
     | BoolExp   of bool
+    | StrExp    of string
     | RT_Rand   of expr
     | CompExp   of string * expr * expr
+    | IndexExp  of id list * expr
     | RT_Getc
 
 type pType =
     | Int
     | Char
+    | String
     | Bool
     | Byte
     | Void
@@ -32,13 +35,14 @@ type mPArg =
     | MPArg     of pType * id
 
 type stmt =
+    | Stmt      of stmt list
     | ExpStmt   of expr
     | MPVar     of pType * id * expr
     | Assign    of id * expr
     | Return    of expr
-    | If        of expr * stmt list
-    | Else      of stmt list
-    | While     of expr * stmt list
+    | If        of expr * stmt
+    | Else      of stmt
+    | While     of expr * stmt
     | RT_Sleep  of expr
     | RT_Printf of string * expr list
     | RT_Putc   of expr
@@ -52,8 +56,8 @@ type classDecl =
     | CPVar      of pType * id * expr
     | COVar      of id * expr list * id
     | CMDecl     of pType * id * mPArg list * stmt list
-    | CTaskDecl  of id * mPArg list * stmt list
-    | CIsrDecl   of int * id * stmt list
+    | CTaskDecl  of id * mPArg list * stmt list 
+    | CIsrDecl   of int * id * stmt list 
     | CResetDecl of stmt list
     | CIdleDecl  of stmt list
 
@@ -70,6 +74,7 @@ let string_cur m l = " {" ^ String.concat ", " (List.map m l) ^ "} "
 
 let rec string_of_expr = function
     | IdExp (idl)               -> String.concat "." idl
+    | IndexExp (idl, e)           -> String.concat "." idl ^ "[" ^ string_of_expr e ^ "]"
     | CallExp (m, el)           -> String.concat "." m ^ string_par string_of_expr el
     | AsyncExp (af, be, il, el) -> "async after " ^ string_of_time af ^ " before " ^ string_of_time be ^ " " ^ String.concat "." il ^ string_par string_of_expr el
     | PendExp (il)              -> "pend " ^ String.concat "." il
@@ -78,6 +83,7 @@ let rec string_of_expr = function
     | ParExp (e)                -> "(" ^ string_of_expr e ^ ")"
     | CharExp (c)               -> ecit ^ String.make 1 c ^ ecit
     | BoolExp (b)               -> string_of_bool b
+    | StrExp (s)                -> "\"" ^ s ^ "\""
     | RT_Rand (e)               -> "RT_rand(" ^ string_of_expr e ^ ")"
     | RT_Getc                   -> "RT_getc()"
     | CompExp (s, e1, e2)       -> string_of_expr e1 ^ " " ^ s ^ " " ^ string_of_expr e2
@@ -88,18 +94,20 @@ let string_of_pType = function
     | Bool -> "bool"
     | Byte -> "byte"
     | Void -> "void"
+    | String -> "string"
 
 let string_of_mPArg = function
     | MPArg (t, i) -> string_of_pType t ^ " " ^ i
 
 let rec string_of_stmt ti = function
+    | Stmt (sl)         -> ti ^ op  ^ tab ^  String.concat (tab) (List.map (string_of_stmt (ti)) sl) ^ ti ^ "}" ^nl
     | ExpStmt (e)       -> ti ^ string_of_expr e ^ sc ^ nl
     | MPVar (t, i, e)   -> ti ^ string_of_pType t ^ " " ^ i ^ " := " ^ string_of_expr e ^ sc ^ nl
     | Assign (i, e)     -> ti ^ i ^ " := " ^ string_of_expr e ^ sc ^ nl
     | Return (e)        -> ti ^ "return " ^ string_of_expr e ^ sc ^ nl
-    | If (e, sl)        -> ti ^ "if ( " ^ string_of_expr e ^ " )" ^ op ^ String.concat ("") (List.map (string_of_stmt (ti ^ tab)) sl) ^ ti ^ cl ^ nl
-    | Else (sl)         -> ti ^ "else" ^ op ^ tab ^ String.concat (tab) (List.map (string_of_stmt (ti ^ tab)) sl) ^ ti ^ cl ^ nl
-    | While (e, sl)     -> ti ^ "while ( " ^ string_of_expr e ^ " )" ^ op ^ String.concat ("") (List.map (string_of_stmt (ti ^ tab)) sl) ^ ti ^ cl ^ nl
+    | If (e, s)         -> ti ^ "if ( " ^ string_of_expr e ^ " )" ^ string_of_stmt (ti^tab) s 
+    | Else (s)          -> ti ^ "else" ^ string_of_stmt (ti^tab) s
+    | While (e, s)      -> ti ^ "while ( " ^ string_of_expr e ^ " )" ^ string_of_stmt (ti^tab) s
     | RT_Sleep (e)      -> ti ^ "RT_sleep(" ^ string_of_expr e ^ ")" ^ sc ^ nl
     | RT_Printf (s, el) -> ti ^ "RT_printf(" ^ String.concat ", " (s :: List.map string_of_expr el) ^ ")" ^ sc ^ nl
     | RT_Putc (e)       -> ti ^ "RT_putc(" ^ string_of_expr e ^ ")" ^ sc ^ nl
@@ -125,10 +133,10 @@ let string_of_classDecl = function
       tab ^ "}"
     | CResetDecl (sl)        -> tab ^ "Reset {" ^ nl
          ^ String.concat "" (List.map (string_of_stmt (tab^tab)) sl)
-        ^ tab ^ "}"
+        ^ tab ^ "}" ^ nl
     | CIdleDecl (sl)         -> tab ^ "Idle {" ^ nl
          ^ String.concat "" (List.map (string_of_stmt (tab^tab)) sl)
-        ^ tab ^ "}"
+        ^ tab ^ "}" ^ nl
 
 
 let string_of_classDef = function
