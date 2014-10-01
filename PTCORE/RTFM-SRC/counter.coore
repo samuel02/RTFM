@@ -7,22 +7,22 @@ class IO<> {
 
 class Sequence<> {
 	string correct := "4 8 15 16 23 42";
-	int sequence_cursor := 0;
+	int cursor := 0;
 
-	void increment_sequence_cursor() {
-		sequence_cursor := sequence_cursor + 1;
+	void increment_cursor() {
+		cursor := cursor + 1;
 	}
 
 	bool is_correct_char(char c) {
-		return c == correct[sequence_cursor];
+		return c == correct[cursor];
 	}
 
 	bool is_complete() {
-		return sequence_cursor == 15;
+		return cursor == 15;
 	}
 
 	Task reset() {
-		sequence_cursor := 0;
+		cursor := 0;
 	}
 }
 
@@ -49,37 +49,34 @@ class Timer<> {
 
 
 class Root<> {
-	Sequence<> seq;
+	Sequence<> sequence;
 	Timer<> timer;
 
 	Reset {
-		async seq.reset();
+		async sequence.reset();
 		async timer.reset();
 		async after 1 s timer.tick();
 	}
 
 	Idle {
-		char c := ' ';
+		char input := ' ';
 		bool running := true;
 
 		while(running) {
-			c := RT_getc();
+			input := RT_getc();
 
-			if(c) {
-				bool is_correct_char := seq.is_correct_char(c);
-				if(is_correct_char) {
-					seq.increment_sequence_cursor();
-				}
+			if (input) {
 
-				bool is_complete := seq.is_complete();
+				bool is_correct_char := sequence.is_correct_char(input);
+				if (is_correct_char) sequence.increment_cursor();
+
+				bool is_complete := sequence.is_complete();
 				if(is_complete) {
 					async timer.reset();
-					async seq.reset();
+					async sequence.reset();
 				}
 
-				if(c == 'q') {
-				  running := 0;
-				}
+				if (input == 'q') running := false;
 			}
 		}
 	}
