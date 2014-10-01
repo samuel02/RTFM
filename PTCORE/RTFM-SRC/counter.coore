@@ -53,6 +53,8 @@ class Root<> {
 	Timer<> timer;
 
 	Reset {
+		async seq.reset();
+		async timer.reset();
 		async after 1 s timer.tick();
 	}
 
