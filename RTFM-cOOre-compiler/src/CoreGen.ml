@@ -14,9 +14,9 @@ let rec c_defs_of_classDef ce path argl cd =
   let p = path ^ "_" in
   let r = "RES_" ^ p in
 
-  let c_array_from_string str = 
-    let rec list_car ch = match ch with 
-      | "" -> [] 
+  let c_array_from_string str =
+    let rec list_car ch = match ch with
+      | "" -> []
       | ch -> ("\'" ^ (String.sub ch 0 1 ) ^"\'") :: (list_car (String.sub ch 1 ( (String.length ch)-1) ) )
     in
     "{" ^ String.concat ", "  (list_car str) ^ "}"
@@ -34,7 +34,12 @@ let rec c_defs_of_classDef ce path argl cd =
   let rec c_of_expr = function
     | IdExp (idl)               -> p ^ String.concat "_" idl
     | IndexExp (idl, e)            -> p ^ String.concat "_" idl ^ "[" ^ c_of_expr e ^ "]"
-    | CallExp (m, el)           -> c_e ^ " sync " ^ p ^ String.concat "_" m ^ string_par c_of_expr el ^ "; " ^ e_c
+    | CallExp (m, el)           ->
+      (
+        match m with
+        | _::[] -> c_e ^ "sync local_" ^ p ^ String.concat "_" m ^ string_par c_of_expr el ^ sc ^ e_c
+        | _     -> c_e ^ " sync " ^ p ^ String.concat "_" m ^ string_par c_of_expr el ^ sc ^ e_c
+      )
     | AsyncExp (af, be, il, el) -> c_e ^ " async" ^
       (if (usec_of_time af > 0) then " after " ^ string_of_time af else "") ^
       (if (usec_of_time be > 0) then " before " ^ string_of_time be else "") ^
@@ -99,9 +104,12 @@ let rec c_defs_of_classDef ce path argl cd =
     in
     function
     | CMDecl (t, i, al, sl)  ->
-        c_e ^ " Func " ^ c_of_pType t ^ " " ^ p ^ i ^ string_par c_of_mPArg al ^ "{" ^ nl
-        ^ claim_stmts sl
-        ^ c_e ^ " } " ^ e_c
+        c_e ^ " Func " ^ string_of_pType t ^ " local_" ^ p ^ i ^ string_par c_of_mPArg al ^ "{" ^ e_c ^ nl ^
+        String.concat "" (List.map (c_of_stmt tab) sl) ^
+        c_e ^ " } " ^ e_c ^ nl ^ nl ^
+        c_e ^ " Func " ^ string_of_pType t ^ " " ^ p ^ i ^ string_par c_of_mPArg al ^ "{" ^ nl ^
+        claim_stmts sl ^
+        c_e ^ " } " ^ e_c
 
     | CTaskDecl (i, al, sl)     ->
       let c_data_of_mPArg path = function
@@ -117,8 +125,8 @@ let rec c_defs_of_classDef ce path argl cd =
         claim_stmts sl ^
         c_e ^ " } " ^ e_c
     | CIdleDecl (sl)            ->
-        c_e ^ " " ^ "Idle {" ^ nl ^
-        claim_stmts sl ^
+        c_e ^ " " ^ "Idle {" ^ e_c ^ nl ^
+        String.concat "" (List.map (c_of_stmt tab) sl) ^
         c_e ^ " } " ^ e_c
     | _ -> ""(*raise (UnMatched)*)
   in
