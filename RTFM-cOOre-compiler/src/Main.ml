@@ -9,6 +9,7 @@ open AST
 open Env
 open CoreGen
 open Dot
+open Grammar
 
 open Error
 open Cmd
@@ -30,6 +31,7 @@ let main () =
     | Some p ->
         if opt.verbose then p_stderr ("Parsing succeeded:" ^ nl);
         if opt.d_ast then p_stderr (string_of_prog p);
+        if opt.typecheck then p_stderr (typecheck_prog p);
         
         (* check cyclic *)
         cyclic p;

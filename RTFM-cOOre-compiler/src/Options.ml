@@ -16,6 +16,7 @@ type options =
     mutable dotout: bool;
     mutable dotfile: string;
     mutable d_ast: bool;
+    mutable typecheck: bool;
     mutable ldotout: bool;
     mutable ldotfile: string;
     (* mutable string: Time.t; -- requires Core *)
@@ -34,6 +35,7 @@ let opt =
     ldotout  = false;
     ldotfile = "";
     d_ast    = false;
+    typecheck= true;
   }
 
 let string_of_opt opt =
@@ -48,4 +50,5 @@ let string_of_opt opt =
   "dotfile        : " ^ opt.dotfile ^ nl ^
   "ldotout        : " ^ string_of_bool opt.ldotout ^ nl ^
   "ldotfile       : " ^ opt.ldotfile ^ nl ^
-  "d_ast          : " ^ string_of_bool opt.d_ast ^ nl
+  "d_ast          : " ^ string_of_bool opt.d_ast ^ nl ^
+  "typecheck      : " ^ string_of_bool opt.typecheck ^ nl
