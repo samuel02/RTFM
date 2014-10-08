@@ -35,7 +35,7 @@ let opt =
     ldotout  = false;
     ldotfile = "";
     d_ast    = false;
-    typecheck= true;
+    typecheck= false;
   }
 
 let string_of_opt opt =
