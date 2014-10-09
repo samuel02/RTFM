@@ -18,10 +18,7 @@ let string_pp m l  = " <" ^ String.concat ", " (List.map m l) ^ "> "
 let string_cur m l = " {" ^ String.concat ", " (List.map m l) ^ "} "*)
 
   
-
-type id = string;;
-
-type env = 
+type env =
     {   local: binding list;
         scope: string;
         parent: env option ;
@@ -29,6 +26,17 @@ type env =
     and binding = id * pType
 ;;
 
+
+let rec string_of_env ti {local=l; scope=s; parent=p} = 
+    let rec string_of_bind_list ti = function
+        | (i, t)::tail  -> ti ^ i ^ " : " ^ string_of_pType t ^ "\n" ^ string_of_bind_list ti tail
+        | []            -> ""
+    in
+    let local = s ^ "\n" ^ti^"-------------\n" ^ string_of_bind_list ti l in 
+        match p with
+            | None      -> local
+            | Some p    -> local ^ "\n" ^ ti ^ "  Parent = " ^ string_of_env (ti^"  ") p
+;;
 let rec type_of id env =
     try
         List.assoc id env.local
@@ -65,7 +73,8 @@ let well_op op t1 t2 t_env =
     | OpLeq  -> if type_list rt [Int;Bool;Byte] then rt else raise (TypeError("Less or equal"))
 
 
-let rec typecheck_expr env = function
+let rec typecheck_expr env = 
+    let typecheck = function
     | IdExp (idl)               -> type_of (String.concat "." idl) env
     | IndexExp (idl, e)         -> if ((typecheck_expr env e) = Int) && ((type_of (String.concat "." idl) env) = String)
                                         then Char
@@ -82,22 +91,36 @@ let rec typecheck_expr env = function
     | RT_Rand (e)               -> Int
     | RT_Getc                   -> Char
     | CompExp (op, e1, e2)      -> well_op op (typecheck_expr env e1) (typecheck_expr env e2) env
+    in
+    function
+        | x ->
+        begin
+        p_stderr ("Typechecking expressions in scope "^env.scope^": "^nl^string_of_env "" env);
+        
+        typecheck x ;
+    
+        end
 
 
 let add_to_env i t env = 
     if List.mem_assoc i env.local then
+        raise(NameError(i^"is already assigned in scope "^env.scope))
+    else
     begin
+        p_stderr ("Adding "^i^" of type "^string_of_pType t );
         env.local = (i, t) :: env.local;
-        true;
+        env;
     end
-    else 
-        false;;
+;; 
 
+int i := 3;
+int j := i;
 
-let rec typecheck_stmt env = function
+let rec typecheck_stmt env = 
+    let typecheck = function
+    | MPVar (t, i, e)   -> let env = (add_to_env i t env); typecheck_expr env e = t;
     | Stmt (sl)         -> List.for_all (typecheck_stmt env) sl
-    | ExpStmt (e)       -> typecheck_expr env e; true
-    | MPVar (t, i, e)   -> typecheck_expr env e = t  && add_to_env i t env
+    | ExpStmt (e)       -> typecheck_expr env e; true;
     | Assign (i, e)     -> type_of i env = typecheck_expr env e
     | Return (e)        -> typecheck_expr env e; true
     | If (e, s)         -> (typecheck_expr env e) = Bool && typecheck_stmt env s
@@ -106,6 +129,13 @@ let rec typecheck_stmt env = function
     | RT_Sleep (e)      -> typecheck_expr env e; true
     | RT_Printf (s, el) -> List.map (typecheck_expr env) el; true
     | RT_Putc (e)       -> typecheck_expr env e; true
+in
+function
+    | x ->
+        begin
+        p_stderr ("Typechecking statements in scope "^env.scope^": "^string_of_env "" env);
+        if typecheck x then true else raise (TypeError(string_of_stmt "" x^"Type error in "^env.scope^": "^ nl^string_of_env "" env))
+        end
 
 let typecheck_classArg env = function
     | CPArg (t, i)      -> begin env.local = (i, t) :: env.local; print_string ("added " ^ i ^ " to environment " ^ env.scope ^"\n"); true; end
@@ -113,15 +143,20 @@ let typecheck_classArg env = function
 
 
 let typecheck_classDecl env = 
-    let new_scope i par = {local=[]; scope=i; parent= Some par} in
+  let rec binding_argList = function
+    | MPArg (t, i)::[]          -> (i, t)::[]
+    | MPArg (t, i)::tail        -> (i, t)::binding_argList tail
+    | []                        -> []
+    in
+    let new_scope l i par = {local=l; scope=i; parent= Some par} in
     function
     | CPVar (t, i, e)        -> begin unify t (typecheck_expr env e); env.local = (i, t) :: env.local; true; end
     | COVar (o, el, i)       -> begin List.map (typecheck_expr env) el; true; end
-    | CMDecl (t, i, al, sl)  -> List.for_all (typecheck_stmt (new_scope i env)) sl
-    | CTaskDecl (i, al, sl ) -> List.for_all (typecheck_stmt (new_scope i env)) sl
-    | CIsrDecl (pr, i, sl)   -> List.for_all (typecheck_stmt (new_scope i env)) sl
-    | CResetDecl (sl)        -> List.for_all (typecheck_stmt (new_scope "Reset" env)) sl
-    | CIdleDecl (sl)         -> List.for_all (typecheck_stmt (new_scope "Idle" env)) sl
+    | CMDecl (t, i, al, sl)  -> List.for_all (typecheck_stmt (new_scope (binding_argList al) i env)) sl
+    | CTaskDecl (i, al, sl ) -> List.for_all (typecheck_stmt (new_scope (binding_argList al) i env)) sl
+    | CIsrDecl (pr, i, sl)   -> List.for_all (typecheck_stmt (new_scope [] i env)) sl
+    | CResetDecl (sl)        -> List.for_all (typecheck_stmt (new_scope [] "Reset" env)) sl
+    | CIdleDecl (sl)         -> List.for_all (typecheck_stmt (new_scope [] "Idle" env)) sl
       
 
 
