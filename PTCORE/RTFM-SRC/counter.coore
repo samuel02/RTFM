@@ -1,7 +1,7 @@
 class IO<> {
 
 	void print(int seconds) {
-		RT_printf("%d", seconds);
+		RT_printf("%d\n", seconds);
 	}
 }
 
@@ -32,7 +32,7 @@ class Timer<> {
 	IO<> output;
 
 	Task tick () {
-		seconds := seconds-1;
+		seconds := seconds - 1;
 		output.print(seconds);
 
 		if (seconds) {
