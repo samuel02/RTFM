@@ -11,20 +11,8 @@ exception NameError of string
 exception NotImplemented of string
 
 
-type binding = id * pType
-;;
+type binding = id * pType ;;
 
-(*
-let rec string_of_env ti {local=l; scope=s; parent=p} = 
-    let rec string_of_bind_list ti = function
-        | (i, t)::tail  -> ti ^ i ^ " : " ^ string_of_pType t ^ "\n" ^ string_of_bind_list ti tail
-        | []            -> ""
-    in
-    let local = s ^ "\n" ^ti^"-------------\n" ^ string_of_bind_list ti l in 
-        match p with
-            | None      -> local
-            | Some p    -> local ^ "\n" ^ ti ^ "  Parent = " ^ string_of_env (ti^"  ") p
-;;*)
 let rec type_of id env =
     try
         List.assoc id env
@@ -37,7 +25,7 @@ let unify t1 t2 =
     else
         raise (TypeError(" Types not matching: arg1 = " ^ string_of_pType t1 ^ ", arg2 = " ^ string_of_pType t2 ^ ". "))(* ^ string_of_pType t1 ^ " " ^ string_of_pType t2)))*)
 
-let well_op op t1 t2 t_env =
+let typecheck_op env op t1 t2 =
     let equal rt t = rt = t in
     let type_list rt l = List.exists (equal rt) l in
     let rt = unify t1 t2 in
@@ -63,14 +51,14 @@ let rec typecheck_expr env = function
     | AsyncExp (af, be, il, el) -> Void
     | PendExp (il)              -> Void
     | IntExp (i)                -> Int
-    | MathExp (op, a, b)        -> well_op op (typecheck_expr env a) (typecheck_expr env b) env
+    | MathExp (op, a, b)        -> typecheck_op env op (typecheck_expr env a) (typecheck_expr env b)
     | ParExp (e)                -> typecheck_expr env e
     | CharExp (c)               -> Char
     | BoolExp (b)               -> Bool
     | StrExp (s)                -> String
     | RT_Rand (e)               -> Int
     | RT_Getc                   -> Char
-    | CompExp (op, e1, e2)      -> well_op op (typecheck_expr env e1) (typecheck_expr env e2) env
+    | CompExp (op, e1, e2)      -> typecheck_op env op (typecheck_expr env e1) (typecheck_expr env e2)
 
 let rec typecheck_stmt env =  function
     | MPVar (t, i, e)   -> if typecheck_expr env e = t then (i, t)::env else raise (TypeError("Variable definition: "^i))
@@ -99,7 +87,7 @@ let typecheck_classDecl env =
     | CIsrDecl (pr, i, sl)   -> if (List.length (List.fold_left typecheck_stmt env sl)) >= 0 then env else raise (TypeError(""))
     | CResetDecl (sl)        -> if (List.length (List.fold_left typecheck_stmt env sl)) >= 0 then env else raise (TypeError(""))
     | CIdleDecl (sl)         -> if (List.length (List.fold_left typecheck_stmt env sl)) >= 0 then env else raise (TypeError(""))
-;;
+
 
 let typecheck_classDef = 
     let rec binding_classEnv = function
@@ -109,9 +97,7 @@ let typecheck_classDef =
     in
     function
     | ClassDef (i, cal, cdl) -> List.length (List.fold_left typecheck_classDecl (binding_classEnv cal) cdl) >= 0
-(*        List.for_all (typecheck_classDecl [(binding_classEnv cal)]) cdl)*)
 ;;
-    
-
 let typecheck_prog = function
     | Prog (cl) -> if (List.for_all typecheck_classDef cl) then "Typechecking successful" else "Typechecking failed"
+;;
