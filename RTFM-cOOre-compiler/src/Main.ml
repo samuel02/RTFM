@@ -55,6 +55,8 @@ let main () =
   | RtfmError msg         -> p_stderr msg;
   | Failure msg           -> p_stderr msg;
   | Parser.Error          -> p_stderr ("Parser error." ^ parse_err_msg lexbuf);
+  | TypeError msg         -> p_stderr msg;  
+  | NameError msg         -> p_stderr msg;
       
       exit (-1);;
 (* exit 0;; *)

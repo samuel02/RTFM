@@ -28,7 +28,6 @@ let rec string_of_env ti {local=l; scope=s; parent=p} =
 let rec type_of id env =
     try
         List.assoc id env
-
     with Not_found  ->
         raise (NameError("Identifier " ^ id ^ " is not defined"))
 ;;
@@ -43,25 +42,24 @@ let well_op op t1 t2 t_env =
     let type_list rt l = List.exists (equal rt) l in
     let rt = unify t1 t2 in
     match op with
-    | OpPlus -> if type_list rt [Int]           then rt else raise (TypeError("Addition"))
-    | OpSub  -> if type_list rt [Int]           then rt else raise (TypeError("Subtraction"))
-    | OpMult -> if type_list rt [Int]           then rt else raise (TypeError("Multiplication"))
-    | OpDiv  -> if type_list rt [Int]           then rt else raise (TypeError("Division"))
-    | OpMod  -> if type_list rt [Int]           then rt else raise (TypeError("Modulo"))
-    | OpEq   -> if type_list rt [Int;Bool;Byte] then rt else raise (TypeError("Equality"))
-    | OpNeq  -> if type_list rt [Int;Bool;Byte] then rt else raise (TypeError("Non-equality"))
-    | OpGrt  -> if type_list rt [Int;Bool;Byte] then rt else raise (TypeError("Greater than"))
-    | OpGeq  -> if type_list rt [Int;Bool;Byte] then rt else raise (TypeError("Greater or equal"))
-    | OpLet  -> if type_list rt [Int;Bool;Byte] then rt else raise (TypeError("Less than"))
-    | OpLeq  -> if type_list rt [Int;Bool;Byte] then rt else raise (TypeError("Less or equal"))
-
+    | OpPlus -> if type_list rt [Int]           then rt     else raise (TypeError("Addition"))
+    | OpSub  -> if type_list rt [Int]           then rt     else raise (TypeError("Subtraction"))
+    | OpMult -> if type_list rt [Int]           then rt     else raise (TypeError("Multiplication"))
+    | OpDiv  -> if type_list rt [Int]           then rt     else raise (TypeError("Division"))
+    | OpMod  -> if type_list rt [Int]           then rt     else raise (TypeError("Modulo"))
+    | OpEq   -> if type_list rt [Int;Bool;Byte] then Bool   else raise (TypeError("Equality"))
+    | OpNeq  -> if type_list rt [Int;Bool;Byte] then Bool   else raise (TypeError("Non-equality"))
+    | OpGrt  -> if type_list rt [Int;Bool;Byte] then Bool   else raise (TypeError("Greater than"))
+    | OpGeq  -> if type_list rt [Int;Bool;Byte] then Bool   else raise (TypeError("Greater or equal"))
+    | OpLet  -> if type_list rt [Int;Bool;Byte] then Bool   else raise (TypeError("Less than"))
+    | OpLeq  -> if type_list rt [Int;Bool;Byte] then Bool   else raise (TypeError("Less or equal"))
 
 let rec typecheck_expr env = function
-    | IdExp (idl)               -> type_of (List.nth  idl 0) env
-    | IndexExp (idl, e)         -> if ((typecheck_expr env e) = Int) && ((type_of (List.nth idl 0) env) = String)
+    | IdExp (idl)               -> type_of (List.nth idl ((List.length idl)-1)) env
+    | IndexExp (idl, e)         -> if ((typecheck_expr env e) = Int) && ((type_of (List.nth idl ((List.length idl)-1)) env) = String)
                                         then Char
                                         else raise (TypeError("Incorrect string indexing"))
-    | CallExp (m, el)           -> type_of (String.concat "." m) env
+    | CallExp (m, el)           -> type_of (List.nth m ((List.length m)-1)) env
     | AsyncExp (af, be, il, el) -> Void
     | PendExp (il)              -> Void
     | IntExp (i)                -> Int
@@ -74,21 +72,18 @@ let rec typecheck_expr env = function
     | RT_Getc                   -> Char
     | CompExp (op, e1, e2)      -> well_op op (typecheck_expr env e1) (typecheck_expr env e2) env
 
-
-
 let rec typecheck_stmt env =  function
-    | MPVar (t, i, e)   -> if typecheck_expr env e = t then (i, t)::env else raise (TypeError(""))
+    | MPVar (t, i, e)   -> if typecheck_expr env e = t then (i, t)::env else raise (TypeError("Variable definition: "^i))
     | Stmt (sl)         -> List.fold_left typecheck_stmt env sl
     | ExpStmt (e)       -> typecheck_expr env e; env
-    | Assign (i, e)     -> if type_of i env = typecheck_expr env e then env else raise (TypeError(""))
+    | Assign (i, e)     -> if type_of i env = typecheck_expr env e then env else raise (TypeError("Assignment: "^i))
     | Return (e)        -> typecheck_expr env e; env
-    | If (e, s)         -> if (typecheck_expr env e) = Bool then typecheck_stmt env s else raise (TypeError(""))
+    | If (e, s)         -> if (typecheck_expr env e) = Bool then typecheck_stmt env s else raise (TypeError("If: "^string_of_expr e))
     | Else (s)          -> typecheck_stmt env s
-    | While (e, s)      -> if (typecheck_expr env e) = Bool then typecheck_stmt env s else raise (TypeError(""))
+    | While (e, s)      -> if (typecheck_expr env e) = Bool then typecheck_stmt env s else raise (TypeError("While: "^string_of_expr e))
     | RT_Sleep (e)      -> typecheck_expr env e; env
     | RT_Printf (s, el) -> List.map (typecheck_expr env) el; env
     | RT_Putc (e)       -> typecheck_expr env e; env
-
 
 let typecheck_classDecl env = 
   let rec binding_argList env arg = match arg with
