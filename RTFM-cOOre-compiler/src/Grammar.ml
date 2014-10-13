@@ -11,7 +11,7 @@ exception NameError of string
 exception NotImplemented of string
 
 
-type binding = id * pType ;;
+type binding = id * pType
 
 let rec type_of id env =
     try List.assoc id env
@@ -26,7 +26,6 @@ let unify t1 t2 =
 let in_list rt l =
     let equal rt t = rt = t in
     List.exists (equal rt) l
-;;
 
 let typecheck_op env op t1 t2 =
     let rt = unify t1 t2 in
@@ -87,7 +86,6 @@ let typecheck_classDecl env =
     | CResetDecl (sl)        -> if (List.length (List.fold_left typecheck_stmt env sl)) >= 0 then env else raise (TypeError(""))
     | CIdleDecl (sl)         -> if (List.length (List.fold_left typecheck_stmt env sl)) >= 0 then env else raise (TypeError(""))
 
-
 let typecheck_classDef =
     let rec binding_classEnv = function
     | CPArg (t, i)::[]          -> (i, t)::[]
@@ -96,7 +94,6 @@ let typecheck_classDef =
     in
     function
     | ClassDef (i, cal, cdl) -> List.length (List.fold_left typecheck_classDecl (binding_classEnv cal) cdl) >= 0
-
 
 let typecheck_prog = function
     | Prog (cl) -> if (List.for_all typecheck_classDef cl) then "Passed type checking." else "TypeError."
