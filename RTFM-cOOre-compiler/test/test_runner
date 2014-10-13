@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 
-# Get all bats files
-
-# For each bats file
-  # Convert file name to nice string (variable_assignments.bats => "Variable Assignments")
-  # echo "Testing Variable Assignments"
-  # run tests
-  # echo "\n"
+for f in *.bats
+do
+  name=$(echo ${f%%.*} | tr '_' ' ')
+  echo "Testing $name..."
+  bats $f
+  echo ""
+done
