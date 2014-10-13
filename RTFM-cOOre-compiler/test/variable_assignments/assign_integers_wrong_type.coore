@@ -1,0 +1,7 @@
+class Root <> {
+  int a := 1;
+
+  Reset {
+    a := 'a';
+  }
+}

@@ -1,0 +1,7 @@
+class Root <> {
+  char a := 'a';
+
+  Reset {
+    a := 'b';
+  }
+}
