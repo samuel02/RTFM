@@ -11,7 +11,7 @@ load test_helper
 @test "Declaring integers with wrong type" {
   compile variable_declarations/declare_integers_wrong_type.coore
   assert_success
-  assert_last_line "Assignment: a"
+  assert_last_line "TypeError: 'a' is not of type int."
 }
 
 @test "Declaring bools successfully" {
@@ -23,7 +23,7 @@ load test_helper
 @test "Declaring bools with wrong type" {
   compile variable_declarations/declare_bools_wrong_type.coore
   assert_success
-  assert_last_line "Assignment: a"
+  assert_last_line "TypeError: 3 is not of type bool."
 }
 
 @test "Declaring chars successfully" {
@@ -35,7 +35,7 @@ load test_helper
 @test "Declaring chars with wrong type" {
   compile variable_declarations/declare_chars_wrong_type.coore
   assert_success
-  assert_last_line "Assignment: a"
+  assert_last_line "TypeError: 2 is not of type char."
 }
 
 @test "Declaring strings successfully" {
@@ -47,5 +47,5 @@ load test_helper
 @test "Declaring strings with wrong type" {
   compile variable_declarations/declare_strings_wrong_type.coore
   assert_success
-  assert_last_line "Assignment: a"
+  assert_last_line "TypeError: 'a' is not of type string."
 }

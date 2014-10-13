@@ -65,7 +65,7 @@ let rec typecheck_stmt env =  function
     | MPVar (t, i, e)   -> if typecheck_expr env e = t then (i, t)::env else raise (TypeError("Variable definition: "^i))
     | Stmt (sl)         -> List.fold_left typecheck_stmt env sl
     | ExpStmt (e)       -> typecheck_expr env e; env
-    | Assign (i, e)     -> if type_of i env = typecheck_expr env e then env else raise (TypeError("Cannot assign " ^ string_of_pType (typecheck_expr env e) ^ " " ^ string_of_expr e ^ " to " ^ string_of_pType (type_of i env) ^ " " ^ i))
+    | Assign (i, e)     -> if type_of i env = typecheck_expr env e then env else raise (TypeError("TypeError: Cannot assign " ^ string_of_pType (typecheck_expr env e) ^ " " ^ string_of_expr e ^ " to " ^ string_of_pType (type_of i env) ^ " " ^ i ^ "."))
     | Return (e)        -> typecheck_expr env e; env
     | If (e, s)         -> if in_list (typecheck_expr env e) [Bool; Int] then typecheck_stmt env s else raise (TypeError("If: "^string_of_expr e))
     | Else (s)          -> typecheck_stmt env s
@@ -81,7 +81,7 @@ let typecheck_classDecl env =
     | []                        -> env
     in
     function
-    | CPVar (t, i, e)        -> if typecheck_expr env e = t then (i, t)::env else raise (TypeError("Assignment: "^i))
+    | CPVar (t, i, e)        -> if typecheck_expr env e = t then (i, t)::env else raise (TypeError("TypeError: " ^ string_of_expr e ^ " is not of type " ^ string_of_pType t ^ "."))
     | COVar (o, el, i)       -> if (List.length (List.map (typecheck_expr env) el) >= 0) then (*(i, Void)::*)env else raise (TypeError(""))
     | CMDecl (t, i, al, sl)  -> if (List.length (List.fold_left typecheck_stmt (binding_argList env al) sl) >= 0) then (*(i, t)::*)env else raise (TypeError(""))
     | CTaskDecl (i, al, sl ) -> if (List.length (List.fold_left typecheck_stmt (binding_argList env al) sl) >= 0) then (*(i, Void)::*)env else raise (TypeError(""))
