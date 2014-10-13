@@ -14,16 +14,14 @@ exception NotImplemented of string
 type binding = id * pType ;;
 
 let rec type_of id env =
-    try
-        List.assoc id env
+    try List.assoc id env
     with Not_found  ->
         raise (NameError("Identifier " ^ id ^ " is not defined"))
-;;
 
-let unify t1 t2 = 
+let unify t1 t2 =
     if t1 == t2 then t1
     else
-        raise (TypeError(" Types not matching: arg1 = " ^ string_of_pType t1 ^ ", arg2 = " ^ string_of_pType t2 ^ ". "))(* ^ string_of_pType t1 ^ " " ^ string_of_pType t2)))*)
+        raise (TypeError(" Types not matching: arg1 = " ^ string_of_pType t1 ^ ", arg2 = " ^ string_of_pType t2 ^ ". "))
 
 let typecheck_op env op t1 t2 =
     let equal rt t = rt = t in
@@ -73,7 +71,7 @@ let rec typecheck_stmt env =  function
     | RT_Printf (s, el) -> List.map (typecheck_expr env) el; env
     | RT_Putc (e)       -> typecheck_expr env e; env
 
-let typecheck_classDecl env = 
+let typecheck_classDecl env =
   let rec binding_argList env arg = match arg with
     | MPArg (t, i)::[]          -> (i, t)::env
     | MPArg (t, i)::tail        -> (i, t)::binding_argList env tail
@@ -89,7 +87,7 @@ let typecheck_classDecl env =
     | CIdleDecl (sl)         -> if (List.length (List.fold_left typecheck_stmt env sl)) >= 0 then env else raise (TypeError(""))
 
 
-let typecheck_classDef = 
+let typecheck_classDef =
     let rec binding_classEnv = function
     | CPArg (t, i)::[]          -> (i, t)::[]
     | CPArg (t, i)::tail        -> (i, t)::binding_classEnv tail
@@ -97,7 +95,7 @@ let typecheck_classDef =
     in
     function
     | ClassDef (i, cal, cdl) -> List.length (List.fold_left typecheck_classDecl (binding_classEnv cal) cdl) >= 0
-;;
+
+
 let typecheck_prog = function
     | Prog (cl) -> if (List.for_all typecheck_classDef cl) then "Typechecking successful" else "Typechecking failed"
-;;
