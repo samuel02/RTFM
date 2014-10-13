@@ -31,7 +31,7 @@ let in_list rt l =
 let typecheck_op env op t1 t2 =
     let rt = unify t1 t2 in
     match op with
-    | OpPlus -> if in_list rt [Int]           then rt     else raise (TypeError("Addition"))
+    | OpPlus -> if in_list rt [Int]           then rt     else raise (TypeError("TypeError: + operator is not defined for type " ^ string_of_pType rt ^ "."))
     | OpSub  -> if in_list rt [Int]           then rt     else raise (TypeError("Subtraction"))
     | OpMult -> if in_list rt [Int]           then rt     else raise (TypeError("Multiplication"))
     | OpDiv  -> if in_list rt [Int]           then rt     else raise (TypeError("Division"))
