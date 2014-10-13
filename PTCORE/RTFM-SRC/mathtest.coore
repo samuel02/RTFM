@@ -3,14 +3,25 @@ class Class1 <int i> {
 
 	Task loop1() {
 		bool test := true;
+		x := 1;
 	}
 	Task loop2(){
-		async loop1();
+		async before 1 s loop1();
 	}
+
 }
 
 class Class2 <int i> {
 	int x1 := 4;
+
+	Task run1(){
+		x1 := 3;
+	}
+
+	void func_test(){
+		async before 1 s C1_Instance1.loop2();
+		int x2 := 1;
+	}
 }
 
 class Root <> {
@@ -23,8 +34,12 @@ class Root <> {
 	Class2<5> C2_Instance1;
 	Class2<5> C2_Instance2;
 	//RT_printf("Hej");
+	
+	
 	Idle {
 		int aq := 2;
+		async C2_Instance2.run1();
+
 	}
 
 	Reset {

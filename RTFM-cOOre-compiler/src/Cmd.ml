@@ -21,6 +21,7 @@ let usage =
   nl ^
   "Additional options:" ^ nl ^
   "-gv_obj file.gv  Enable : Object structure in gv format (default disabled)" ^ nl ^
+  "-gv_task file.gv  Enable : Task structure in gv format (default disabled)" ^ nl ^
   "-d_ast           Enable : Dump internal AST (default disabled)" ^ nl ^
   nl ^
   "All file paths are relative to the current directory" ^ nl ^
@@ -50,6 +51,7 @@ let speclist =
   ("-i", Arg.Set_string f_infile, "\t\t: infile.coore");
   ("-o", Arg.Set_string f_outfile, "\t\t: outfile (default <infile>.core)");
   ("-gv_obj", Arg.Set_string f_dotfile, "\t: graphviz file (default none)");
+  ("-gv_task", Arg.Set_string f_dotfile, "\t: graphviz file (default none)");
   
   ("-v", Arg.Set o_verbose, "\t\t: verbose mode");
   ("-D", Arg.Set o_debug, "\t\t: debug mode");
