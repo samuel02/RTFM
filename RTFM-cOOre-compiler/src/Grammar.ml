@@ -44,35 +44,33 @@ let typecheck_op env op t1 t2 =
     | OpLeq  -> if in_list rt [Int;Bool;Byte] then Bool   else raise (TypeError("Less or equal"))
 
 let rec typecheck_expr env = function
+    | IndexExp (idl, e)         -> if ((typecheck_expr env e) = Int) && ((type_of (List.nth idl ((List.length idl)-1)) env) = String) then Char else raise (TypeError("Incorrect string indexing"))
+    | MathExp (op, a, b)        -> typecheck_op env op (typecheck_expr env a) (typecheck_expr env b)
+    | CompExp (op, e1, e2)      -> typecheck_op env op (typecheck_expr env e1) (typecheck_expr env e2)
+    | ParExp (e)                -> typecheck_expr env e
     | IdExp (idl)               -> type_of (List.nth idl ((List.length idl)-1)) env
-    | IndexExp (idl, e)         -> if ((typecheck_expr env e) = Int) && ((type_of (List.nth idl ((List.length idl)-1)) env) = String)
-                                        then Char
-                                        else raise (TypeError("Incorrect string indexing"))
     | CallExp (m, el)           -> Void (*type_of (List.nth m ((List.length m)-1)) env*)
     | AsyncExp (af, be, il, el) -> Void
     | PendExp (il)              -> Void
     | IntExp (i)                -> Int
-    | MathExp (op, a, b)        -> typecheck_op env op (typecheck_expr env a) (typecheck_expr env b)
-    | ParExp (e)                -> typecheck_expr env e
     | CharExp (c)               -> Char
     | BoolExp (b)               -> Bool
     | StrExp (s)                -> String
     | RT_Rand (e)               -> Int
     | RT_Getc                   -> Char
-    | CompExp (op, e1, e2)      -> typecheck_op env op (typecheck_expr env e1) (typecheck_expr env e2)
 
 let rec typecheck_stmt env =  function
-    | MPVar (t, i, e)   -> if typecheck_expr env e = t then (i, t)::env else raise (TypeError("TypeError: " ^ string_of_expr e ^ " is not of type " ^ string_of_pType t ^ "."))
     | Stmt (sl)         -> List.fold_left typecheck_stmt env sl
-    | ExpStmt (e)       -> typecheck_expr env e; env
-    | Assign (i, e)     -> if type_of i env = typecheck_expr env e then env else raise (TypeError("TypeError: Cannot assign " ^ string_of_pType (typecheck_expr env e) ^ " " ^ string_of_expr e ^ " to " ^ string_of_pType (type_of i env) ^ " " ^ i ^ "."))
-    | Return (e)        -> typecheck_expr env e; env
-    | If (e, s)         -> if in_list (typecheck_expr env e) [Bool; Int] then typecheck_stmt env s else raise (TypeError("If: "^string_of_expr e))
-    | Else (s)          -> typecheck_stmt env s
-    | While (e, s)      -> if in_list (typecheck_expr env e) [Bool; Int] then typecheck_stmt env s else raise (TypeError("While: "^string_of_expr e))
-    | RT_Sleep (e)      -> typecheck_expr env e; env
     | RT_Printf (s, el) -> List.map (typecheck_expr env) el; env
+    | ExpStmt (e)       -> typecheck_expr env e; env
+    | Return (e)        -> typecheck_expr env e; env
+    | RT_Sleep (e)      -> typecheck_expr env e; env
     | RT_Putc (e)       -> typecheck_expr env e; env
+    | Else (s)          -> typecheck_stmt env s
+    | MPVar (t, i, e)   -> if typecheck_expr env e = t then (i, t)::env else raise (TypeError("TypeError: " ^ string_of_expr e ^ " is not of type " ^ string_of_pType t ^ "."))
+    | Assign (i, e)     -> if type_of i env = typecheck_expr env e then env else raise (TypeError("TypeError: Cannot assign " ^ string_of_pType (typecheck_expr env e) ^ " " ^ string_of_expr e ^ " to " ^ string_of_pType (type_of i env) ^ " " ^ i ^ "."))
+    | If (e, s)         -> if in_list (typecheck_expr env e) [Bool; Int] then typecheck_stmt env s else raise (TypeError("If: "^string_of_expr e))
+    | While (e, s)      -> if in_list (typecheck_expr env e) [Bool; Int] then typecheck_stmt env s else raise (TypeError("While: "^string_of_expr e))
 
 let typecheck_classDecl env =
   let rec binding_argList env arg = match arg with
