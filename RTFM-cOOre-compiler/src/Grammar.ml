@@ -23,7 +23,7 @@ let unify t1 t2 =
     else
         raise (TypeError(" Types not matching: arg1 = " ^ string_of_pType t1 ^ ", arg2 = " ^ string_of_pType t2 ^ ". "))
 
-let in_list rt l = 
+let in_list rt l =
     let equal rt t = rt = t in
     List.exists (equal rt) l
 ;;
@@ -101,4 +101,4 @@ let typecheck_classDef =
 
 
 let typecheck_prog = function
-    | Prog (cl) -> if (List.for_all typecheck_classDef cl) then "Typechecking successful" else "Typechecking failed"
+    | Prog (cl) -> if (List.for_all typecheck_classDef cl) then "Passed type checking." else "TypeError."

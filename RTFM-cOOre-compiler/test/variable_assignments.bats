@@ -5,7 +5,7 @@ load test_helper
 @test "Assigning integers successfully" {
   compile variable_assignments/assign_integers_success.coore
   assert_success
-  assert_last_line "Typechecking successful"
+  assert_last_line "Passed type checking."
 }
 
 @test "Assigning integers with wrong type" {
@@ -17,7 +17,7 @@ load test_helper
 @test "Assigning bools successfully" {
   compile variable_assignments/assign_bools_success.coore
   assert_success
-  assert_last_line "Typechecking successful"
+  assert_last_line "Passed type checking."
 }
 
 @test "Assigning bools with wrong type" {
@@ -29,7 +29,7 @@ load test_helper
 @test "Assigning chars successfully" {
   compile variable_assignments/assign_chars_success.coore
   assert_success
-  assert_last_line "Typechecking successful"
+  assert_last_line "Passed type checking."
 }
 
 @test "Assigning chars with wrong type" {
@@ -41,7 +41,7 @@ load test_helper
 @test "Assigning strings successfully" {
   compile variable_assignments/assign_strings_success.coore
   assert_success
-  assert_last_line "Typechecking successful"
+  assert_last_line "Passed type checking."
 }
 
 @test "Assigning strings with wrong type" {

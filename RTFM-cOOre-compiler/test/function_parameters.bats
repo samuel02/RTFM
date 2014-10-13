@@ -5,7 +5,7 @@ load test_helper
 @test "using correct integer parameter" {
   compile function_parameters/correct_int_param.coore
   assert_success
-  assert_last_line "Typechecking successful"
+  assert_last_line "Passed type checking."
 }
 
 @test "using incorrect integer parameter" {
@@ -17,7 +17,7 @@ load test_helper
 @test "using correct char parameter" {
   compile function_parameters/correct_char_param.coore
   assert_success
-  assert_last_line "Typechecking successful"
+  assert_last_line "Passed type checking."
 }
 
 @test "using incorrect char parameter" {
@@ -29,7 +29,7 @@ load test_helper
 @test "using correct bool parameter" {
   compile function_parameters/correct_bool_param.coore
   assert_success
-  assert_last_line "Typechecking successful"
+  assert_last_line "Passed type checking."
 }
 
 @test "using incorrect bool parameter" {
@@ -41,7 +41,7 @@ load test_helper
 @test "using correct string parameter" {
   compile function_parameters/correct_string_param.coore
   assert_success
-  assert_last_line "Typechecking successful"
+  assert_last_line "Passed type checking."
 }
 
 @test "using incorrect string parameter" {
