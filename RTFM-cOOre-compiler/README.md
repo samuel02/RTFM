@@ -54,11 +54,16 @@ load test_helper
 #### Helper functions
 
 `compile` takes a filename as argument and will compile the file and then check the result.
+
 `compile_inline` takes a small piece of cOOre code that will be compiled and then checks the result.
+
 `assert_success` asserts that the exit status flag is set to success.
+
 `assert_failure` asserts that the exit status flag is not set to success.
-`assert_equal` will check whether the two arguments that are given are euqal and report the difference if they aren't
-`assert_last_line` will check whether the last line of the output is equal to given string
+
+`assert_equal` will check whether the two arguments that are given are euqal and report the difference if they aren't.
+
+`assert_last_line` will check whether the last line of the output is equal to given string.
 
 ## Contributors
 Samuel Nilsson, Björn Nilsson, Angelica Brusell
