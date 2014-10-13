@@ -65,7 +65,7 @@ let rec typecheck_stmt env =  function
     | MPVar (t, i, e)   -> if typecheck_expr env e = t then (i, t)::env else raise (TypeError("Variable definition: "^i))
     | Stmt (sl)         -> List.fold_left typecheck_stmt env sl
     | ExpStmt (e)       -> typecheck_expr env e; env
-    | Assign (i, e)     -> if type_of i env = typecheck_expr env e then env else raise (TypeError("Assignment: "^i))
+    | Assign (i, e)     -> if type_of i env = typecheck_expr env e then env else raise (TypeError("Cannot assign " ^ string_of_pType (typecheck_expr env e) ^ " " ^ string_of_expr e ^ " to " ^ string_of_pType (type_of i env) ^ " " ^ i))
     | Return (e)        -> typecheck_expr env e; env
     | If (e, s)         -> if in_list (typecheck_expr env e) [Bool; Int] then typecheck_stmt env s else raise (TypeError("If: "^string_of_expr e))
     | Else (s)          -> typecheck_stmt env s

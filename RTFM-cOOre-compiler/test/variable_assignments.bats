@@ -11,7 +11,7 @@ load test_helper
 @test "Assigning integers with wrong type" {
   compile variable_assignments/assign_integers_wrong_type.coore
   assert_success
-  assert_last_line "Assignment: a"
+  assert_last_line "Cannot assign char 'a' to int a"
 }
 
 @test "Assigning bools successfully" {
@@ -23,7 +23,7 @@ load test_helper
 @test "Assigning bools with wrong type" {
   compile variable_assignments/assign_bools_wrong_type.coore
   assert_success
-  assert_last_line "Assignment: a"
+  assert_last_line "Cannot assign int 2 to bool a"
 }
 
 @test "Assigning chars successfully" {
@@ -35,7 +35,7 @@ load test_helper
 @test "Assigning chars with wrong type" {
   compile variable_assignments/assign_chars_wrong_type.coore
   assert_success
-  assert_last_line "Assignment: a"
+  assert_last_line "Cannot assign int 2 to char a"
 }
 
 @test "Assigning strings successfully" {
@@ -47,5 +47,5 @@ load test_helper
 @test "Assigning strings with wrong type" {
   compile variable_assignments/assign_strings_wrong_type.coore
   assert_success
-  assert_last_line "Assignment: a"
+  assert_last_line "Cannot assign int 2 to string a"
 }
