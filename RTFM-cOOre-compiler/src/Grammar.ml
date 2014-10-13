@@ -62,7 +62,7 @@ let rec typecheck_expr env = function
     | CompExp (op, e1, e2)      -> typecheck_op env op (typecheck_expr env e1) (typecheck_expr env e2)
 
 let rec typecheck_stmt env =  function
-    | MPVar (t, i, e)   -> if typecheck_expr env e = t then (i, t)::env else raise (TypeError("Variable definition: "^i))
+    | MPVar (t, i, e)   -> if typecheck_expr env e = t then (i, t)::env else raise (TypeError("TypeError: " ^ string_of_expr e ^ " is not of type " ^ string_of_pType t ^ "."))
     | Stmt (sl)         -> List.fold_left typecheck_stmt env sl
     | ExpStmt (e)       -> typecheck_expr env e; env
     | Assign (i, e)     -> if type_of i env = typecheck_expr env e then env else raise (TypeError("TypeError: Cannot assign " ^ string_of_pType (typecheck_expr env e) ^ " " ^ string_of_expr e ^ " to " ^ string_of_pType (type_of i env) ^ " " ^ i ^ "."))
