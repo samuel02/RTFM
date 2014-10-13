@@ -3,49 +3,49 @@
 load test_helper
 
 @test "Assigning integers successfully" {
-  compile variable_assignments/assign_integers_success.coore
+  compile_inline "int a := 0; a := 2;"
   assert_success
   assert_last_line "Passed type checking."
 }
 
 @test "Assigning integers with wrong type" {
-  compile variable_assignments/assign_integers_wrong_type.coore
+  compile_inline "int a := 1; a := 'a';"
   assert_success
   assert_last_line "TypeError: Cannot assign char 'a' to int a."
 }
 
 @test "Assigning bools successfully" {
-  compile variable_assignments/assign_bools_success.coore
+  compile_inline "bool a := true; a := false;"
   assert_success
   assert_last_line "Passed type checking."
 }
 
 @test "Assigning bools with wrong type" {
-  compile variable_assignments/assign_bools_wrong_type.coore
+  compile_inline "bool a := true; a := 2;"
   assert_success
   assert_last_line "TypeError: Cannot assign int 2 to bool a."
 }
 
 @test "Assigning chars successfully" {
-  compile variable_assignments/assign_chars_success.coore
+  compile_inline "char a := 'a'; a := 'b';"
   assert_success
   assert_last_line "Passed type checking."
 }
 
 @test "Assigning chars with wrong type" {
-  compile variable_assignments/assign_chars_wrong_type.coore
+  compile_inline "char a := 'a'; a := 2;"
   assert_success
   assert_last_line "TypeError: Cannot assign int 2 to char a."
 }
 
 @test "Assigning strings successfully" {
-  compile variable_assignments/assign_strings_success.coore
+  compile_inline 'string a := "foo"; a := "bar";'
   assert_success
   assert_last_line "Passed type checking."
 }
 
 @test "Assigning strings with wrong type" {
-  compile variable_assignments/assign_strings_wrong_type.coore
+  compile_inline 'string a := "foo"; a := 2;'
   assert_success
   assert_last_line "TypeError: Cannot assign int 2 to string a."
 }

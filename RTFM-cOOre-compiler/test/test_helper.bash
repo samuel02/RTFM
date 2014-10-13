@@ -6,6 +6,11 @@ compile() {
   run ${COMPILER} -i $1
 }
 
+compile_inline() {
+  printf "class Root <> { Reset { $1 } }" > ${BATS_TMPDIR}/${BATS_TEST_NAME}.coore
+  run ${COMPILER} -i ${BATS_TMPDIR}/${BATS_TEST_NAME}.coore
+}
+
 flunk() {
   { if [ "$#" -eq 0 ]; then cat -
     else echo "$@"

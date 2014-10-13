@@ -1,5 +1,0 @@
-class Root <> {
-  Reset {
-    int a := "foo" + "bar";
-  }
-}

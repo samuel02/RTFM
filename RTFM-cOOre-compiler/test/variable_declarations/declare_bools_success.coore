@@ -1,5 +1,0 @@
-class Root <> {
-  bool a := true;
-
-  Reset {}
-}

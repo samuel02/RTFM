@@ -1,5 +1,0 @@
-class Root <> {
-  char a := 2;
-
-  Reset {}
-}

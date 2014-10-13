@@ -1,5 +1,0 @@
-class Root <> {
-  string a := "foo";
-
-  Reset {}
-}

@@ -3,49 +3,49 @@
 load test_helper
 
 @test "Declaring integers successfully" {
-  compile variable_declarations/declare_integers_success.coore
+  compile_inline "int a := 0;"
   assert_success
   assert_last_line "Passed type checking."
 }
 
 @test "Declaring integers with wrong type" {
-  compile variable_declarations/declare_integers_wrong_type.coore
+  compile_inline "int a := 'a';"
   assert_success
   assert_last_line "TypeError: 'a' is not of type int."
 }
 
 @test "Declaring bools successfully" {
-  compile variable_declarations/declare_bools_success.coore
+  compile_inline "bool a := true;"
   assert_success
   assert_last_line "Passed type checking."
 }
 
 @test "Declaring bools with wrong type" {
-  compile variable_declarations/declare_bools_wrong_type.coore
+  compile_inline "bool a := 3;"
   assert_success
   assert_last_line "TypeError: 3 is not of type bool."
 }
 
 @test "Declaring chars successfully" {
-  compile variable_declarations/declare_chars_success.coore
+  compile_inline "char a := 'a';"
   assert_success
   assert_last_line "Passed type checking."
 }
 
 @test "Declaring chars with wrong type" {
-  compile variable_declarations/declare_chars_wrong_type.coore
+  compile_inline "char a := 2;"
   assert_success
   assert_last_line "TypeError: 2 is not of type char."
 }
 
 @test "Declaring strings successfully" {
-  compile variable_declarations/declare_strings_success.coore
+  compile_inline 'string a := "foo";'
   assert_success
   assert_last_line "Passed type checking."
 }
 
 @test "Declaring strings with wrong type" {
-  compile variable_declarations/declare_strings_wrong_type.coore
+  compile_inline "string a := 'a';"
   assert_success
   assert_last_line "TypeError: 'a' is not of type string."
 }
