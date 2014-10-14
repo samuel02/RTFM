@@ -10,7 +10,7 @@ load test_helper
 
 @test "Declaring integers with wrong type" {
   compile_inline "int a := 'a';"
-  assert_success
+  assert_failure
   assert_last_line "TypeError: 'a' is not of type int."
 }
 
@@ -22,7 +22,7 @@ load test_helper
 
 @test "Declaring bools with wrong type" {
   compile_inline "bool a := 3;"
-  assert_success
+  assert_failure
   assert_last_line "TypeError: 3 is not of type bool."
 }
 
@@ -34,7 +34,7 @@ load test_helper
 
 @test "Declaring chars with wrong type" {
   compile_inline "char a := 2;"
-  assert_success
+  assert_failure
   assert_last_line "TypeError: 2 is not of type char."
 }
 
@@ -46,7 +46,7 @@ load test_helper
 
 @test "Declaring strings with wrong type" {
   compile_inline "string a := 'a';"
-  assert_success
+  assert_failure
   assert_last_line "TypeError: 'a' is not of type string."
 }
 

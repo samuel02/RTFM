@@ -10,7 +10,7 @@ load test_helper
 
 @test "Assigning integers with wrong type" {
   compile_inline "int a := 1; a := 'a';"
-  assert_success
+  assert_failure
   assert_last_line "TypeError: Cannot assign char 'a' to int a."
 }
 
@@ -22,7 +22,7 @@ load test_helper
 
 @test "Assigning bools with wrong type" {
   compile_inline "bool a := true; a := 2;"
-  assert_success
+  assert_failure
   assert_last_line "TypeError: Cannot assign int 2 to bool a."
 }
 
@@ -34,7 +34,7 @@ load test_helper
 
 @test "Assigning chars with wrong type" {
   compile_inline "char a := 'a'; a := 2;"
-  assert_success
+  assert_failure
   assert_last_line "TypeError: Cannot assign int 2 to char a."
 }
 
@@ -46,6 +46,6 @@ load test_helper
 
 @test "Assigning strings with wrong type" {
   compile_inline 'string a := "foo"; a := 2;'
-  assert_success
+  assert_failure
   assert_last_line "TypeError: Cannot assign int 2 to string a."
 }

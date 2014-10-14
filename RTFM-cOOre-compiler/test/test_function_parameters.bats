@@ -10,7 +10,7 @@ load test_helper
 
 @test "using incorrect integer parameter" {
   compile function_parameters/incorrect_int_param.coore
-  assert_success
+  assert_failure
   assert_last_line "TypeError"
 }
 
@@ -22,7 +22,7 @@ load test_helper
 
 @test "using incorrect char parameter" {
   compile function_parameters/incorrect_char_param.coore
-  assert_success
+  assert_failure
   assert_last_line "TypeError"
 }
 
@@ -34,7 +34,7 @@ load test_helper
 
 @test "using incorrect bool parameter" {
   compile function_parameters/incorrect_bool_param.coore
-  assert_success
+  assert_failure
   assert_last_line "TypeError"
 }
 
@@ -46,6 +46,6 @@ load test_helper
 
 @test "using incorrect string parameter" {
   compile function_parameters/incorrect_string_param.coore
-  assert_success
+  assert_failure
   assert_last_line "TypeError"
 }
