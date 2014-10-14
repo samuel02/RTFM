@@ -37,7 +37,7 @@ let typecheck_op env op t1 t2 =
     | OpEq | OpNeq ->
         if in_list rt [Int;Bool;Byte;Char] then Bool else raise_type_error(type_error_msg rt)
     | OpGrt | OpGeq | OpLet | OpLeq ->
-        if in_list rt [Int;Bool;Byte] then Bool else raise_type_error(type_error_msg rt)
+        if in_list rt [Int;Byte] then Bool else raise_type_error(type_error_msg rt)
 
 
 let rec typecheck_expr env = function
