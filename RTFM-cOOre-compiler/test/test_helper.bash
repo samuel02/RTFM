@@ -3,7 +3,7 @@
 COMPILER="../src/Main.native -o ${BATS_TMPDIR}/${BATS_TEST_NAME}.core"
 
 compile() {
-  run ${COMPILER} -i ${1}.coore
+  run ${COMPILER} -i fixtures/${1}.coore
 }
 
 compile_inline() {
