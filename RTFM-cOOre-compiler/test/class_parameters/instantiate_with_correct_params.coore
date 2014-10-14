@@ -1,0 +1,7 @@
+class Foo <int a> {}
+
+class Root <> {
+  Foo<2> f;
+
+  Reset {}
+}
