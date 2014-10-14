@@ -9,7 +9,7 @@ open AST
 open Env
 open CoreGen
 open Dot
-open Grammar
+open VariableTypeCheck
 
 open Error
 open Cmd
