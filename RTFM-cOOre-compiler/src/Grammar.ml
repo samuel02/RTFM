@@ -16,7 +16,7 @@ type binding = id * pType
 let rec type_of id env =
     try List.assoc id env
     with Not_found  ->
-        raise (NameError("Identifier " ^ id ^ " is not defined"))
+        raise (NameError("NameError: " ^ id ^ " is not defined."))
 
 let unify t1 t2 =
     if t1 == t2 then t1
