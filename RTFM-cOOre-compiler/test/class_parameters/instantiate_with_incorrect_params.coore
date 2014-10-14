@@ -1,7 +1,7 @@
 class Foo <int a, bool b> {}
 
 class Root <> {
-  Foo<2, true> f;
+  Foo<'a', 2> f;
 
   Reset {}
 }
