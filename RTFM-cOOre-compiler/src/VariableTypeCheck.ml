@@ -30,6 +30,7 @@ let in_list rt l =
 
 let typecheck_op env op t1 t2 =
     let rt = unify t1 t2 in
+    let type_error_msg t = "TypeError: " ^ string_of_op op ^ " operator is not defined for type " ^ string_of_pType t ^ "." in
     match op with
     | OpPlus -> if in_list rt [Int]           then rt     else raise_type_error ("+ operator is not defined for type " ^ string_of_pType rt ^ ".")
     | OpSub  -> if in_list rt [Int]           then rt     else raise_type_error ("- operator is not defined for type " ^ string_of_pType rt ^ ".")
