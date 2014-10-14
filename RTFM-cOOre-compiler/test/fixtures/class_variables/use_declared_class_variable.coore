@@ -7,5 +7,7 @@ class Root <> {
     }
   }
 
-  Reset {}
+  Reset {
+    true();
+  }
 }
