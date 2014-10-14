@@ -13,3 +13,9 @@ load test_helper
   assert_failure
   assert_last_line "TypeError: Cannot assign int 2 to bool a."
 }
+
+@test "class variables could be used in all class methods" {
+  compile class_variables/use_declared_class_variable
+  assert_success
+  assert_last_line "Passed type checking."
+}
