@@ -29,18 +29,19 @@ let in_list rt l =
 
 let typecheck_op env op t1 t2 =
     let rt = unify t1 t2 in
+    let type_error_msg t = "TypeError: " ^ string_of_op op ^ " operator is not defined for type " ^ string_of_pType t ^ "." in
     match op with
-    | OpPlus -> if in_list rt [Int]           then rt     else raise (TypeError("TypeError: + operator is not defined for type " ^ string_of_pType rt ^ "."))
-    | OpSub  -> if in_list rt [Int]           then rt     else raise (TypeError("TypeError: - operator is not defined for type " ^ string_of_pType rt ^ "."))
-    | OpMult -> if in_list rt [Int]           then rt     else raise (TypeError("TypeError: * operator is not defined for type " ^ string_of_pType rt ^ "."))
-    | OpDiv  -> if in_list rt [Int]           then rt     else raise (TypeError("TypeError: / operator is not defined for type " ^ string_of_pType rt ^ "."))
-    | OpMod  -> if in_list rt [Int]           then rt     else raise (TypeError("TypeError: % operator is not defined for type " ^ string_of_pType rt ^ "."))
-    | OpEq   -> if in_list rt [Int;Bool;Byte] then Bool   else raise (TypeError("Equality"))
-    | OpNeq  -> if in_list rt [Int;Bool;Byte] then Bool   else raise (TypeError("Non-equality"))
-    | OpGrt  -> if in_list rt [Int;Bool;Byte] then Bool   else raise (TypeError("Greater than"))
-    | OpGeq  -> if in_list rt [Int;Bool;Byte] then Bool   else raise (TypeError("Greater or equal"))
-    | OpLet  -> if in_list rt [Int;Bool;Byte] then Bool   else raise (TypeError("Less than"))
-    | OpLeq  -> if in_list rt [Int;Bool;Byte] then Bool   else raise (TypeError("Less or equal"))
+    | OpPlus -> if in_list rt [Int]           then rt     else raise (TypeError(type_error_msg rt))
+    | OpSub  -> if in_list rt [Int]           then rt     else raise (TypeError(type_error_msg rt))
+    | OpMult -> if in_list rt [Int]           then rt     else raise (TypeError(type_error_msg rt))
+    | OpDiv  -> if in_list rt [Int]           then rt     else raise (TypeError(type_error_msg rt))
+    | OpMod  -> if in_list rt [Int]           then rt     else raise (TypeError(type_error_msg rt))
+    | OpEq   -> if in_list rt [Int;Bool;Byte] then Bool   else raise (TypeError(type_error_msg rt))
+    | OpNeq  -> if in_list rt [Int;Bool;Byte] then Bool   else raise (TypeError(type_error_msg rt))
+    | OpGrt  -> if in_list rt [Int;Bool;Byte] then Bool   else raise (TypeError(type_error_msg rt))
+    | OpGeq  -> if in_list rt [Int;Bool;Byte] then Bool   else raise (TypeError(type_error_msg rt))
+    | OpLet  -> if in_list rt [Int;Bool;Byte] then Bool   else raise (TypeError(type_error_msg rt))
+    | OpLeq  -> if in_list rt [Int;Bool;Byte] then Bool   else raise (TypeError(type_error_msg rt))
 
 let rec typecheck_expr env = function
     | IndexExp (idl, e)         -> if ((typecheck_expr env e) = Int) && ((type_of (List.nth idl ((List.length idl)-1)) env) = String) then Char else raise (TypeError("Incorrect string indexing"))
