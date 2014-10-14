@@ -43,6 +43,7 @@ let f_infile = ref ""
 let f_outfile = ref ""
 let f_dotfile = ref ""
 let f_ldotfile = ref ""
+let f_fdotfile = ref ""
 
 let d_ast = ref false
 
@@ -51,7 +52,8 @@ let speclist =
   ("-i", Arg.Set_string f_infile, "\t\t: infile.coore");
   ("-o", Arg.Set_string f_outfile, "\t\t: outfile (default <infile>.core)");
   ("-gv_obj", Arg.Set_string f_dotfile, "\t: graphviz file (default none)");
-  ("-gv_task", Arg.Set_string f_dotfile, "\t: graphviz file (default none)");
+  ("-gv_task", Arg.Set_string f_fdotfile, "\t: graphviz file (default none)");
+  ("-gv_res", Arg.Set_string f_ldotfile, "\t: graphviz file (default none)");
   
   ("-v", Arg.Set o_verbose, "\t\t: verbose mode");
   ("-D", Arg.Set o_debug, "\t\t: debug mode");
@@ -96,14 +98,24 @@ let cmd =
     opt.verbose <- ! o_verbose;
     
     (* additional options *)
-    opt.dotout <- (not (String.compare (!f_dotfile) "" == 0));
-    
+    opt.gv_obj <- (not (String.compare (!f_dotfile) "" == 0));
+
     let gv_ext = ".gv" in
     let gv_ext_err = "Bad Graphviz extension (.gv expected) " in
-    if opt.dotout then begin
-      opt.dotfile <- !f_dotfile;
-      check_ext opt.dotfile gv_ext gv_ext_err
+    if opt.gv_obj then begin
+      opt.gv_objf <- !f_dotfile;
+      check_ext opt.gv_objf gv_ext gv_ext_err
+    end;
+    opt.gv_task <- (not (String.compare (!f_fdotfile) "" == 0));
+    if opt.gv_task then begin
+      opt.gv_taskf <- !f_fdotfile;
+      check_ext opt.gv_taskf gv_ext gv_ext_err
+    end;
+    opt.gv_res <- (not (String.compare (!f_ldotfile) "" == 0));
+    if opt.gv_res then begin
+      opt.gv_resf <- !f_ldotfile;
+      check_ext opt.gv_resf gv_ext gv_ext_err
     end;
     opt.d_ast <- !d_ast;
   with
-  | Arg.Bad msg -> p_stderr ("Command line error: " ^ msg); exit (-1);
+    | Arg.Bad msg -> p_stderr ("Command line error: " ^ msg); exit (-1);

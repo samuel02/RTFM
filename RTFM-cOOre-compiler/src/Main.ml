@@ -8,7 +8,8 @@ open Options
 open AST
 open Env
 open CoreGen
-open Dot
+open Graphviz
+(*open Dot*)
 open Grammar
 
 open Error
@@ -36,9 +37,10 @@ let main () =
         (* check cyclic *)
         cyclic p;
         
+(*
         (* dot for task/resource structure *)
         if opt.dotout then begin
-          let dots = (d_of_p p) in
+          let dots = (gv_of_res) in
           if opt.verbose then p_stderr dots;
           let ocd = open_out opt.dotfile in 
           begin
@@ -48,6 +50,26 @@ let main () =
         end;
         let oc = open_out opt.outfile in
         p_oc oc (c_of_Prog p);
+*)
+        (* gv_obj optout *)
+        if (opt.gv_obj) then begin
+          let oc = open_out opt.gv_objf in
+          p_oc oc (def_of_obj p);
+          close_out oc;
+        end;
+        (* gv_task optout *)
+        if (opt.gv_task) then begin
+          let oc = open_out opt.gv_taskf in
+          p_oc oc (gv_of_task);
+          close_out oc;
+        end;
+        (* gv_res optout *)
+        if (opt.gv_res) then begin
+          let oc = open_out opt.gv_resf in
+          p_oc oc (gv_of_res);
+          close_out oc;
+        end;
+
   
   (* exception handling *)
   with
