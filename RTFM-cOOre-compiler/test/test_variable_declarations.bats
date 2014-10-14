@@ -49,3 +49,9 @@ load test_helper
   assert_success
   assert_last_line "TypeError: 'a' is not of type string."
 }
+
+@test "Variable must have been declared before use" {
+  compile_inline "a := 2;"
+  assert_failure
+  assert_last_line "NameError: a is not defined."
+}

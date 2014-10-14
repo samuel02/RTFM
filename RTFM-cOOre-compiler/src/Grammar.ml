@@ -16,7 +16,7 @@ type binding = id * pType
 let rec type_of id env =
     try List.assoc id env
     with Not_found  ->
-        raise (NameError("Identifier " ^ id ^ " is not defined"))
+        raise (NameError("NameError: " ^ id ^ " is not defined."))
 
 let unify t1 t2 =
     if t1 == t2 then t1
@@ -31,10 +31,10 @@ let typecheck_op env op t1 t2 =
     let rt = unify t1 t2 in
     match op with
     | OpPlus -> if in_list rt [Int]           then rt     else raise (TypeError("TypeError: + operator is not defined for type " ^ string_of_pType rt ^ "."))
-    | OpSub  -> if in_list rt [Int]           then rt     else raise (TypeError("Subtraction"))
-    | OpMult -> if in_list rt [Int]           then rt     else raise (TypeError("Multiplication"))
-    | OpDiv  -> if in_list rt [Int]           then rt     else raise (TypeError("Division"))
-    | OpMod  -> if in_list rt [Int]           then rt     else raise (TypeError("Modulo"))
+    | OpSub  -> if in_list rt [Int]           then rt     else raise (TypeError("TypeError: - operator is not defined for type " ^ string_of_pType rt ^ "."))
+    | OpMult -> if in_list rt [Int]           then rt     else raise (TypeError("TypeError: * operator is not defined for type " ^ string_of_pType rt ^ "."))
+    | OpDiv  -> if in_list rt [Int]           then rt     else raise (TypeError("TypeError: / operator is not defined for type " ^ string_of_pType rt ^ "."))
+    | OpMod  -> if in_list rt [Int]           then rt     else raise (TypeError("TypeError: % operator is not defined for type " ^ string_of_pType rt ^ "."))
     | OpEq   -> if in_list rt [Int;Bool;Byte] then Bool   else raise (TypeError("Equality"))
     | OpNeq  -> if in_list rt [Int;Bool;Byte] then Bool   else raise (TypeError("Non-equality"))
     | OpGrt  -> if in_list rt [Int;Bool;Byte] then Bool   else raise (TypeError("Greater than"))
