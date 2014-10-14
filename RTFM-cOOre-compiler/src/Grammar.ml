@@ -48,7 +48,7 @@ let rec typecheck_expr env = function
     | CompExp (op, e1, e2)      -> typecheck_op env op (typecheck_expr env e1) (typecheck_expr env e2)
     | ParExp (e)                -> typecheck_expr env e
     | IdExp (idl)               -> type_of (List.nth idl ((List.length idl)-1)) env
-    | CallExp (m, el)           -> Void (*type_of (List.nth m ((List.length m)-1)) env*)
+    | CallExp (m, el)           -> List.map (typecheck_expr env) el; Void
     | AsyncExp (af, be, il, el) -> Void
     | PendExp (il)              -> Void
     | IntExp (i)                -> Int
