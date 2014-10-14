@@ -22,7 +22,7 @@ let rec type_of id env =
 let unify t1 t2 =
     if t1 == t2 then t1
     else
-        raise_type_error ("Types not matching: arg1 = " ^ string_of_pType t1 ^ ", arg2 = " ^ string_of_pType t2 ^ ". ")
+        raise_type_error ("Cannot compare " ^ string_of_pType t1 ^ " with " ^ string_of_pType t2 ^ ".")
 
 let in_list rt l =
     let equal rt t = rt = t in
@@ -32,9 +32,11 @@ let typecheck_op env op t1 t2 =
     let rt = unify t1 t2 in
     let type_error_msg t = string_of_op op ^ " operator is not defined for type " ^ string_of_pType t ^ "." in
     match op with
-    | OpPlus | OpSub | OpMult     | OpDiv | OpMod   -> 
+    | OpPlus | OpSub | OpMult | OpDiv | OpMod ->
         if in_list rt [Int] then rt else raise_type_error(type_error_msg rt)
-    | OpEq | OpNeq | OpGrt | OpGeq | OpLet | OpLeq  ->
+    | OpEq | OpNeq ->
+        if in_list rt [Int;Bool;Byte;Char] then Bool else raise_type_error(type_error_msg rt)
+    | OpGrt | OpGeq | OpLet | OpLeq ->
         if in_list rt [Int;Bool;Byte] then Bool else raise_type_error(type_error_msg rt)
 
 
