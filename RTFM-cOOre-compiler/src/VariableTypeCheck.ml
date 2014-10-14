@@ -63,8 +63,8 @@ let rec typecheck_stmt env =  function
     | ExpStmt (e) | Return (e) | RT_Sleep (e) | RT_Putc (e) -> typecheck_expr env e; env
     | MPVar (t, i, e)   -> if typecheck_expr env e = t then (i, t)::env else raise_type_error (string_of_expr e ^ " is not of type " ^ string_of_pType t ^ ".")
     | Assign (i, e)     -> if type_of i env = typecheck_expr env e then env else raise_type_error ("Cannot assign " ^ string_of_pType (typecheck_expr env e) ^ " " ^ string_of_expr e ^ " to " ^ string_of_pType (type_of i env) ^ " " ^ i ^ ".")
-    | If (e, s)         -> if in_list (typecheck_expr env e) [Bool; Int] then typecheck_stmt env s else raise_type_error ("If: "^string_of_expr e)
-    | While (e, s)      -> if in_list (typecheck_expr env e) [Bool; Int] then typecheck_stmt env s else raise_type_error ("While: "^string_of_expr e)
+    | If (e, s)         -> if in_list (typecheck_expr env e) [Bool; Int] then typecheck_stmt env s else raise_type_error ("Condition in if-statement must be evaluated to type int or bool.")
+    | While (e, s)      -> if in_list (typecheck_expr env e) [Bool; Int] then typecheck_stmt env s else raise_type_error ("Condition in while-statement must be evaluated to type int or bool.")
 
 let typecheck_classDecl env =
   let rec binding_argList env arg = match arg with
