@@ -63,11 +63,8 @@ let rec typecheck_expr env = function
 let rec typecheck_stmt env =  function
     | Stmt (sl)         -> List.fold_left typecheck_stmt env sl
     | RT_Printf (s, el) -> List.map (typecheck_expr env) el; env
-    | ExpStmt (e)       -> typecheck_expr env e; env
-    | Return (e)        -> typecheck_expr env e; env
-    | RT_Sleep (e)      -> typecheck_expr env e; env
-    | RT_Putc (e)       -> typecheck_expr env e; env
     | Else (s)          -> typecheck_stmt env s
+    | ExpStmt (e) | Return (e) | RT_Sleep (e) | RT_Putc (e) -> typecheck_expr env e; env
     | MPVar (t, i, e)   -> if typecheck_expr env e = t then (i, t)::env else raise_type_error (string_of_expr e ^ " is not of type " ^ string_of_pType t ^ ".")
     | Assign (i, e)     -> if type_of i env = typecheck_expr env e then env else raise_type_error ("Cannot assign " ^ string_of_pType (typecheck_expr env e) ^ " " ^ string_of_expr e ^ " to " ^ string_of_pType (type_of i env) ^ " " ^ i ^ ".")
     | If (e, s)         -> if in_list (typecheck_expr env e) [Bool; Int] then typecheck_stmt env s else raise_type_error ("If: "^string_of_expr e)
