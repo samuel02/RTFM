@@ -1,0 +1,10 @@
+// ExtTest1.coore
+// Per Lindgren (C) 2014
+//
+// Simple example of external -core binding
+
+class Root<> extern "ExtRoot.core" {
+  Reset {
+    f(10);
+  }
+}

@@ -6,6 +6,7 @@
 open Common
 
 type id = string
+type extern = string
 
 type expr =
     | IdExp     of id list
@@ -56,13 +57,13 @@ type classDecl =
     | CPVar      of pType * id * expr
     | COVar      of id * expr list * id
     | CMDecl     of pType * id * mPArg list * stmt list
-    | CTaskDecl  of id * mPArg list * stmt list 
-    | CIsrDecl   of int * id * stmt list 
+    | CTaskDecl  of id * mPArg list * stmt list
+    | CIsrDecl   of int * id * stmt list
     | CResetDecl of stmt list
     | CIdleDecl  of stmt list
 
 type classDef =
-    | ClassDef  of id * classArg list * classDecl list
+    | ClassDef  of id * classArg list * extern * classDecl list
 
 type prog =
     | Prog      of classDef list
@@ -105,7 +106,7 @@ let rec string_of_stmt ti = function
     | MPVar (t, i, e)   -> ti ^ string_of_pType t ^ " " ^ i ^ " := " ^ string_of_expr e ^ sc ^ nl
     | Assign (i, e)     -> ti ^ i ^ " := " ^ string_of_expr e ^ sc ^ nl
     | Return (e)        -> ti ^ "return " ^ string_of_expr e ^ sc ^ nl
-    | If (e, s)         -> ti ^ "if ( " ^ string_of_expr e ^ " )" ^ string_of_stmt (ti^tab) s 
+    | If (e, s)         -> ti ^ "if ( " ^ string_of_expr e ^ " )" ^ string_of_stmt (ti^tab) s
     | Else (s)          -> ti ^ "else" ^ string_of_stmt (ti^tab) s
     | While (e, s)      -> ti ^ "while ( " ^ string_of_expr e ^ " )" ^ string_of_stmt (ti^tab) s
     | RT_Sleep (e)      -> ti ^ "RT_sleep(" ^ string_of_expr e ^ ")" ^ sc ^ nl
@@ -138,10 +139,13 @@ let string_of_classDecl = function
          ^ String.concat "" (List.map (string_of_stmt (tab^tab)) sl)
         ^ tab ^ "}" ^ nl
 
+let string_of_extern e =
+    if String.length e = 0 then "" else "extern " ^ e
+
 
 let string_of_classDef = function
-    | ClassDef (i, cal, cdl) ->
-            "class " ^ i ^ string_pp string_of_classArg cal ^ " {" ^ nl
+    | ClassDef (i, cal, extern, cdl) ->
+            "class " ^ i ^ string_pp string_of_classArg cal ^ string_of_extern extern ^ "{" ^ nl
             ^ String.concat nl (List.map string_of_classDecl cdl)
             ^ "} " ^ nl
 

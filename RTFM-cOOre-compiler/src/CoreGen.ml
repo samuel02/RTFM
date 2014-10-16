@@ -146,8 +146,12 @@ let rec c_defs_of_classDef ce path argl cd =
     | _ -> "" (*raise (UnMatched)*)
   in
 
+
+
   match cd with
-  | ClassDef (i, cal, cdl) ->
+  | ClassDef (i, cal, extern, cdl) ->
+      deb ("generating include for " ^ i ^ ":" ^ path) ^
+
       deb ("generating RTFM-core code for " ^ i ^ ":" ^ path) ^
       deb ("method prototypes for " ^ i ^ ":" ^ path) ^
       (* String.concat (";" ^ nl) (List.map c_mp_of_classDecl cdl) ^ nl ^   *)
@@ -158,6 +162,16 @@ let rec c_defs_of_classDef ce path argl cd =
       String.concat (nl) (List.map c_ioi_of_classDecl cdl) ^  (* span each object instance recursively *)
       deb ("methods declarations for " ^ i ^ ":" ^ path) ^
       String.concat (nl) (List.map c_md_of_classDecl cdl) ^ nl
+
+
+
+let core_includes_of_classDef cd =
+  let generate_include_stmt extern i =
+    if extern = "" then ""
+    else "include " ^ "\"" ^ extern ^ "\"" ^ " as " ^ "\"" ^ i ^ "\""
+  in
+  match cd with
+  | ClassDef (i, cal, extern, cdl) -> generate_include_stmt extern i ^ nl
 
 let c_of_Prog p =
   let ce = cEnv_of_classDef p in
@@ -170,6 +184,7 @@ let c_of_Prog p =
   match p with
   | Prog cl ->
       "// RTFM-cOOre, Per Lindgren (C) 2014" ^ nl ^
+      core_includes_of_classDef cd ^ nl ^
       e_c ^ nl ^                                  (* escape from RTFM-core to C *)
       c_defs_of_classDef ce "Root" [] cd ^ nl ^   (* no args ( [] ) at top level *)
       c_e ^ nl                                    (* escpae back to RTFM-core *)
