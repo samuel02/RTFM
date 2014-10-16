@@ -27,6 +27,8 @@ type pType =
     | Bool
     | Byte
     | Void
+    | Class
+    | ClassInstance
     
 type expr =
     | IdExp     of id list
@@ -92,6 +94,8 @@ let string_of_pType = function
     | Byte -> "byte"
     | Void -> "void"
     | String -> "string"
+    | Class  -> "class"
+    | ClassInstance -> "ClassInstance"
 
 let string_of_op = function
     | OpPlus    ->  "+"

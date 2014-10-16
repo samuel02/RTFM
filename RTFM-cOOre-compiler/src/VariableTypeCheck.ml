@@ -12,8 +12,6 @@ exception NotImplemented of string
 
 let raise_type_error msg = raise (TypeError("TypeError: " ^ msg));;
 
-type binding = id * pType
-
 let rec type_of id env =
     try List.assoc id env
     with Not_found  ->
@@ -32,11 +30,9 @@ let typecheck_op env op t1 t2 =
     let rt = unify t1 t2 in
     let type_error_msg t = string_of_op op ^ " operator is not defined for type " ^ string_of_pType t ^ "." in
     match op with
-    | OpPlus | OpSub | OpMult     | OpDiv | OpMod   -> 
-        if in_list rt [Int] then rt else raise_type_error(type_error_msg rt)
-    | OpEq | OpNeq | OpGrt | OpGeq | OpLet | OpLeq  ->
-        if in_list rt [Int;Bool;Byte] then Bool else raise_type_error(type_error_msg rt)
-
+    | OpPlus | OpSub | OpMult | OpDiv | OpMod ->  if in_list rt [Int;Char] then rt else raise_type_error(type_error_msg rt)
+    | OpEq | OpNeq                            -> if in_list rt [Int;Char;Bool;Byte] then Bool else raise_type_error(type_error_msg rt)
+    | OpGrt | OpGeq | OpLet | OpLeq           -> if in_list rt [Int;Bool;Byte] then Bool else raise_type_error(type_error_msg rt)
 
 let rec typecheck_expr env = function
     | IndexExp (idl, e)         -> if ((typecheck_expr env e) = Int) && ((type_of (List.nth idl ((List.length idl)-1)) env) = String) then Char else raise_type_error ("Incorrect string indexing")
@@ -44,7 +40,7 @@ let rec typecheck_expr env = function
     | CompExp (op, e1, e2)      -> typecheck_op env op (typecheck_expr env e1) (typecheck_expr env e2)
     | ParExp (e)                -> typecheck_expr env e
     | IdExp (idl)               -> type_of (List.nth idl ((List.length idl)-1)) env
-    | CallExp (m, el)           -> List.map (typecheck_expr env) el; Void
+    | CallExp (m, el)           -> (*List.map (typecheck_expr env) el;*) Void
     | AsyncExp (af, be, il, el) -> Void
     | PendExp (il)              -> Void
     | IntExp (i)                -> Int
@@ -61,8 +57,8 @@ let rec typecheck_stmt env =  function
     | ExpStmt (e) | Return (e) | RT_Sleep (e) | RT_Putc (e) -> typecheck_expr env e; env
     | MPVar (t, i, e)   -> if typecheck_expr env e = t then (i, t)::env else raise_type_error (string_of_expr e ^ " is not of type " ^ string_of_pType t ^ ".")
     | Assign (i, e)     -> if type_of i env = typecheck_expr env e then env else raise_type_error ("Cannot assign " ^ string_of_pType (typecheck_expr env e) ^ " " ^ string_of_expr e ^ " to " ^ string_of_pType (type_of i env) ^ " " ^ i ^ ".")
-    | If (e, s)         -> if in_list (typecheck_expr env e) [Bool; Int] then typecheck_stmt env s else raise_type_error ("If: "^string_of_expr e)
-    | While (e, s)      -> if in_list (typecheck_expr env e) [Bool; Int] then typecheck_stmt env s else raise_type_error ("While: "^string_of_expr e)
+    | If (e, s)         -> if in_list (typecheck_expr env e) [Bool; Int; Char] then typecheck_stmt env s else raise_type_error ("If: "^string_of_expr e)
+    | While (e, s)      -> if in_list (typecheck_expr env e) [Bool; Int; Char] then typecheck_stmt env s else raise_type_error ("While: "^string_of_expr e)
 
 let typecheck_classDecl env =
   let rec binding_argList env arg = match arg with
@@ -72,12 +68,12 @@ let typecheck_classDecl env =
     in
     function
     | CPVar (t, i, e)        -> if typecheck_expr env e = t then (i, t)::env else raise_type_error (string_of_expr e ^ " is not of type " ^ string_of_pType t ^ ".")
-    | COVar (o, el, i)       -> if (List.length (List.map (typecheck_expr env) el) >= 0) then (*(i, Void)::*)env else raise_type_error ("")
-    | CMDecl (t, i, al, sl)  -> if (List.length (List.fold_left typecheck_stmt (binding_argList env al) sl) >= 0) then (*(i, t)::*)env else raise_type_error ("")
-    | CTaskDecl (i, al, sl ) -> if (List.length (List.fold_left typecheck_stmt (binding_argList env al) sl) >= 0) then (*(i, Void)::*)env else raise_type_error ("")
-    | CIsrDecl (pr, i, sl)   -> if (List.length (List.fold_left typecheck_stmt env sl)) >= 0 then env else raise_type_error ("")
-    | CResetDecl (sl)        -> if (List.length (List.fold_left typecheck_stmt env sl)) >= 0 then env else raise_type_error ("")
-    | CIdleDecl (sl)         -> if (List.length (List.fold_left typecheck_stmt env sl)) >= 0 then env else raise_type_error ("")
+    | COVar (o, el, i)       -> List.map (typecheck_expr env) el; env 
+    | CMDecl (t, i, al, sl)  -> List.fold_left typecheck_stmt (binding_argList env al) sl; env 
+    | CTaskDecl (i, al, sl ) -> List.fold_left typecheck_stmt (binding_argList env al) sl; env 
+    | CIsrDecl (pr, i, sl)   -> List.fold_left typecheck_stmt env sl; env
+    | CResetDecl (sl)        -> List.fold_left typecheck_stmt env sl; env
+    | CIdleDecl (sl)         -> List.fold_left typecheck_stmt env sl; env
 
 let typecheck_classDef =
     let rec binding_classEnv = function
@@ -86,7 +82,7 @@ let typecheck_classDef =
     | []                        -> []
     in
     function
-    | ClassDef (i, cal, cdl) -> List.length (List.fold_left typecheck_classDecl (binding_classEnv cal) cdl) >= 0
+    | ClassDef (i, cal, cdl)    -> List.fold_left typecheck_classDecl (binding_classEnv cal) cdl
 
 let typecheck_prog = function
-    | Prog (cl) -> if (List.for_all typecheck_classDef cl) then "Passed type checking." else "TypeError."
+    | Prog (cl) -> List.map typecheck_classDef cl; "Passed type checking.\n"

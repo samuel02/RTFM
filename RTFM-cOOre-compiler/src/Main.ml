@@ -3,6 +3,7 @@
 
 (* RTFM-cOOre/Main *)
 
+
 open Common
 open Options
 open AST
@@ -10,6 +11,7 @@ open Env
 open CoreGen
 open Dot
 open VariableTypeCheck
+open TypeTree
 
 open Error
 open Cmd
@@ -31,6 +33,7 @@ let main () =
     | Some p ->
         if opt.verbose then p_stderr ("Parsing succeeded:" ^ nl);
         if opt.d_ast then p_stderr (string_of_prog p);
+        p_stderr (string_of_scope_tree "" (build_scope_tree p));
         if opt.typecheck then p_stderr (typecheck_prog p);
         
         (* check cyclic *)
