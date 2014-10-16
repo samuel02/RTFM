@@ -1,0 +1,9 @@
+class Root <> {
+  bool true() {
+    return 2;
+  }
+
+  Reset {
+    true();
+  }
+}
