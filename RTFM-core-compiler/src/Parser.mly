@@ -8,7 +8,7 @@
 %token <string> STRINGVAL
 %token <string> CCODE
 %token <string> PARAMS
-%token MODULE INCLUDE ISR TASK FUNC RESET IDLE SYNC ASYNC PEND AFTER BEFORE (* PRIO *) CLAIM USEC MSEC SEC SC LCP RCP EOF HALT ASSIGN ABORT
+%token MODULE INCLUDE ISR TASK FUNC RESET IDLE SYNC ASYNC PEND AFTER BEFORE (* PRIO *) CLAIM USEC MSEC SEC SC LCP RCP EOF HALT ASSIGN ABORT AS
 
 %{
   open AST
@@ -22,14 +22,14 @@
 %%
 
 prog:
-  | mname use* top* EOF                     { Some (Prog ($1, $2, $3)) }
+  | mname use* top* EOF                     { Some (Prog ($1, $2, [], $3)) }
 
 mname:
   | MODULE ID                               { $2 }
   |                                         { "" }
 
 use:
-  | INCLUDE STRINGVAL                       { $2 }
+  | INCLUDE STRINGVAL AS STRINGVAL          { $2, $4 }
 
 top:
   | CCODE                                   { TopC ($1) }

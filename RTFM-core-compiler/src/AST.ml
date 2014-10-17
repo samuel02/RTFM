@@ -35,7 +35,7 @@ type top =
   | Func      of string * string * string * stmt list           (* rtype_c, path_f_id, arg_c, stmts *)
 
 type prog =
-  | Prog      of string * string list * top list
+  | Prog      of string * (string * string) list * string list * top list
 
 (*
 let usec_of_time = function
@@ -74,12 +74,13 @@ let string_of_tops tl =
     | Halt                    -> t ^ "--- our new halt ---"
     | Abort (handle)          -> t ^ "Abort " ^ handle
   in
-  myconcat nl (mymap top tl)
+  String.concat nl (List.map top tl)
 
 let string_of_prog = function
-  | Prog (mName, mIncl, mTop) ->
+  | Prog (mName, mIncl, mPrefixes, mTop) ->
       "Module:" ^ mName ^ nl ^
-      "Use :" ^ String.concat "," mIncl ^ nl ^
+      "Use :" ^ String.concat "," (List.map fst mIncl) ^ nl ^
+      "Used as extern :" ^ (String.concat "," mPrefixes) ^ nl ^
       "Prog:" ^ nl ^ string_of_tops mTop
 
 let rec prio_to_string r = match r with
