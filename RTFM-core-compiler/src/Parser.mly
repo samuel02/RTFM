@@ -8,7 +8,7 @@
 %token <string> STRINGVAL
 %token <string> CCODE
 %token <string> PARAMS
-%token MODULE INCLUDE ISR TASK FUNC RESET IDLE SYNC ASYNC PEND AFTER BEFORE (* PRIO *) CLAIM USEC MSEC SEC SC LCP RCP EOF HALT ASSIGN ABORT AS
+%token MODULE INCLUDE ISR TASK FUNC RESET IDLE SYNC ASYNC PEND AFTER BEFORE (* PRIO *) CLAIM USEC MSEC SEC SC LCP RCP EOF HALT ASSIGN ABORT AS EXTERN_STATE
 
 %{
   open AST
@@ -47,6 +47,7 @@ stmt:
   | SYNC ID PARAMS SC                                   { Sync ($2, $3) }
   | HALT SC                                             { Halt }
   | ABORT ID SC                                         { Abort($2) }
+  | EXTERN_STATE                                        { ExternState("") }
 
 after:
   | AFTER time                              { $2 }

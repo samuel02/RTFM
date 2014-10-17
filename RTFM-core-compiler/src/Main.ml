@@ -48,7 +48,12 @@ let rec parse_prog path prefixes inf =
               | Prog (mName, mIncl, mPrefixes, mTops) ->
                 if (List.length prefixes) > 0 then
                   let specFunc top prefix = match top with
-                    | FuncDef (t, id, par, s)  -> FuncDef (t, (prefix ^ "_" ^ id), par, s)
+                    | FuncDef (t, id, par, s)  ->
+                      let specStateVars stmt= match stmt with
+                        | ExternState (s)   -> ExternState (prefix ^ "_")
+                        | stmt              -> stmt
+                      in
+                      FuncDef (t, (prefix ^ "_" ^ id), par, (List.map specStateVars s))
                     | Func (t, id, par, s)     -> Func (t, (prefix ^ "_" ^ id), par, s)
                     | top                      -> top
                   in

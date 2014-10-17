@@ -14,13 +14,14 @@ type time =
 *)
 
 type stmt =
-  | Claim     of string * stmt list                             (* res_id, stmts                    *)
-  | Pend      of time * string * string                         (* deadline, task_id, par_c         *)
-  | Sync      of string * string                                (* func_id, par_c                   *)
-  | Async     of string * time * time * string * string         (* handle, before, after, task_id, par_c *)
-  | ClaimC    of string                                         (* code_c                           *)
-  | Halt                                                        (* halt takes no arguments *)
-  | Abort     of string                                         (* handle *)
+  | Claim       of string * stmt list                             (* res_id, stmts                    *)
+  | Pend        of time * string * string                         (* deadline, task_id, par_c         *)
+  | Sync        of string * string                                (* func_id, par_c                   *)
+  | Async       of string * time * time * string * string         (* handle, before, after, task_id, par_c *)
+  | ClaimC      of string                                         (* code_c                           *)
+  | Halt                                                          (* halt takes no arguments *)
+  | Abort       of string                                         (* handle *)
+  | ExternState of string
 
 type top =
   | TopC      of string                                         (* code_c                           *)
@@ -73,6 +74,7 @@ let string_of_tops tl =
     | ClaimC (c)              -> t ^ "#> CCODE <#"
     | Halt                    -> t ^ "--- our new halt ---"
     | Abort (handle)          -> t ^ "Abort " ^ handle
+    | ExternState (s)         -> t ^ s
   in
   String.concat nl (List.map top tl)
 

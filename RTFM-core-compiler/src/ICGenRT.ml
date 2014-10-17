@@ -91,24 +91,25 @@ let c_rt_of_i dlp spec v r =
     myconcat nl (mymap (stmt path nr_ref) sl)
      and stmt path nr_ref = function
  *)
-  let rec stmts path sl = myconcat nl (mymap (stmt path) sl)
+  let rec stmts path sl = myconcat "" (mymap (stmt path) sl)
   and stmt path = function
-    | Claim (r, csl)          -> "RTFM_lock(RTFM_id, " ^ r ^ ");" ^ nl ^ (stmts path) csl ^ "RTFM_unlock(RTFM_id, " ^ r ^ ");"
+    | Claim (r, csl)          -> "RTFM_lock(RTFM_id, " ^ r ^ ");" ^ nl ^ (stmts path) csl ^ "RTFM_unlock(RTFM_id, " ^ r ^ ");" ^ nl
     | Pend (be, id, par)      ->
         "arg_" ^ id ^ " = (ARG_" ^ id ^ "){" ^ par ^ "};" ^ nl ^
-        "RTFM_pend(" ^ string_of_int (usec_of_time be) ^ ",  RTFM_id, " ^ id ^ "_nr);"
+        "RTFM_pend(" ^ string_of_int (usec_of_time be) ^ ",  RTFM_id, " ^ id ^ "_nr);" ^ nl
     | Async (handle, af, be, id, par) ->
         if handle = "" then
           "arg_" ^ id ^ " = (ARG_" ^ id ^ "){" ^ par ^ "}; " ^ nl ^
-          "RTFM_async(" ^ string_of_int (usec_of_time af) ^ ", " ^ string_of_int (usec_of_time be) ^ ", RTFM_id, " ^ id ^ "_nr);"
+          "RTFM_async(" ^ string_of_int (usec_of_time af) ^ ", " ^ string_of_int (usec_of_time be) ^ ", RTFM_id, " ^ id ^ "_nr);" ^ nl
         else
           "arg_" ^ id ^ " = (ARG_" ^ id ^ "){" ^ par ^ "}; " ^ nl ^
-          "RTFM_msg " ^ handle ^ " = " ^ "RTFM_async(" ^ string_of_int (usec_of_time af) ^ ", " ^ string_of_int (usec_of_time be) ^ ", RTFM_id, " ^ id ^ "_nr);"
-    | Sync ( id, par )        -> id ^ pass_par par ^ ";"
+          "RTFM_msg " ^ handle ^ " = " ^ "RTFM_async(" ^ string_of_int (usec_of_time af) ^ ", " ^ string_of_int (usec_of_time be) ^ ", RTFM_id, " ^ id ^ "_nr);" ^ nl
+    | Sync ( id, par )        -> id ^ pass_par par ^ ";" ^ nl
 
     | ClaimC (c)              -> String.trim c
-    | Halt                    -> "RT_halt();"
-    | Abort (m)               -> "RT_abort(" ^ m ^ ");"
+    | Halt                    -> "RT_halt();" ^ nl
+    | Abort (m)               -> "RT_abort(" ^ m ^ ");" ^ nl
+    | ExternState (s)         -> s
 
   and top = function
     | IIsr (p, id, sl)                -> "void " ^ id ^ "(int RTFM_id) {" ^ nl ^ (stmts id) sl ^ "}"
