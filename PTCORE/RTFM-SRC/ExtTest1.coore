@@ -4,6 +4,7 @@
 // Simple example of external -core binding
 
 class Root<> extern "ExtRoot.core" {
+
   Reset {
     f(10);
   }
