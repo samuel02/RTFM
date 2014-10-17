@@ -31,14 +31,14 @@ let scc = ';'
 exception RtfmError of string
 exception UnMatched
 
-(*let rec mymap m = function
+let rec mymap m = function
     | []     -> []
-    | e :: l -> try (m e) :: mymap m l with UnMatched -> mymap m l*)
+    | e :: l -> try (m e) :: mymap m l with UnMatched -> mymap m l
 
-(*let rec myconcat s = function
+let rec myconcat s = function
     | []     -> ""
     | "":: l -> myconcat s l
-    | e :: l -> e ^ s ^ myconcat s l*)
+    | e :: l -> e ^ s ^ myconcat s l
 
 let rec mycon s = function
     | []      -> ""
