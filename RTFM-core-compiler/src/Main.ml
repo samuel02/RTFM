@@ -47,18 +47,22 @@ let rec parse_prog path prefixes inf =
             let specProg = match p with
               | Prog (mName, mIncl, mPrefixes, mTops) ->
                 if (List.length prefixes) > 0 then
-                  let specFunc top prefix = match top with
-                    | FuncDef (t, id, par, s)  ->
-                      let specStateVars stmt= match stmt with
-                        | ExternState (s)   -> ExternState (prefix ^ "_")
-                        | stmt              -> stmt
-                      in
-                      FuncDef (t, (prefix ^ "_" ^ id), par, (List.map specStateVars s))
-                    | Func (t, id, par, s)     -> Func (t, (prefix ^ "_" ^ id), par, s)
+                  let prefixStr p s = (p ^ "_" ^ s) in
+                  let rec prefixStmts prefix stmt = match stmt with
+                    | ExternState (s)                   -> ExternState (prefixStr prefix "")
+                    | Claim (id, s)                     -> Claim ((prefixStr prefix id), (List.map (prefixStmts prefix) s))
+                    | Async (handle, af, pr, id, par)   -> Async (handle, af, pr, (prefixStr prefix id), par)
+                    | Sync (id, par)                    -> Sync ((prefixStr prefix id), par)
+                    | Pend (af, id, par)                -> Pend (af, (prefixStr prefix id), par)
+                    | stmt                              -> stmt
+                  in
+                  let prefixTop top prefix = match top with
+                    | TaskDef (id, par, s)     -> TaskDef ((prefixStr prefix id), par, (List.map (prefixStmts prefix) s))
+                    | FuncDef (t, id, par, s)  -> FuncDef (t, (prefixStr prefix id), par, (List.map (prefixStmts prefix) s))
                     | top                      -> top
                   in
-                  let specFuncs prefixes top = List.map (specFunc top) prefixes in
-                  Prog (mName, mIncl, prefixes, (List.flatten (List.map (specFuncs prefixes) mTops)))
+                  let prefixTops prefixes top = List.map (prefixTop top) prefixes in
+                  Prog (mName, mIncl, prefixes, (List.flatten (List.map (prefixTops prefixes) mTops)))
                 else
                   Prog (mName, mIncl, prefixes, mTops)
             in
@@ -66,6 +70,7 @@ let rec parse_prog path prefixes inf =
             | Prog (mName, mIncl, mPrefixes, mTops) ->
                 if opt.verbose then p_stderr ("Parsing of " ^ infile ^ " succeeded:" ^ nl);
                 if opt.d_ast then p_stderr (string_of_prog specProg);
+
 
                 let prefixes =
                   List.map snd mIncl
@@ -76,11 +81,9 @@ let rec parse_prog path prefixes inf =
       with
       | Lexer.SyntaxError msg -> p_stderr ("Parser error." ^ msg ^ parse_err_msg lexbuf); raise (RtfmError("Exit"))
       | Parser.Error -> p_stderr ("Parser error." ^ parse_err_msg lexbuf); raise (RtfmError("Exit"))
-
 let main () =
   cmd; (* parse command line options and put into opt *)
   p_stderr (string_of_opt opt);
-
   try
     let mTops = parse_prog "" [] opt.infile in
 
@@ -88,12 +91,13 @@ let main () =
     let spec = TaskGenSpec.spec_of_p task in
     let dlp = dl_to_pr spec in
 
+
+
     if opt.d_ast then begin
       p_stderr ("Input AST:" ^ nl ^ string_of_tops mTops);
       p_stderr ("Pass1 : Generation of task and function instances:" ^ nl ^ SpecAST.string_of_spec task);
       p_stderr ("Pass2 : Specialization of task and function instances:" ^ nl ^ SpecAST.string_of_spec spec);
     end;
-
     let rm = ceiling_spec spec dlp in
     if opt.verbose then begin
       p_stderr ("Mapping from deadlines to priorities: " ^ myconcat "," (mymap (fun (a, b) -> "(" ^ string_of_int a ^ ", " ^ string_of_int b ^ ")") dlp) );
