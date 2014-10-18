@@ -2,7 +2,6 @@
 
 in=$1
 
-mkdir -p tmp
 echo core-compiler =====================================================
 ../../RTFM-core-compiler/src/Main.native -i ${in%.*}.core -o ../Application/autogen.c
 echo gcc ===============================================================

@@ -1,0 +1,38 @@
+// RTFM-cOOre, Per Lindgren (C) 2014
+include "websocket2.core" as "Root" 
+
+
+
+
+#>
+
+int Root_i = 0;
+
+
+
+
+
+
+
+<# Task Root_client_receive (char Root_msg)  { 
+	claim RES_Root_ { #>
+		RT_printf("client wrote : %s\n", Root_msg);
+	<# } #>
+<# } #>
+<# Task Root_periodic ()  { 
+	claim RES_Root_ { #>
+		Root_i = Root_i + 1;
+		<# async Root_ws_send (Root_i) ; #>;
+		<# async after 2 s Root_periodic () ; #>;
+	<# } #>
+<# } #>
+<# Reset {
+	claim RES_Root_ { #>
+		RT_printf("User Reset\n");
+		<# async Root_periodic () ; #>;
+		<# async Root_idle_websocket () ; #>;
+	<# } #>
+<# } #>
+
+<#
+
