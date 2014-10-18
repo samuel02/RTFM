@@ -107,7 +107,7 @@ let rec c_defs_of_classDef ce path argl cd =
       (
         match t with
           | Void ->
-            c_e ^ " Func " ^ string_of_pType t ^ p ^ i ^ " _local" ^ string_par c_of_mPArg al ^ "{" ^ e_c ^ nl ^
+            c_e ^ " Func " ^ string_of_pType t ^ " " ^ p ^ i ^ "_local" ^ string_par c_of_mPArg al ^ "{" ^ e_c ^ nl ^
             String.concat "" (List.map (c_of_stmt tab) sl) ^
             c_e ^ " } " ^ e_c ^ nl ^ nl ^
             c_e ^ " Func " ^ string_of_pType t ^ " " ^ p ^ i ^ string_par c_of_mPArg al ^ "{" ^ nl ^
