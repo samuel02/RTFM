@@ -41,6 +41,7 @@ top:
 
 stmt:
   | CCODE                                               { ClaimC ($1) }
+  | CLAIM LCP stmt* RCP                                 { Claim("", $3) }
   | CLAIM ID LCP stmt* RCP                              { Claim ($2, $4) }
   | PEND before ID PARAMS SC                            { Pend ($2, $3, $4) }
   | assignment ASYNC after before ID PARAMS SC          { Async ($1, $3, $4, $5, $6) }
