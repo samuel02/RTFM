@@ -19,6 +19,17 @@ let gv_of_obj ce p =
         po ^ " [label = " ^ ec ^ o ^enl ^ i ^ ec ^ nl ^ "shape = "^ ec ^"record" ^ ec ^ "]" ^ nl ^
         (*path ^ " -> " ^ po ^ *)nl ^
         gv_of_cd (po) cd
+
+    | CResetDecl (sl) -> 
+        let po = path ^ "_" in
+        po ^ " [label = "^ ec ^"Reset/Idle" ^ nl ^ ec ^ "shape = "^ ec ^"record" ^ ec ^ "]" ^ nl ^
+        path ^ " -> " ^ po ^ nl
+
+    | CIdleDecl (sl)  -> 
+        let p = path ^ "_" in
+        p ^ " [label = "^ ec ^"Reset/Idle" ^ nl ^ ec ^ "shape = "^ ec ^"record" ^ ec ^ "]" ^ nl ^
+        path ^ " -> " ^ p ^ nl 
+
     (*Task level, prints an oval with Task' as title and its name*)
     | CTaskDecl (i, al, sl ) -> 
         let po = path ^ "_" ^ i in
@@ -41,7 +52,7 @@ let gv_of_obj ce p =
   	| ClassDef (i, cal, cdl) -> String.concat nl (List.map (gv_of_cdl path) cdl)(*String.concat nl (List.map (gv_of_cdl path) cdl)*)
   in
   
-  let se = cEnv_of_classDef p in
+  (*let se = cEnv_of_classDef p in*)
   let cd = 
   	try
   		List.assoc "Root" ce
@@ -106,9 +117,7 @@ let def_of_task p =
   let ce = cEnv_of_classDef p in
   gv_of_task ce p
 
-(*)
-
-	"digraph RTFM {" ^ nl ^ "gv_of_task_is_working"^ " [shape=diamond] "
+(*	"digraph RTFM {" ^ nl ^ "gv_of_task_is_working"^ " [shape=diamond] "
   ^ "}" *)
 (* check cyclic instances, if cyclic raise an RtfmError *)
 let cycle_of_p ce p =
@@ -126,7 +135,7 @@ let cycle_of_p ce p =
         (List.iter (cycle_of_cdl path) cdl)
 
   in
-  let ce = cEnv_of_classDef p in
+   (*let se = cEnv_of_classDef p in*)
   let cd =
     try
       List.assoc "Root" ce
