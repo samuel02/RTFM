@@ -60,7 +60,7 @@ let main () =
         (* gv_task optout *)
         if (opt.gv_task) then begin
           let oc = open_out opt.gv_taskf in
-          p_oc oc (gv_of_task);
+          p_oc oc (def_of_task p);
           close_out oc;
         end;
         (* gv_res optout *)
