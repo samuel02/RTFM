@@ -118,4 +118,4 @@ let cmd =
     end;
     opt.d_ast <- !d_ast;
   with
-    | Arg.Bad msg -> p_stderr ("Command line error: " ^ msg); exit (-1);
+  | Arg.Bad msg -> p_stderr ("Command line error: " ^ msg); exit (-1);
