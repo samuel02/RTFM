@@ -17,6 +17,7 @@ type dstmt =
   | DotC of int * string
   | DotHalt of int
   | DotAbort of int * string * string
+  | DotExternState of string
 and
   dstmts =
   | Ds of string * dstmt list
@@ -121,6 +122,7 @@ let gv_of_spec dlp rml spec =
       | ClaimC (s)               -> DotC (i, s)
       | Halt                     -> DotHalt (i)
       | Abort (s)                -> DotAbort (i, t, s)
+      | ExternState (s)          -> DotExternState (s)
 
   in
   (* parse the program entry points *)

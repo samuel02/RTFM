@@ -30,6 +30,8 @@ let exit_c  = "<#"
 rule lex = parse
   | "module"             { MODULE }                             (* module system related *)
   | "include"            { INCLUDE }
+  | "as"                 { AS }
+  | "_STATE_"            { EXTERN_STATE }
 
   | "pend"               { PEND }                               (* statements *)
   | "sync"               { SYNC }

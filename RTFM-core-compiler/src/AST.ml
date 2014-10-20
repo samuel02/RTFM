@@ -14,13 +14,14 @@ type time =
 *)
 
 type stmt =
-  | Claim     of string * stmt list                             (* res_id, stmts                    *)
-  | Pend      of time * string * string                         (* deadline, task_id, par_c         *)
-  | Sync      of string * string                                (* func_id, par_c                   *)
-  | Async     of string * time * time * string * string         (* handle, before, after, task_id, par_c *)
-  | ClaimC    of string                                         (* code_c                           *)
-  | Halt                                                        (* halt takes no arguments *)
-  | Abort     of string                                         (* handle *)
+  | Claim       of string * stmt list                             (* res_id, stmts                    *)
+  | Pend        of time * string * string                         (* deadline, task_id, par_c         *)
+  | Sync        of string * string                                (* func_id, par_c                   *)
+  | Async       of string * time * time * string * string         (* handle, before, after, task_id, par_c *)
+  | ClaimC      of string                                         (* code_c                           *)
+  | Halt                                                          (* halt takes no arguments *)
+  | Abort       of string                                         (* handle *)
+  | ExternState of string
 
 type top =
   | TopC      of string                                         (* code_c                           *)
@@ -35,7 +36,7 @@ type top =
   | Func      of string * string * string * stmt list           (* rtype_c, path_f_id, arg_c, stmts *)
 
 type prog =
-  | Prog      of string * string list * top list
+  | Prog      of string * (string * string) list * string list * top list
 
 (*
 let usec_of_time = function
@@ -73,13 +74,15 @@ let string_of_tops tl =
     | ClaimC (c)              -> t ^ "#> CCODE <#"
     | Halt                    -> t ^ "--- our new halt ---"
     | Abort (handle)          -> t ^ "Abort " ^ handle
+    | ExternState (s)         -> t ^ s
   in
-  myconcat nl (mymap top tl)
+  String.concat nl (List.map top tl)
 
 let string_of_prog = function
-  | Prog (mName, mIncl, mTop) ->
+  | Prog (mName, mIncl, mPrefixes, mTop) ->
       "Module:" ^ mName ^ nl ^
-      "Use :" ^ String.concat "," mIncl ^ nl ^
+      "Use :" ^ String.concat "," (List.map fst mIncl) ^ nl ^
+      "Used as extern :" ^ (String.concat "," mPrefixes) ^ nl ^
       "Prog:" ^ nl ^ string_of_tops mTop
 
 let rec prio_to_string r = match r with

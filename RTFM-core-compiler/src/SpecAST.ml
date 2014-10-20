@@ -37,6 +37,7 @@ let string_of_spec tl =
     | ClaimC (c)              -> t ^ "#> " ^ c ^ "<#"
     | Halt                    -> t ^ "Halt"
     | Abort (m)               -> t ^ "Abort " ^ m
+    | ExternState (s)         -> t ^ "_STATE_"
   in
   myconcat nl (mymap top tl)
 

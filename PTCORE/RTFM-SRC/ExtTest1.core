@@ -1,0 +1,14 @@
+// RTFM-cOOre, Per Lindgren (C) 2014
+include "ExtRoot.core" as "Root"
+
+#>
+
+
+<# Reset {
+	claim RES_Root_ { #>
+		<#sync Root_f_local (10) ;#>;
+	<# } #>
+<# } #>
+
+<#
+
