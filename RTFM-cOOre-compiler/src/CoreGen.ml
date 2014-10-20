@@ -38,7 +38,7 @@ let rec c_defs_of_classDef ce path argl cd =
       (
         match m with
         | _::[] -> c_e ^ "sync " ^ p ^ String.concat "_" m ^ "_local" ^ string_par c_of_expr el ^ sc ^ e_c
-        | _     -> c_e ^ " sync " ^ p ^ String.concat "_" m ^ string_par c_of_expr el ^ sc ^ e_c
+        | _     -> c_e ^ "sync " ^ p ^ String.concat "_" m ^ string_par c_of_expr el ^ sc ^ e_c
       )
     | AsyncExp (af, be, il, el) -> c_e ^ " async" ^
       (if (usec_of_time af > 0) then " after " ^ string_of_time af else "") ^
@@ -85,7 +85,8 @@ let rec c_defs_of_classDef ce path argl cd =
       let argin t = nri := !nri + 1; c_of_pType t ^ " i" ^ string_of_int !nri in
       let nro = ref 0 in
       let argout t = nro := !nro + 1; "i" ^ string_of_int !nro in
-      c_e ^ " Func " ^ c_of_pType t ^ " " ^ p ^ i ^ string_par argin tl ^ " { sync " ^ arg ^ string_par argout tl ^ "; } " ^ e_c
+      c_e ^ " Func " ^ c_of_pType t ^ " " ^ p ^ i ^ string_par argin tl ^ " { sync " ^ arg ^ string_par argout tl ^ "; } " ^ e_c ^
+      c_e ^ " Func " ^ c_of_pType t ^ " " ^ p ^ i ^ "_local" ^ string_par argin tl ^ " { sync " ^ arg ^ string_par argout tl ^ "; } " ^ e_c
   in
 
   (* state initialization *)
@@ -114,6 +115,9 @@ let rec c_defs_of_classDef ce path argl cd =
             claim_stmts sl ^
             c_e ^ " } " ^ e_c
           | _ ->
+            c_e ^ " Func " ^ string_of_pType t ^ " " ^ p ^ i ^ "_local" ^ string_par c_of_mPArg al ^ "{" ^ e_c ^ nl ^
+            String.concat "" (List.map (c_of_stmt tab) sl) ^
+            c_e ^ " } " ^ e_c ^ nl ^ nl ^
             c_e ^ " Func " ^ string_of_pType t ^ " " ^ p ^ i ^ string_par c_of_mPArg al ^ "{" ^ e_c ^ nl ^
             String.concat "" (List.map (c_of_stmt tab) sl) ^
             c_e ^ " } " ^ e_c ^ nl ^ nl
