@@ -79,25 +79,33 @@ Task idle_websocket() {
     if (n < 0)
       error("ERROR reading from socket");
 
-    DPS("%d, %s\n", n, readBuff);reqline[0] = strtok(readBuff, " \t\n");
+    DPS("%d, %s\n", n, readBuff);
+    reqline[0] = strtok(readBuff, " \t\n");
+
     if (strncmp(reqline[0], "GET\0", 4) == 0) {
       reqline[1] = strtok(NULL, " \t");
       reqline[2] = strtok(NULL, " \t\n");
+
       if (strncmp(reqline[2], "HTTP/1.1", 8) != 0) {
         write(connfd, "HTTP/1.0 400 Bad Request\n", 25);
         error("bad request");
       }
+
       DPS("OK request\n");
+
       while (1) {
         reqline[0] = strtok(NULL, " \n\r");
         char ws_key[] = "Sec-WebSocket-Key:";
-        DPS("%s\n", reqline[0]);if (strncmp(reqline[0], ws_key, sizeof(ws_key)) == 0) {
+        DPS("%s\n", reqline[0]);
+
+        if (strncmp(reqline[0], ws_key, sizeof(ws_key)) == 0) {
           reqline[1] = strtok(NULL, " \r\n");
           DPS("KEY = %s\n", reqline[1]);break;
         }
       }
+
       DPS("--- response header ---\n");
-      send(connfd, resp1, strlen(resp1), 0);// the response header
+      send(connfd, resp1, strlen(resp1), 0); // the response header
       DPS("%s", resp1);
 
       // compute key
@@ -160,9 +168,8 @@ Task idle_websocket() {
         decoded[msg_size] = 0; // terminate the string
         DPS("Text msg %s", decoded);
 
-        char[] msg = decoded;
 
-        <# async client_receive(msg); #>
+        <# async client_receive(decoded); #>
       }
       DPS("trying to reconnect");
       close(connfd);
@@ -173,19 +180,19 @@ Task idle_websocket() {
   <#
 }
 
-Task ws_send(char message[]) {
+Task ws_send(char message) {
   #>
   if (connfd == 0)
     return;
 
   unsigned char *out_decoded = (unsigned char *) &sendBuff[2]; //6 with mask
-  sprintf((char *) out_decoded, "%s", message);
+  sprintf((char *) out_decoded, "%c", message);
 
-  int len = strlen(message);
-  if (len > 126)
-    error("we do not support split messages\n");
+  //int len = strlen(message);
+  //if (len > 126)
+  //  error("we do not support split messages\n");
   sendBuff[0] = 0x80 | 0x1; // FIN + text_msg opcode
-  sendBuff[1] = 0x00 | len; // no mask
-  send(connfd, sendBuff, len + 2, 0);
+  sendBuff[1] = 0x00 | 0x1; // no mask
+  send(connfd, sendBuff, 1 + 2, 0);
   <#
 }

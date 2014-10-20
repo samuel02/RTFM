@@ -4,9 +4,13 @@ include "websocket2.core" as "Root"
 
 
 
+
 #>
 
-int Root_i = 0;
+int Root_i = 1;
+char Root_message[1] = {'a'};
+
+
 
 
 
@@ -22,7 +26,7 @@ int Root_i = 0;
 <# Task Root_periodic ()  { 
 	claim RES_Root_ { #>
 		Root_i = Root_i + 1;
-		<# async Root_ws_send (Root_i) ; #>;
+		<# async Root_ws_send (Root_message[Root_i]) ; #>;
 		<# async after 2 s Root_periodic () ; #>;
 	<# } #>
 <# } #>
