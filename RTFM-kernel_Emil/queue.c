@@ -11,11 +11,11 @@
 /*
  * Timer queue instantiation
  */
-TQ_t  tq[TQ_LEN];   // queue
-TQ_t* tq_h = NULL;  // head pointer
-TQ_t* tq_f = tq;    // free pointer
-TQ_t* tq_n;         // new
-TQ_t* tq_c;         // current
+tq_t  tq[TQ_LEN];   // queue
+tq_t* tq_h = NULL;  // head pointer
+tq_t* tq_f = tq;    // free pointer
+tq_t* tq_n;         // new
+tq_t* tq_c;         // current
 
 
 
@@ -145,7 +145,7 @@ __FORCE_INLINE void RTFM_async(rt_time_t af,
 /*
  * Remove an element to the Timer Queue
  */
-__FORCE_INLINE TQ_t* tq_deq() {
+__FORCE_INLINE tq_t* tq_deq() {
 
   tq_c = tq_h;
 
@@ -162,7 +162,7 @@ __FORCE_INLINE TQ_t* tq_deq() {
 /*
  * Get the top element of the Timer Queue
  */
-__FORCE_INLINE TQ_t* tq_top() {
+__FORCE_INLINE tq_t* tq_top() {
 
   return tq_h;
 }

@@ -15,7 +15,7 @@ typedef struct _TQ {
   rt_time_t bl;
   rt_tid_t id;
   struct _TQ* next;
-} TQ_t;
+} tq_t;
 
 
 /*
