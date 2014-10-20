@@ -6,9 +6,6 @@
 WHEREAMI := $(dir $(lastword $(MAKEFILE_LIST)))
 TOP      := $(realpath $(WHEREAMI)/../../../)
 
-
-REMOVE = rm -f
-
 # Target same	
 TARGET ?= rtfm_test
 
@@ -19,12 +16,18 @@ V1 =
 # Where the build will be located and create the folder
 OBJDIR = ./build/obj
 ELFDIR = ./build
+DEPDIR = ./build/dep
+
+$(shell mkdir $(ELFDIR) 2>/dev/null)
+$(shell mkdir $(OBJDIR) 2>/dev/null)
+$(shell mkdir $(DEPDIR) 2>/dev/null)
 
 # External high speed crystal frequency
 HSE_VALUE = 12000000
 
 # Optimization
 OPTIMIZATION = 1
+
 # Create include paths and find sources in all the modules
 MODULES = $(wildcard ./modules/*)
 $(foreach dir, $(MODULES), $(eval MODULES_INC += -I$(dir)/inc))
@@ -82,11 +85,7 @@ clean: clean_list
 	
 clean_list:
 	$(V0) echo $(MSG_CLEANING)
-	$(V0) $(REMOVE) $(ALLOBJECTS)
-	$(V0) $(REMOVE) $(ELFDIR)/$(TARGET).map
-	$(V0) $(REMOVE) $(ELFDIR)/$(TARGET).elf
-	$(V0) $(REMOVE) $(ELFDIR)/$(TARGET).hex
-	$(V0) $(REMOVE) $(ELFDIR)/$(TARGET).bin
-	$(V0) $(REMOVE) $(ELFDIR)/$(TARGET).sym
-	$(V0) $(REMOVE) $(ELFDIR)/$(TARGET).lss
+	$(V0) rm -fR $(ELFDIR)
 	
+	
+-include $(wildcard $(DEPDIR)/*)
