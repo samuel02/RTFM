@@ -149,11 +149,11 @@ __FORCE_INLINE tq_t* tq_deq() {
 
   tq_c = tq_h;
 
-  //if (tq_h != NULL) {
+  if (tq_h != NULL) {
     tq_h = tq_h->next;
     tq_c->next = tq_f;
     tq_f = tq_c;
-  //}
+  }
 
   return tq_h;
 }
