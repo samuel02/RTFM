@@ -26,7 +26,7 @@ $(shell mkdir $(DEPDIR) 2>/dev/null)
 HSE_VALUE = 12000000
 
 # Optimization
-OPTIMIZATION = 1
+OPTIMIZATION = g
 
 # Create include paths and find sources in all the modules
 MODULES = $(wildcard ./modules/*)
@@ -40,7 +40,7 @@ INCLUDE += -I./CMSIS
 CSRCS = RTFM-core.c $(wildcard ./CMSIS/*.c) $(MODULES_CSRCS)
 
 # Common
-COMMON = -DHSE_VALUE=$(HSE_VALUE) -DSTM32F40_41xxx -fno-builtin-_exit
+COMMON = -DHSE_VALUE=$(HSE_VALUE) -DSTM32F40_41xxx -fno-builtin-_exit -Wall -Wextra -Winline 
 
 
 ASRCS   = $(wildcard ./CMSIS/*.s) $(MODULES_ASRCS) 
