@@ -35,8 +35,8 @@
     SET_BASEPRI(sc_old);                                      \
 }
 
-#define RT_lock(V, R)                                         \
-    V = GET_BASEPRI();                                        \
+#define RT_lock(R)                                            \
+    GET_BASEPRI();                                            \
     SET_BASEPRI_MAX(PRIO_SHIFT(R));                           \
     BARRIER_LOCK;
 

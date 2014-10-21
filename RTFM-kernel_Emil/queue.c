@@ -89,9 +89,7 @@ __FORCE_INLINE void TQ_panic() {
  */
 __FORCE_INLINE void tq_enq(rt_time_t t, rt_tid_t id) {
 
-  rtfm_lock_t lq;
-
-  RT_lock(lq, 2);
+  rtfm_lock_t lq = RT_lock(2);
 
   if (tq_f == NULL) TQ_panic();
 
