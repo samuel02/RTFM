@@ -57,7 +57,7 @@ __FORCE_INLINE void T_PEND() {
 
 
 /*
- * Set a new countdown time for the SysTick
+ * Set a new count down time for the SysTick
  */
 __FORCE_INLINE void T_SET(rt_time_t t) {
 
@@ -137,7 +137,7 @@ __FORCE_INLINE void RTFM_async(rt_time_t af,
                                rt_time_t be,
                                rt_time_t bl_from,
                                rt_time_t to) {
-
+  (void)be;
   tq_enq(af + bl_from, to);
 }
 

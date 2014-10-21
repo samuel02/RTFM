@@ -24,7 +24,7 @@ void DefaultISR(void) {
 #define NELEMS(x)  (sizeof(x) / sizeof(x[0]))
 
 void RTFM_init_priorities() {
-	int i;
+	unsigned int i;
 	for (i = 0; i < NELEMS(entry_vi); i++) {
 		RTFM_set_priority(entry_vi[i], entry_prio[i]);
 		if (entry_vi[i]>= 0) {
