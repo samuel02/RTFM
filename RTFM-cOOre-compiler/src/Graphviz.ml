@@ -19,12 +19,12 @@ let gv_of_obj ce p =
         po ^ " [label = " ^ ec ^ o ^enl ^ i ^ ec ^ nl ^ "shape = "^ ec ^"record" ^ ec ^ "]" ^ nl ^
         (*path ^ " -> " ^ po ^ *)nl ^
         gv_of_cd (po) cd
-
+    (* Reset *)
     | CResetDecl (sl) -> 
         let po = path ^ "_" ^ "Reset" in
         po ^ " [label = "^ ec ^"Reset" ^ nl ^ ec ^ "shape = "^ ec ^"record" ^ ec ^ "]" ^ nl ^
         path ^ " -> " ^ po ^ nl
-
+		(* Idle *)
     | CIdleDecl (sl)  -> 
         let p = path ^ "_" ^ "Idle" in
         p ^ " [label = "^ ec ^"Idle" ^ nl ^ ec ^ "shape = "^ ec ^"record" ^ ec ^ "]" ^ nl ^
@@ -35,11 +35,7 @@ let gv_of_obj ce p =
         let po = path ^ "_" ^ i in
         po ^ " [label = "^ ec ^"Task" ^enl ^ i ^ nl ^ ec ^ "]" ^ nl ^
         path ^ " -> " ^ po ^ nl 
-    (* Class level variables 
-    | CPVar (t, i, e) -> 
-        let po = path ^ "_" ^ i in
-        po ^ " [label = "^ ec ^"Variable" ^enl ^ string_of_pType t^ i ^ nl ^ ec ^ "]" ^ nl ^
-        path ^ " -> " ^ po ^ nl *)
+
     (*Task level, prints an oval with 'Function' as title and its name*)
     | CMDecl (t, i, al, sl) -> 
         let po = path ^ "_" ^ i in
@@ -74,6 +70,9 @@ let def_of_obj p =
 let gv_of_res =
 	"digraph RTFM {" ^ nl ^ "gv_of_res if working [shape=diamond] "
   ^ "}" 
+
+
+
 (*--------------------------------------------------------------*)
 (*Deffinition of Graphviz output for task option*)
 let gv_of_task ce p =
@@ -83,20 +82,35 @@ let gv_of_task ce p =
         let po = path ^ "_" ^ i in
         let cd = myass o ce in
         po ^ " [label = " ^ ec ^ o ^enl ^ i ^ enl ^ "Input argument = " ^String.concat nl (List.map string_of_expr el) ^ ec ^ nl ^ "shape = "^ ec ^"record" ^ ec ^ "]" ^ nl ^
-        (*path ^ " -> " ^ po ^ *)nl  ^
-        gv_of_td (po) cd
+				nl ^ gv_of_td (po) cd
+
 		(*Task level, prints an oval with Task' as title and its name*)
 		| CTaskDecl (i, al, sl ) -> 
   	  let po = path ^ "_" ^ i in
   	  po ^ " [label = "^ ec ^"Task" ^enl ^ i ^ nl ^ String.concat "" (List.map (string_of_stmt (tab^tab)) sl) ^ ec ^ "]" ^ nl ^ 
   	  path ^ " -> " ^ po ^ nl 
+
   	(*Task level, prints an oval with 'Function' as title and its name*)
     | CMDecl (t, i, al, sl) -> 
         let po = path ^ "_" ^ i in
-        po ^ " [label = "^ ec ^"Function" ^enl ^ i ^ nl ^ ec ^ "]" ^ nl ^
-        path ^ " -> " ^ po ^ nl  
+        po ^ " [label = "^ ec ^"Function" ^enl ^ i ^ nl ^ String.concat "" (List.map (string_of_stmt (tab^tab)) sl) ^ ec ^ "]" ^ nl ^
+        path ^ " -> " ^ po ^ nl 
+     
+    (* Reset *)    
+    | CResetDecl (sl) -> 
+        let po = path ^ "_" ^ "Reset" in
+        po ^ " [label = "^ ec ^"Reset" ^ nl ^ String.concat "" (List.map (string_of_stmt (tab^tab)) sl) ^ ec ^ "shape = "^ ec ^"record" ^ ec ^ "]" ^ nl ^
+        path ^ " -> " ^ po ^ nl
+
+    (* Idle *)
+    | CIdleDecl (sl)  -> 
+        let p = path ^ "_" ^ "Idle" in
+        p ^ " [label = "^ ec ^"Idle" ^ nl ^ String.concat "" (List.map (string_of_stmt (tab^tab)) sl) ^ ec ^ "shape = "^ ec ^"record" ^ ec ^ "]" ^ nl ^
+        path ^ " -> " ^ p ^ nl 
+
+    (* ?!?? Not wokring atm *)
     | CIsrDecl (pr, i, sl)   ->
-    		let po = path ^ "_" ^ i in
+    		let po = path ^ "_" ^ string_of_int pr in
         po ^ " [label = "^ ec ^"ISR" ^enl ^ i ^ nl ^ string_of_int pr ^ ec   ^ "]" ^ nl ^ String.concat "" (List.map (string_of_stmt (tab^tab)) sl)
         ^ path ^ " -> " ^ po ^ nl 
 
