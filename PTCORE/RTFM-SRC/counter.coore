@@ -1,21 +1,31 @@
-class IO<void (string) handle_input> extern "websocket.core" {
+class IO<void (char) handle_input> extern "websocket3.core" {
 
 	void print(int seconds) {
+		RT_printf("%d\n", seconds);
 		ws_send(seconds);
 	}
 
-	Task client_receive(string msg) {
-		handle_input(msg);
+	void setup() {
+		RT_printf("Starting websocket...");
+		//async idle_websocket();
 	}
 
-	Task reset() {
-		async idle_websocket();
+	Task client_receive(char msg) {
+	 	handle_input(msg);
 	}
 }
 
 class Sequence<> {
 	string correct := "4 8 15 16 23 42";
 	int cursor := 0;
+
+	void handle_input(char input) {
+		bool is_correct_char := is_correct_char(input);
+		if (is_correct_char) increment_cursor();
+
+		bool is_complete := is_complete();
+		if(is_complete) cursor := 0;
+	}
 
 	void increment_cursor() {
 		cursor := cursor + 1;
@@ -28,17 +38,15 @@ class Sequence<> {
 	bool is_complete() {
 		return cursor == 15;
 	}
-
-	Task reset() {
-		cursor := 0;
-	}
 }
 
-
-class Timer<void (int) handle_output> {
-	int seconds := 8;
+class Timer<int secs, void (char) handle_output, bool () is_complete> {
+ int seconds := secs;
 
 	Task tick () {
+		bool is_complete := is_complete();
+		if(is_complete) seconds := 8;
+
 		seconds := seconds - 1;
 		handle_output(seconds);
 
@@ -48,34 +56,15 @@ class Timer<void (int) handle_output> {
 			RT_printf("System failure!!\n");
 		}
 	}
-
-	Task reset () {
-		seconds := 8;
-	}
 }
-
 
 class Root<> {
 	Sequence<> sequence;
-	IO<handle_output> io;
-	Timer<io.print> timer;
-
-	void reset() {
-		async sequence.reset();
-		async timer.reset();
-		async io.reset();
-	}
-
-	void handle_input(char input) {
-		bool is_correct_char := sequence.is_correct_char(input);
-		if (is_correct_char) sequence.increment_cursor();
-
-		bool is_complete := sequence.is_complete();
-		if(is_complete) reset();
-	}
+	IO<sequence.handle_input> io;
+	Timer<8, io.print, sequence.is_complete> timer;
 
 	Reset {
-		reset();
-		async after 1 s timer.tick();
+		io.setup();
+		//async after 1 s timer.tick();
 	}
 }

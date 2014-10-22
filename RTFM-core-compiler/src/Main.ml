@@ -127,12 +127,16 @@ let main () =
 
     | RTFM_RT ->
     (* generate c code *)
+        p_stderr("generate c code");
+        p_stderr("" ^ opt.outfile);
         let oc = open_out opt.outfile in
         let c_rt = c_rt_of_i dlp spec 0 rm in
+        p_stderr("opened file");
         p_oc oc c_rt;
         close_out oc;
 
         (* compute cyclic dependencies *)
+        p_stderr("compute cyclic dependencies");
         let e = entry spec in
         if (opt.verbose) then begin
           p_stderr (string_of_dep dep);

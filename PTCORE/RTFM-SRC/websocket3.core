@@ -41,7 +41,6 @@ int Base64Encode(const char* message, int len, char** buffer) {
   return (0); //success
 }
 
-int connfd = 0;
 void error(char* err) {
   fprintf(stderr, "%s", err);
   exit(0);
@@ -53,138 +52,220 @@ char* resp3 = "Sec-WebSocket-Protocol: lost-protocol\r\n\r\n"; // with an extra 
 char* magic = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
 
 char sendBuff[1025];
+char readBuff[1025];
 
-<#
-Func void idle_websocket_local() {
-  #>
+int connfd = 0;
+
+int tcp_server() {
   int listenfd = 0;
   struct sockaddr_in serv_addr;
 
-  char readBuff[1025], *reqline[3];
-
-  listenfd = socket(AF_INET, SOCK_STREAM, 0);
   memset(&serv_addr, (char ) '\0', sizeof(serv_addr));
-  memset(sendBuff, (char ) '\0', sizeof(sendBuff));
-  memset(readBuff, (char ) '\0', sizeof(readBuff));
+  listenfd = socket(AF_INET, SOCK_STREAM, 0);
+
   serv_addr.sin_family = AF_INET;
   serv_addr.sin_addr.s_addr = htonl(INADDR_ANY);
   serv_addr.sin_port = htons(5000);
 
   bind(listenfd, (struct sockaddr*) &serv_addr, sizeof(serv_addr));
   listen(listenfd, 1);
-  while (1) {
-    DPS("before accept\n");
-    connfd = accept(listenfd, (struct sockaddr*) NULL, NULL);
-    DPS("after accept\n");
-    int n = recv(connfd, readBuff, sizeof(readBuff), 0);
-    if (n < 0)
-      error("ERROR reading from socket");
 
-    DPS("%d, %s\n", n, readBuff);reqline[0] = strtok(readBuff, " \t\n");
+  int fd = accept(listenfd, (struct sockaddr*) NULL, NULL);
+  return fd;
+}
+
+<#
+Task idle_websocket() {
+  #>
+
+  int bytes = 0;
+  char *reqline[3];
+
+  memset(sendBuff, (char ) '\0', sizeof(sendBuff));
+  memset(readBuff, (char ) '\0', sizeof(readBuff));
+
+  while (1) {
+    // Create socket and start accepting connections
+    DPS("before accept\n");
+    connfd = tcp_server();
+    DPS("after accept\n");
+
+    // Connection received, first packet received
+    bytes = recv(connfd, readBuff, sizeof(readBuff), 0);
+    if (bytes < 0) error("ERROR reading from socket");
+    DPS("%d, %s\n", bytes, readBuff);
+
+    /*
+      Get first token (when reading tokens we
+      assume that we've received a HTTP request).
+      That means the readBuf should contain a payload
+      looking like this:
+
+       GET / HTTP/1.1
+       HTTP Headers...
+
+    */
+    reqline[0] = strtok(readBuff, " \t\n");
+
+    // Check if it's a HTTP GET request
     if (strncmp(reqline[0], "GET\0", 4) == 0) {
+
+      // Parse path (never used?)
       reqline[1] = strtok(NULL, " \t");
+
+      // Parse HTTP protocol version
       reqline[2] = strtok(NULL, " \t\n");
+
+      // Check if the request is using correct HTTP protocol version
       if (strncmp(reqline[2], "HTTP/1.1", 8) != 0) {
         write(connfd, "HTTP/1.0 400 Bad Request\n", 25);
         error("bad request");
+      } else {
+        DPS("OK request\n");
       }
-      DPS("OK request\n");
+
       while (1) {
+        // Parse first HTTP header
         reqline[0] = strtok(NULL, " \n\r");
+
+        // Header name
         char ws_key[] = "Sec-WebSocket-Key:";
-        DPS("%s\n", reqline[0]);if (strncmp(reqline[0], ws_key, sizeof(ws_key)) == 0) {
+
+        DPS("%s\n", reqline[0]);
+
+        // Make sure first header is of typ "Sec-WebSocket-Key"
+        if (strncmp(reqline[0], ws_key, sizeof(ws_key)) == 0) {
+
+          // Parse header value
           reqline[1] = strtok(NULL, " \r\n");
-          DPS("KEY = %s\n", reqline[1]);break;
+          DPS("KEY = %s\n", reqline[1]);
+          break;
         }
       }
+
+      /*
+        Send Websocket handshake response to
+        the client in order to switch to a websocket
+        connection.
+
+        See http://en.wikipedia.org/wiki/WebSocket#WebSocket_protocol_handshake
+      */
       DPS("--- response header ---\n");
-      send(connfd, resp1, strlen(resp1), 0);// the response header
+      send(connfd, resp1, strlen(resp1), 0);
       DPS("%s", resp1);
 
-      // compute key
+      // Compute key
       char key_in[256];
       char* key_out;
 
-      sprintf(key_in, "%s%s", reqline[1], magic); // append the magic
+      // Append the magic to the key received from the client
+      sprintf(key_in, "%s%s", reqline[1], magic);
       DPS("key_in  %d : %s", (int) strlen(key_in), key_in);
 
+      // Encrypt the key with SHA1
       unsigned char hash[SHA_DIGEST_LENGTH];
-      SHA1((const unsigned char *)key_in, strlen(key_in), hash); // SHA1 hashing
+      SHA1((const unsigned char *)key_in, strlen(key_in), hash);
       DPS("hash, %d, %s", (int) sizeof(hash), hash);
 
-      Base64Encode((const char *)hash, sizeof(hash), &key_out); // Encode as Base64
+      // Encode encreypted as Base64
+      Base64Encode((const char *)hash, sizeof(hash), &key_out);
       DPS("key_out %d, %s", (int)strlen(key_out), key_out);
 
+      // Add key to sendBuffer and send the unique session key
       sprintf(sendBuff, "%s%s\r\n", resp2, key_out);
-      send(connfd, sendBuff, strlen(sendBuff), 0); // the unique session key
+      send(connfd, sendBuff, strlen(sendBuff), 0);
       DPS("%s", sendBuff);
 
-      send(connfd, resp3, strlen(resp3), 0); // the protocol name
+      // Send information about what websocket protocol is used
+      // for the connection; in this case "lost-protocol"
+      send(connfd, resp3, strlen(resp3), 0);
       DPS("%s", resp3);
 
       while (1) {
+
+        // Receive packets via the websocket connection
         DPS("--- recv ---");
-        n = recv(connfd, readBuff, sizeof(readBuff), 0);
-        if (n < 0)
-          error("ERROR reading from socket");
+        bytes = recv(connfd, readBuff, sizeof(readBuff), 0);
+        if (n < 0) error("ERROR reading from socket");
 
         DPS("readBuff[0] %x ", (0xFF & readBuff[0]));
+
+        // Make sure message is not split
         unsigned char msg_fin = readBuff[0] & 0x80; // logic (bitwise) and
-
-        if (msg_fin == 0)
-          error ("message split, not implemented");
-
+        if (msg_fin == 0) error ("message split, not implemented");
         DPS("fin OK");
+
+        // Check opcode
         unsigned char msg_op = readBuff[0] & 0xF; // opcode 4 bits
 
+        // Server disconnect
         if (msg_op == 0x8) {
           DPS("disconnect by server");
           break;
         }
 
-        if (msg_op != 0x1)
+        // Make sure the payload is a text message
+        if (msg_op != 0x1) {
           error ("non-text message, not implemented");
-        DPS("Text msg OK");
+        } else {
+          DPS("Text msg OK");
+        }
 
-        unsigned char msg_size = readBuff[1] & 0x7F; // length
-        if (msg_size >= 126)
+        // Make sure message is of right size
+        unsigned char msg_size = readBuff[1] & 0x7F;
+        if (msg_size >= 126) {
           error ("multi byte length, no implemented");
-        DPS("Size OK %d", msg_size);
+        } else {
+          DPS("Size OK %d", msg_size);
+        }
 
         unsigned char *decoded = (unsigned char *) &readBuff[6];
         unsigned char *encoded = (unsigned char *) &readBuff[6];
         unsigned char *mask = (unsigned char *) &readBuff[2]; // point to the mask bits
 
-        for (int i = 0; i < msg_size; i++)
+        // Decode data
+        for (int i = 0; i < msg_size; i++) {
           decoded[i] = (encoded[i] ^ mask[i % 4]);
+        }
 
-        decoded[msg_size] = 0; // terminate the string
+        // Terminate the string
+        decoded[msg_size] = 0;
         DPS("Text msg %s", decoded);
 
+        // Call handler for received data
         <# async client_receive((char_p)decoded); #>
       }
+
       DPS("trying to reconnect");
       close(connfd);
     }
   }
-  // never happens
+  // Never happens
   close(listenfd);
   <#
 }
 
 Func void ws_send_local(char_p message) {
   #>
-  if (connfd == 0)
-    return;
+  // Make sure we have a connection
+  if (connfd == 0) return;
 
+  // Decode message
   unsigned char *out_decoded = (unsigned char *) &sendBuff[2]; //6 with mask
   sprintf((char *) out_decoded, "%s", message);
 
   int len = strlen(message);
-  if (len > 126)
+
+  // Make sure message does not require a split
+  if (len > 126) {
     error("we do not support split messages\n");
+  }
+
+  // Initialize send buffer
   sendBuff[0] = 0x80 | 0x1; // FIN + text_msg opcode
   sendBuff[1] = 0x00 | len; // no mask
+
+  // Send data
   send(connfd, sendBuff, len + 2, 0);
   <#
 }
