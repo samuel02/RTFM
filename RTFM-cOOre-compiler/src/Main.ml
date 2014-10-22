@@ -38,7 +38,7 @@ let main () =
         cyclic p;
         
 (*
-        (* dot for task/resource structure *)
+
         if opt.dotout then begin
           let dots = (gv_of_res) in
           if opt.verbose then p_stderr dots;
@@ -70,6 +70,8 @@ let main () =
           close_out oc;
         end;
 
+        let oc = open_out opt.outfile in
+        p_oc oc (c_of_Prog p);
   
   (* exception handling *)
   with
