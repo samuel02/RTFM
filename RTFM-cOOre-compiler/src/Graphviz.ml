@@ -17,8 +17,7 @@ let gv_of_obj ce p =
         let po = path ^ "_" ^ i in
         let cd = myass o ce in
         po ^ " [label = " ^ ec ^ o ^enl ^ i ^ ec ^ nl ^ "shape = "^ ec ^"record" ^ ec ^ "]" ^ nl ^
-        (*path ^ " -> " ^ po ^ *)nl ^
-        gv_of_cd (po) cd
+        nl ^ gv_of_cd (po) cd
     (* Reset *)
     | CResetDecl (sl) -> 
         let po = path ^ "_" ^ "Reset" in
@@ -81,7 +80,7 @@ let gv_of_task ce p =
 		| COVar (o, el, i) ->
         let po = path ^ "_" ^ i in
         let cd = myass o ce in
-        po ^ " [label = " ^ ec ^ o ^enl ^ i ^ enl ^ "Input argument = " ^String.concat nl (List.map string_of_expr el) ^ ec ^ nl ^ "shape = "^ ec ^"record" ^ ec ^ "]" ^ nl ^
+        po ^ " [label = " ^ ec ^ o ^ " ( " ^  String.concat nl (List.map string_of_expr el) ^ " ) " ^enl ^ i ^ enl  ^ ec ^ nl ^ "shape = "^ ec ^"record" ^ ec ^ "]" ^ nl ^
 				nl ^ gv_of_td (po) cd
 
 		(*Task level, prints an oval with Task' as title and its name*)
@@ -136,8 +135,6 @@ let def_of_task p =
   let ce = cEnv_of_classDef p in
   gv_of_task ce p
 
-(*	"digraph RTFM {" ^ nl ^ "gv_of_task_is_working"^ " [shape=diamond] "
-  ^ "}" *)
 (* check cyclic instances, if cyclic raise an RtfmError *)
 let cycle_of_p ce p =
   let rec cycle_of_cdl path = function
