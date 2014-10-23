@@ -20,9 +20,7 @@ let quote   = '\"'
 let char    = [^ '\'']
 let id      = ['A'-'Z' 'a'-'z' '_']['0'-'9' 'A'-'Z' 'a'-'z' '_']*
 let digits  = ['0'-'9']+
-let math    = ['+' '-' '*' '/' '%']
 let str     = [^ '\"']*
-let compare = "==" | "!=" | ">=" | "<="
 
 (* lexing rules *)
 rule lex = parse
@@ -70,7 +68,16 @@ rule lex = parse
   | '.'                    { DOT }
   | ';'                    { SC }
 
-  | compare as s           { COMPARE (s) }
+  | "+"                    { ADD }
+  | "-"                    { SUB }
+  | "*"                    { MUL }
+  | "/"                    { DIV }
+  | "%"                    { MOD }
+
+  | "=="                   { EQ }
+  | "!="                   { NEQ }
+  | ">="                   { GTEQ }
+  | "<="                   { LTEQ }
 
   | "us"                   { USEC }                               (* time *)
   | "ms"                   { MSEC }
@@ -79,7 +86,6 @@ rule lex = parse
   | "true"                 { BOOLVAL (true) }                     (* literals/values *)
   | "false"                { BOOLVAL (false) }
   | digits as i            { INTVAL (int_of_string i) }
-  | math as c              { MATH (c) }
   | cite (char as c) cite  { CHARVAL (c) }                        (* does not handle escpaded characters *)
   | quote (str as s) quote { STRVAL (s) }
 

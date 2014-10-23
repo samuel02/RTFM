@@ -1,0 +1,15 @@
+// RTFM-cOOre, Per Lindgren (C) 2014
+#>
+
+bool Root_a = true;
+
+
+
+<# Reset {
+	claim RES_Root_ { #>
+		Root_a = false;
+	<# } #>
+<# } #>
+
+<#
+

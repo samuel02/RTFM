@@ -28,7 +28,7 @@ let rec c_defs_of_classDef ce path argl cd =
     | Bool -> "bool"
     | Byte -> "byte"
     | Void -> "void"
-    | String -> "char[]"
+    | String -> "char"
   in
 
   let rec c_of_expr = function
@@ -46,8 +46,8 @@ let rec c_defs_of_classDef ce path argl cd =
       " " ^ p ^ String.concat "_" il ^ string_par c_of_expr el ^ "; " ^ e_c
     | PendExp _                 -> raise (RtfmError ("PendExp not implemented"))
     | IntExp (i)                -> string_of_int i
-    | MathExp (e, a, b)         -> c_of_expr a ^ " " ^ String.make 1 e ^ " " ^ c_of_expr b
-    | CompExp (s, e1, e2)       -> c_of_expr e1 ^ " " ^ s ^ " " ^ c_of_expr e2
+    | MathExp (op, a, b)         -> c_of_expr a ^ " " ^ string_of_op op ^ " " ^ c_of_expr b
+    | CompExp (op, e1, e2)       -> c_of_expr e1 ^ " " ^ string_of_op op ^ " " ^ c_of_expr e2
     | ParExp (e)                -> "(" ^ c_of_expr e ^ ")"
     | CharExp (c)               -> ecit ^ String.make 1 c ^ ecit
     | BoolExp (b)               -> string_of_bool b
@@ -61,7 +61,9 @@ let rec c_defs_of_classDef ce path argl cd =
     | _ -> "" (*raise (UnMatched)*)
   in
   let c_of_mPArg = function
-    | MPArg (t, i) -> c_of_pType t ^ " " ^ p ^ i
+    | MPArg (t, i) -> match t with
+      | String -> c_of_pType t ^ " " ^ p ^ i ^ "[]"
+      | _      -> c_of_pType t ^ " " ^ p ^ i
   in
 
   let rec c_of_stmt ti = function
