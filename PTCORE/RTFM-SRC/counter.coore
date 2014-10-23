@@ -1,70 +1,55 @@
-class IO<void (char) handle_input> extern "websocket3.core" {
-
-	void print(int seconds) {
-		RT_printf("%d\n", seconds);
-		ws_send(seconds);
-	}
-
-	void setup() {
-		RT_printf("Starting websocket...");
-		//async idle_websocket();
-	}
-
-	Task client_receive(char msg) {
-	 	handle_input(msg);
-	}
-}
-
 class Sequence<> {
-	string correct := "4 8 15 16 23 42";
-	int cursor := 0;
+  string correct := "1234"; //"4 8 15 16 23 42"
+  int string_length := 4;
+  int cursor := 0;
 
-	void handle_input(char input) {
-		bool is_correct_char := is_correct_char(input);
-		if (is_correct_char) increment_cursor();
+  void handle_input(char input) {
+    if (input == correct[cursor]) cursor := cursor + 1;
+  }
 
-		bool is_complete := is_complete();
-		if(is_complete) cursor := 0;
-	}
+  bool is_complete() {
+    return cursor == string_length;
+  }
 
-	void increment_cursor() {
-		cursor := cursor + 1;
-	}
-
-	bool is_correct_char(char c) {
-		return c == correct[cursor];
-	}
-
-	bool is_complete() {
-		return cursor == 15;
-	}
+  void reset() {
+    cursor := 0;
+  }
 }
 
-class Timer<int secs, void (char) handle_output, bool () is_complete> {
- int seconds := secs;
+class Timer<int secs, void (int) handle_output> {
+  int seconds := secs;
 
-	Task tick () {
-		bool is_complete := is_complete();
-		if(is_complete) seconds := 8;
+  Task tick () {
+    seconds := seconds - 1;
+    handle_output(seconds);
+    if (seconds >= 0) async after 1 s tick();
+  }
 
-		seconds := seconds - 1;
-		handle_output(seconds);
-
-		if (seconds) {
-			async after 1 s tick();
-		} else {
-			RT_printf("System failure!!\n");
-		}
-	}
+  void reset() {
+    seconds := secs;
+  }
 }
 
-class Root<> {
-	Sequence<> sequence;
-	IO<sequence.handle_input> io;
-	Timer<8, io.print, sequence.is_complete> timer;
+class Root<> extern "Websocket.core" {
+  Sequence<> sequence;
+  Timer<108, ws_send> timer;
 
-	Reset {
-		io.setup();
-		//async after 1 s timer.tick();
-	}
+  Task client_receive(char msg) {
+    sequence.handle_input(msg);
+
+    bool is_complete := sequence.is_complete();
+    if(is_complete) {
+      sequence.reset();
+      timer.reset();
+    }
+  }
+
+  Reset {
+    RT_printf("Reset!\n");
+  }
+
+  Idle {
+    async timer.tick();
+    idle_websocket();
+  }
 }

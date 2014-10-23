@@ -3,7 +3,7 @@
 in=$1
 
 echo core-compiler =====================================================
-../../RTFM-core-compiler/src/Main.native -i ${in%.*}.core -o ../Application/autogen.c
+../../RTFM-core-compiler/src/Main.native -i ${in%.*}.core -o ../RTFM-PT/autogen.c -D -v
 echo gcc ===============================================================
-gcc ../RTFM-PT/RTFM-PT.c -o ../bin/${in%.*} -lpthread -lssl -lcrypto -I /usr/local/Cellar/openssl/1.0.1e/include -L/usr/local/Cellar/openssl/1.0.1e/lib fmemopen.c
+gcc ../RTFM-PT/RTFM-PT.c -o ../bin/${in%.*} -lpthread -lssl -lcrypto -I /usr/local/Cellar/openssl/1.0.1e/include -L/usr/local/Cellar/openssl/1.0.1e/lib fmemopen.c -D TRACE_WS -D TRACE_OS
 rm ./tmp/${in%.*}.core
