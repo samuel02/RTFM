@@ -1,0 +1,10 @@
+class Root <> {
+
+  bool boolean(bool val) {
+      return val;
+  }
+
+  Reset {
+    boolean(2);
+  }
+}

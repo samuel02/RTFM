@@ -1,15 +1,34 @@
-
-
-
 class IO<> {
-	void print(int i) {
-		RT_printf("\t%d\n", i);
+
+	void print(int seconds) {
+		RT_printf("%d", seconds);
+	}
+}
+
+class Sequence<> {
+	string correct := "4 8 15 16 23 42";
+	int cursor := 0;
+
+	void increment_cursor() {
+		cursor := cursor + 1;
+	}
+
+	bool is_correct_char(char c) {
+		return c == correct[cursor];
+	}
+
+	bool is_complete() {
+		return cursor == 15;
+	}
+
+	Task reset() {
+		cursor := 0;
 	}
 }
 
 
 class Timer<> {
-	int seconds := 0;
+	int seconds := 8;
 	IO<> output;
 
 	Task tick () {
@@ -23,104 +42,42 @@ class Timer<> {
 		}
 	}
 
-	void init () {
-		seconds := 108;
-		//async every 1 s tick();
+	Task reset () {
+		seconds := 8;
 	}
-
 }
 
 
 class Root<> {
-	Timer<> t;
-	int n := 1;
-
-	Idle {
-		while (1) {
-			char c := RT_getc();
-			RT_printf("%i\n", n);
-			if ( c != ' ') {
-				if ( n == 1 ) {
-					if ( c == '4' ) {
-						n := 2;
-					} else {
-						n := 0;
-					}
-				}
-				if ( n == 3 ) {
-					if ( c == '8' ) {
-						n := 4;
-					} else {
-						n := 0;
-					}
-				}
-				if ( n == 4 ) {
-					if ( c == '1' ) {
-						n := 5;
-					} else {
-						n := 0;
-					}
-				}
-				if ( n == 6 ) {
-					if ( c == '5' ) {
-						n := 7;
-					} else {
-						n := 0;
-					}
-				}
-				if ( n == 7 ) {
-					if ( c == '1' ) {
-						n := 8;
-					} else {
-						n := 0;
-					}
-				}
-				if ( n == 8 ) {
-					if ( c == '6' ) {
-						n := 9;
-					} else {
-						n := 0;
-					}
-				}
-				if ( n == 9 ) {
-					if ( c == '2' ) {
-						n := 10;
-					} else {
-						n := 0;
-					}
-				}
-				if ( n == 10 ) {
-					if ( c == '3' ) {
-						n := 11;
-					} else {
-						n := 0;
-					}
-				}
-				if ( n == 11 ) {
-					if ( c == '4' ) {
-						n := 12;
-					} else {
-						n := 0;
-					}
-				}
-				if ( n == 12 ) {
-					if ( c == '2' ) {
-						n := 13;
-						t.init();
-						RT_printf("Timer reset");
-					} else {
-						n := 0;
-					}
-				}
-			}
-		}
-	}
+	Sequence<> sequence;
+	Timer<> timer;
 
 	Reset {
-		t.init();
-		
-		
+		async sequence.reset();
+		async timer.reset();
+		async after 1 s timer.tick();
+	}
 
-		async after 1 s t.tick();
+	Idle {
+		char input := ' ';
+		bool running := true;
+
+		while(running) {
+			input := RT_getc();
+
+			if (input) {
+
+				bool is_correct_char := sequence.is_correct_char(input);
+				if (is_correct_char) sequence.increment_cursor();
+
+				bool is_complete := sequence.is_complete();
+				if(is_complete) {
+					async timer.reset();
+					async sequence.reset();
+				}
+
+				if (input == 'q') running := false;
+			}
+		}
 	}
 }

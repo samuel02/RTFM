@@ -1,0 +1,24 @@
+// RTFM-cOOre, Per Lindgren (C) 2014
+#>
+
+bool Root_a = true;
+
+
+
+
+
+<# Func bool Root_true_fkn () {
+	claim RES_Root_ { #>
+		if ( Root_a ) {					RT_printf("true!");
+
+}
+	<# } #>
+<# } #>
+<# Reset {
+	claim RES_Root_ { #>
+		<# sync Root_true_fkn () ; #>;
+	<# } #>
+<# } #>
+
+<#
+
