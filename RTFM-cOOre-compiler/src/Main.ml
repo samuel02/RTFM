@@ -27,14 +27,14 @@ let main () =
   
   try
     let res = Parser.prog Lexer.lex lexbuf in
-    
+    let scope_tree p = build_scope_tree p in
     match res with
     | None   -> p_stderr ("Not accepted!" ^ nl); exit (-1);
     | Some p ->
         if opt.verbose then p_stderr ("Parsing succeeded:" ^ nl);
         if opt.d_ast then p_stderr (string_of_prog p);
-        p_stderr (string_of_scope_tree "" (build_scope_tree p));
-        if opt.typecheck then p_stderr (typecheck_prog p);
+        p_stderr (string_of_class (scope_tree p));
+        if opt.typecheck then p_stderr (typecheck_prog (scope_tree p) p);
         
         (* check cyclic *)
         cyclic p;
