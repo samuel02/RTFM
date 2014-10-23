@@ -1,13 +1,13 @@
 class Root <> {
   bool a := true;
 
-  bool true() {
+  bool true_fkn() {
     if(a) {
       RT_printf("true!");
     }
   }
 
   Reset {
-    true();
+    true_fkn();
   }
 }

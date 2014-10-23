@@ -11,7 +11,7 @@ load test_helper
 @test "declaring integers with wrong type" {
   compile_inline "int a := 'a';"
   assert_failure
-  assert_last_line "TypeError: 'a' is not of type int."
+  assert_last_line "TypeError: Cannot assign char 'a' to int a."
 }
 
 @test "declaring bools successfully" {
@@ -23,7 +23,7 @@ load test_helper
 @test "declaring bools with wrong type" {
   compile_inline "bool a := 3;"
   assert_failure
-  assert_last_line "TypeError: 3 is not of type bool."
+  assert_last_line "TypeError: Cannot assign int 3 to bool a."
 }
 
 @test "declaring chars successfully" {
@@ -35,7 +35,7 @@ load test_helper
 @test "declaring chars with wrong type" {
   compile_inline "char a := 2;"
   assert_failure
-  assert_last_line "TypeError: 2 is not of type char."
+  assert_last_line "TypeError: Cannot assign int 2 to char a."
 }
 
 @test "declaring strings successfully" {
@@ -47,7 +47,7 @@ load test_helper
 @test "declaring strings with wrong type" {
   compile_inline "string a := 'a';"
   assert_failure
-  assert_last_line "TypeError: 'a' is not of type string."
+  assert_last_line "TypeError: Cannot assign char 'a' to string a."
 }
 
 @test "variable must have been declared before use" {

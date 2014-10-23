@@ -9,8 +9,19 @@ load test_helper
 }
 
 @test "instantiation of class with incorrect parameter types should fail" {
-  skip "Type checking of class parameters has not been implemented yet."
   compile class_parameters/instantiate_with_incorrect_params
   assert_failure
-  assert_last_line "TypeError: Parameter a in class Foo must be of type int."
+  assert_last_line_begins "TypeError"
+}
+
+@test "instantiation of class with too many parameters should fail" {
+  compile class_parameters/instantiate_with_too_many_params
+  assert_failure
+  assert_last_line_begins "TypeError"
+}
+
+@test "instantiation of class with too few parameters should fail" {
+  compile class_parameters/instantiate_with_too_few_params
+  assert_failure
+  assert_last_line_begins "TypeError"
 }

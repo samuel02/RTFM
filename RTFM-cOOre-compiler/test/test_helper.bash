@@ -43,6 +43,10 @@ assert_last_line() {
   assert_equal "$1" ${lines[@]:(-1)}
 }
 
+assert_last_line_begins() {
+  assert_equal "$1" ${lines[@]:(-1)}|cut -d' ' -f1
+}
+
 setup() {
   # Make sure the compiler is compiled
   make -C ../src rtfm_coore > /dev/null 2>&1

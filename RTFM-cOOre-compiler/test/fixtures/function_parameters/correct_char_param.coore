@@ -5,6 +5,6 @@ class Root <> {
   }
 
   Reset {
-    getchar('a')
+    getchar('a');
   }
 }

@@ -1,9 +1,9 @@
 class Root <> {
-  bool true() {
+  bool ftrue() {
     return true;
   }
 
   Reset {
-    bool val = true();
+    bool val := ftrue();
   }
 }

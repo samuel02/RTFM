@@ -183,70 +183,70 @@ load test_helper
 }
 
 @test "greater than comparison between ints should succeed" {
-  skip "greater than comparison is broken"
+  skip "> not implemented"
   compile_inline "bool a := 2 > 2;"
   assert_success
   assert_last_line "Passed type checking."
 }
 
 @test "greater than comparison between int and char should fail" {
-  skip "greater than comparison is broken"
+  skip "> not implemented"
   compile_inline "bool a := 2 > 'a';"
   assert_failure
   assert_last_line "TypeError: Cannot compare int with char."
 }
 
 @test "greater than comparison between chars should fail" {
-  skip "greater than comparison is broken"
+  skip "> not implemented"
   compile_inline "bool a := 'a' > 'a';"
   assert_failure
   assert_last_line "TypeError: > operator is not defined for type char."
 }
 
 @test "greater than comparison between bools should fail" {
-  skip "greater than comparison is broken"
+  skip "> not implemented"
   compile_inline "bool a := true > false;"
   assert_failure
   assert_last_line "TypeError: > operator is not defined for type bool."
 }
 
 @test "greater than comparison between strings should fail" {
-  skip "greater than comparison is broken"
+  skip "> not implemented"
   compile_inline 'bool a := "a" > "s";'
   assert_failure
   assert_last_line "TypeError: > operator is not defined for type string."
 }
 
 @test "less than comparison between ints should succeed" {
-  skip "less than comparison is broken"
+  skip "< not implemented"
   compile_inline "bool a := 2 < 2;"
   assert_success
   assert_last_line "Passed type checking."
 }
 
 @test "less than comparison between int and char should fail" {
-  skip "less than comparison is broken"
+  skip "< not implemented"
   compile_inline "bool a := 2 < 'a';"
   assert_failure
   assert_last_line "TypeError: Cannot compare int with char."
 }
 
 @test "less than comparison between chars should fail" {
-  skip "less than comparison is broken"
+  skip "< not implemented"
   compile_inline "bool a := 'a' < 'a';"
   assert_failure
   assert_last_line "TypeError: < operator is not defined for type char."
 }
 
 @test "less than comparison between bools should fail" {
-  skip "less than comparison is broken"
+  skip "< not implemented"
   compile_inline "bool a := true < false;"
   assert_failure
   assert_last_line "TypeError: < operator is not defined for type bool."
 }
 
 @test "less than comparison between strings should fail" {
-  skip "less than comparison is broken"
+  skip "< not implemented"
   compile_inline 'bool a := "a" < "s";'
   assert_failure
   assert_last_line "TypeError: < operator is not defined for type string."

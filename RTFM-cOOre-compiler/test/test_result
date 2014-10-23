@@ -1,0 +1,140 @@
+Testing class parameters...
+1..2
+ok 1 instantiation of class with correct parameter types should pass
+ok 2 # skip (Type checking of class parameters has not been implemented yet.) instantiation of class with incorrect parameter types should fail
+
+Testing class variables...
+1..3
+ok 1 assigning bool class variable
+ok 2 # skip (Handling of class variables has not been implemented yet.) assigning bool class variable incorrectly
+ok 3 # skip (Handling of class variables has not been implemented yet.) class variables could be used in all class methods
+
+Testing control statements...
+1..12
+ok 1 condition in if-statement can be a bool
+ok 2 condition in if-statement can be an int
+ok 3 condition in if-statement can be evaluated to a bool
+ok 4 condition in if-statement can be evaluated to an int
+not ok 5 condition in if-statement cannot be a char
+# (from function `flunk' in file test_helper.bash, line 19,
+#  from function `assert_failure' in file test_helper.bash, line 30,
+#  in test file test_control_statements.bats, line 31)
+#   `assert_failure' failed
+# expected failed exit status
+ok 6 condition in if-statement cannot be a string
+ok 7 condition in while-statement can be a bool
+ok 8 condition in while-statement can be an int
+ok 9 condition in while-statement can be evaluated to a bool
+ok 10 condition in while-statement can be evaluated to an int
+not ok 11 condition in while-statement cannot be a char
+# (from function `flunk' in file test_helper.bash, line 19,
+#  from function `assert_failure' in file test_helper.bash, line 30,
+#  in test file test_control_statements.bats, line 67)
+#   `assert_failure' failed
+# expected failed exit status
+ok 12 condition in while-statement cannot be a string
+
+Testing function parameters...
+1..8
+ok 1 # skip (Type checking of function parameters has not been implemented yet.) using correct integer parameter
+ok 2 # skip (Type checking of function parameters has not been implemented yet.) using incorrect integer parameter
+ok 3 # skip (Type checking of function parameters has not been implemented yet.) using correct char parameter
+ok 4 # skip (Type checking of function parameters has not been implemented yet.) using incorrect char parameter
+ok 5 # skip (Type checking of function parameters has not been implemented yet.) using correct bool parameter
+ok 6 # skip (Type checking of function parameters has not been implemented yet.) using incorrect bool parameter
+ok 7 # skip (Type checking of function parameters has not been implemented yet.) using correct string parameter
+ok 8 # skip (Type checking of function parameters has not been implemented yet.) using incorrect string parameter
+
+Testing function return types...
+1..4
+ok 1 # skip (Type checking for function return values has not been implemented yet) assigning a function return value to a variable of correct type should pass
+ok 2 # skip (Type checking for function return values has not been implemented yet) assigning a function return value to a variable of wrong type should fail
+ok 3 # skip (Type checking for function return values has not been implemented yet) function that returns value of declared type should pass
+ok 4 # skip (Type checking for function return values has not been implemented yet) function that returns value of other type than declared type should fail
+
+Testing operators...
+1..50
+ok 1 perform addition correctly
+not ok 2 addition with chars should fail
+# (from function `flunk' in file test_helper.bash, line 19,
+#  from function `assert_failure' in file test_helper.bash, line 30,
+#  in test file test_operators.bats, line 13)
+#   `assert_failure' failed
+# expected failed exit status
+ok 3 addition with bools should fail
+ok 4 addition with strings should fail
+ok 5 perform subtraction correctly
+not ok 6 subtraction with chars should fail
+# (from function `flunk' in file test_helper.bash, line 19,
+#  from function `assert_failure' in file test_helper.bash, line 30,
+#  in test file test_operators.bats, line 37)
+#   `assert_failure' failed
+# expected failed exit status
+ok 7 subtraction with bools should fail
+ok 8 subtraction with strings should fail
+ok 9 perform multiplication correctly
+ok 10 multiplication with chars should fail
+ok 11 multiplication with bools should fail
+ok 12 multiplication with strings should fail
+ok 13 perform division correctly
+ok 14 division with chars should fail
+ok 15 division with bools should fail
+ok 16 division with strings should fail
+ok 17 perform modulo correctly
+ok 18 modulo with chars should fail
+ok 19 modulo with bools should fail
+ok 20 modulo with strings should fail
+ok 21 equality comparison between ints should succeed
+ok 22 equality comparison between int and char should fail
+ok 23 equality comparison between chars should succeed
+ok 24 equality comparison between bools should succeed
+ok 25 equality comparison between strings should fail
+ok 26 non-equality comparison between ints should succeed
+ok 27 non-equality comparison between int and char should fail
+ok 28 non-equality comparison between chars should succeed
+ok 29 non-equality comparison between bools should succeed
+ok 30 non-equality comparison between strings should fail
+ok 31 # skip (greater than comparison is broken) greater than comparison between ints should succeed
+ok 32 # skip (greater than comparison is broken) greater than comparison between int and char should fail
+ok 33 # skip (greater than comparison is broken) greater than comparison between chars should fail
+ok 34 # skip (greater than comparison is broken) greater than comparison between bools should fail
+ok 35 # skip (greater than comparison is broken) greater than comparison between strings should fail
+ok 36 # skip (less than comparison is broken) less than comparison between ints should succeed
+ok 37 # skip (less than comparison is broken) less than comparison between int and char should fail
+ok 38 # skip (less than comparison is broken) less than comparison between chars should fail
+ok 39 # skip (less than comparison is broken) less than comparison between bools should fail
+ok 40 # skip (less than comparison is broken) less than comparison between strings should fail
+ok 41 greater than or equal to comparison between ints should succeed
+ok 42 greater than or equal to comparison between int and char should fail
+ok 43 greater than or equal to comparison between chars should fail
+ok 44 greater than or equal to comparison between bools should fail
+ok 45 greater than or equal to comparison between strings should fail
+ok 46 less than or equal to comparison between ints should succeed
+ok 47 less than or equal to comparison between int and char should fail
+ok 48 less than or equal to comparison between chars should fail
+ok 49 less than or equal to comparison between bools should fail
+ok 50 less than or equal to comparison between strings should fail
+
+Testing variable assignments...
+1..8
+ok 1 assigning integers successfully
+ok 2 assigning integers with wrong type
+ok 3 assigning bools successfully
+ok 4 assigning bools with wrong type
+ok 5 assigning chars successfully
+ok 6 assigning chars with wrong type
+ok 7 assigning strings successfully
+ok 8 assigning strings with wrong type
+
+Testing variable declarations...
+1..9
+ok 1 declaring integers successfully
+ok 2 declaring integers with wrong type
+ok 3 declaring bools successfully
+ok 4 declaring bools with wrong type
+ok 5 declaring chars successfully
+ok 6 declaring chars with wrong type
+ok 7 declaring strings successfully
+ok 8 declaring strings with wrong type
+ok 9 variable must have been declared before use
+
