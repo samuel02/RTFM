@@ -35,7 +35,7 @@ RTFM_time time_get();
 #define RT_getc()				( getc(stdin) )
 #define RT_putc(c)				{ putc(c, stdout); }
 
-#define RT_halt(x)				{ while(1); }
+#define RT_halt(x)				{ if (x) {while (1) { ; }} else return; }
 #define RT_abort(t)				{ RTFM_abort(t); }
 
 #endif /* RTFM_RT_H_ */

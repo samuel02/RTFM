@@ -1,83 +1,55 @@
-class IO<> {
-
-	void print(int seconds) {
-		RT_printf("%d\n", seconds);
-	}
-}
-
 class Sequence<> {
-	string correct := "4 8 15 16 23 42";
-	int cursor := 0;
+  string correct := "1234"; //"4 8 15 16 23 42"
+  int string_length := 4;
+  int cursor := 0;
 
-	void increment_cursor() {
-		cursor := cursor + 1;
-	}
+  void handle_input(char input) {
+    if (input == correct[cursor]) cursor := cursor + 1;
+  }
 
-	bool is_correct_char(char c) {
-		return c == correct[cursor];
-	}
+  bool is_complete() {
+    return cursor == string_length;
+  }
 
-	bool is_complete() {
-		return cursor == 15;
-	}
-
-	Task reset() {
-		cursor := 0;
-	}
+  void reset() {
+    cursor := 0;
+  }
 }
 
+class Timer<int secs, void (int) handle_output> {
+  int seconds := secs;
 
-class Timer<> {
-	int seconds := 8;
-	IO<> output;
+  Task tick () {
+    seconds := seconds - 1;
+    handle_output(seconds);
+    if (seconds >= 0) async after 1 s tick();
+  }
 
-	Task tick () {
-		seconds := seconds - 1;
-		output.print(seconds);
-
-		if (seconds) {
-			async after 1 s tick();
-		} else {
-			RT_printf("System failure!!\n");
-		}
-	}
-
-	Task reset () {
-		seconds := 8;
-	}
+  void reset() {
+    seconds := secs;
+  }
 }
 
+class Root<> extern "Websocket.core" {
+  Sequence<> sequence;
+  Timer<108, ws_send> timer;
 
-class Root<> {
-	Sequence<> sequence;
-	Timer<> timer;
+  Task client_receive(char msg) {
+    sequence.handle_input(msg);
 
-	Reset {
-		async sequence.reset();
-		async timer.reset();
-		async after 1 s timer.tick();
-	}
+    bool is_complete := sequence.is_complete();
+    if(is_complete) {
+      sequence.reset();
+      timer.reset();
+    }
+  }
 
-	Idle {
-		char input := ' ';
-		bool running := true;
+  Reset {
+    RT_printf("Reset!\n");
+  }
 
-		while(running) {
-			input := RT_getc();
-
-			if (input) {
-
-				bool is_correct_char := sequence.is_correct_char(input);
-				if (is_correct_char) sequence.increment_cursor();
-
-				bool is_complete := sequence.is_complete();
-				if(is_complete) {
-					async timer.reset();
-					async sequence.reset();
-				}
-
-				if (input == 'q') running := false;
-			}
-		}
-	}
+  Idle {
+    async timer.tick();
+    idle_websocket();
+  }
 }

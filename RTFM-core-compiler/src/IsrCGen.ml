@@ -5,8 +5,19 @@
 
 open IsrVector
 open AST
+open SpecAST
 open Common
+
+let entries_enum tidl id = 
+  let rec vindex n i = function
+    | []                                    -> failwith ("Entry not found" ^ i )
+    | (id, vid) :: l when compare id i == 0 -> n
+    | _ :: l                                -> vindex (n + 1) i l
+  in
+  id ^ "_nr = " ^ string_of_int (vindex (-16) id tidl) 
   
+(* let entries_id_nr topl *)
+
 let isrv_to_c vl =
   let rec isr_to_c vl = match vl with 
     | [] -> ""
@@ -18,14 +29,14 @@ let isrv_to_c vl =
   in
   "void (* const g_pfnVectors[])(void) {" ^ nl ^ isr_to_c vl ^ "}" ^ nl
 
-(*        
+        
 let assign_vector v p =
   (* isr *)
   let rec isrs v ils b = match ils with
     | []          -> v
     (* first assign the named vectors b == true *)
-    | Task (_, _, _, _) :: l  when b -> isrs v l b
-    | Isr (p, id, s) :: l when b ->
+    | ITask _ :: l  when b -> isrs v l b
+    | IIsr (p, id, s) :: l when b ->
       (* apply for all Isr's *) 
       (* assign id *)
       let rec assignv = function
@@ -36,8 +47,8 @@ let assign_vector v p =
       in
       assignv (isrs v l b)
     (* then assign the unnamed vectors b == false *)
-    | Isr ( _, _, _) :: l  when (not b) -> isrs v l b
-    | Task (p, id, _, s) :: l when (not b) ->
+    | IIsr _ :: l  when (not b) -> isrs v l b
+    | ITask (_, p, id, _, _, s) :: l when (not b) ->
       (* apply for all Isr's *) 
       (* assign id *)
       let rec assignv = function
@@ -51,13 +62,13 @@ let assign_vector v p =
   in 
   (* prog *)
   isrs (isrs v p true) p false 
-*)
+
 
 let assign_isr v p =
   (* isr *)
   let rec isrs v ils = match ils with
-    | []                   -> v
-    | Isr (_, id, _) :: l  ->
+    | []                    -> v
+    | IIsr (_, id, _) :: l  ->
       let rec assignv = function
           | []     -> failwith("No matching Isr entry for " ^ id )
           | (vty, vid) :: l when compare id vid = 0 && ((vty == F) || (vty == O)) -> (U, vid) :: l
@@ -72,7 +83,7 @@ let assign_task v p =
   (* task *)
   let rec tasks v ils = match ils with
     | [] -> v 
-    | Task (_, id, pa, _, s) :: l ->
+    | ITask (_, _, id, pa, _, s) :: l ->
       let rec assignv = function
           | []            -> failwith("No free Isr entry for " ^ id )
           | ((F, vid),_) :: l -> ((U, id), (id, vid)) (* ^ tab ^ "(* optionally used for " ^ vid ^ " *)") *) :: l
@@ -91,6 +102,7 @@ let assign_vectors v p =
   
 let assign_tasks v p = 
   List.map snd (assign_task v p)
+
  
 (*
 let assign_vector v p =
@@ -146,7 +158,7 @@ let isrv_to_c_isr_nr vl =
 let rec task_vector p = match p with
   | []                         -> []
   | Isr (_, id, s) :: l        -> (U, id) :: task_vector l 
-  | Task (_, id, pa, _, _) :: l-> (U, id) :: task_vector l
+ (* | Task (_, id, pa, _, _) :: l-> (U, id) :: task_vector l *)
   | _ :: l                     -> task_vector l
 
 

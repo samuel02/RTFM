@@ -30,11 +30,11 @@ let string_of_dep dep =
   String.concat nl (List.map str dep) ^ nl
         
 let rec entry ll = match ll with
-    | []                           -> []
-    | IIsr (p, id, s) :: l         -> id :: entry l
+    | []                              -> []
+    | IIsr (p, id, s) :: l            -> id :: entry l
     | ITask (_, _, id, _, _, s) :: l  -> id :: entry l 
     (* | IReset (s) :: l              -> "reset" :: entry l *) (* reset is not a task running concurrent to other tasks*)
-    | _ :: l                       -> entry l
+    | _ :: l                          -> entry l
     
 let string_of_entry e = "Entry points :" ^ String.concat ", " e ^ nl  
   

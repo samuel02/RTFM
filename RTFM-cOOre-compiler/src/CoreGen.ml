@@ -8,7 +8,7 @@ open Options
 open AST
 open Env
 
-let deb s = if opt.debug then "// RTFM-cOOre : " ^ s ^ nl else ""
+let deb s = if opt.debug then "// RTFM-cOOre : " ^ s ^ nl else "";;
 
 let rec c_defs_of_classDef ce path argl cd =
   let p = path ^ "_" in
@@ -37,8 +37,8 @@ let rec c_defs_of_classDef ce path argl cd =
     | CallExp (m, el)           ->
       (
         match m with
-        | _::[] -> c_e ^ "sync local_" ^ p ^ String.concat "_" m ^ string_par c_of_expr el ^ sc ^ e_c
-        | _     -> c_e ^ " sync " ^ p ^ String.concat "_" m ^ string_par c_of_expr el ^ sc ^ e_c
+        | _::[] -> c_e ^ "sync " ^ p ^ String.concat "_" m ^ "_local" ^ string_par c_of_expr el ^ sc ^ e_c
+        | _     -> c_e ^ "sync " ^ p ^ String.concat "_" m ^ string_par c_of_expr el ^ sc ^ e_c
       )
     | AsyncExp (af, be, il, el) -> c_e ^ " async" ^
       (if (usec_of_time af > 0) then " after " ^ string_of_time af else "") ^
@@ -85,7 +85,8 @@ let rec c_defs_of_classDef ce path argl cd =
       let argin t = nri := !nri + 1; c_of_pType t ^ " i" ^ string_of_int !nri in
       let nro = ref 0 in
       let argout t = nro := !nro + 1; "i" ^ string_of_int !nro in
-      c_e ^ " Func " ^ c_of_pType t ^ " " ^ p ^ i ^ string_par argin tl ^ " { sync " ^ arg ^ string_par argout tl ^ "; } " ^ e_c
+      c_e ^ " Func " ^ c_of_pType t ^ " " ^ p ^ i ^ string_par argin tl ^ " { sync " ^ arg ^ string_par argout tl ^ "; } " ^ e_c ^
+      c_e ^ " Func " ^ c_of_pType t ^ " " ^ p ^ i ^ "_local" ^ string_par argin tl ^ " { sync " ^ arg ^ string_par argout tl ^ "; } " ^ e_c
   in
 
   (* state initialization *)
@@ -107,13 +108,16 @@ let rec c_defs_of_classDef ce path argl cd =
       (
         match t with
           | Void ->
-            c_e ^ " Func " ^ string_of_pType t ^ " local_" ^ p ^ i ^ string_par c_of_mPArg al ^ "{" ^ e_c ^ nl ^
+            c_e ^ " Func " ^ string_of_pType t ^ " " ^ p ^ i ^ "_local" ^ string_par c_of_mPArg al ^ "{" ^ e_c ^ nl ^
             String.concat "" (List.map (c_of_stmt tab) sl) ^
             c_e ^ " } " ^ e_c ^ nl ^ nl ^
             c_e ^ " Func " ^ string_of_pType t ^ " " ^ p ^ i ^ string_par c_of_mPArg al ^ "{" ^ nl ^
             claim_stmts sl ^
             c_e ^ " } " ^ e_c
           | _ ->
+            c_e ^ " Func " ^ string_of_pType t ^ " " ^ p ^ i ^ "_local" ^ string_par c_of_mPArg al ^ "{" ^ e_c ^ nl ^
+            String.concat "" (List.map (c_of_stmt tab) sl) ^
+            c_e ^ " } " ^ e_c ^ nl ^ nl ^
             c_e ^ " Func " ^ string_of_pType t ^ " " ^ p ^ i ^ string_par c_of_mPArg al ^ "{" ^ e_c ^ nl ^
             String.concat "" (List.map (c_of_stmt tab) sl) ^
             c_e ^ " } " ^ e_c ^ nl ^ nl
@@ -147,7 +151,7 @@ let rec c_defs_of_classDef ce path argl cd =
   in
 
   match cd with
-  | ClassDef (i, cal, cdl) ->
+  | ClassDef (i, cal, extern, cdl) ->
       deb ("generating RTFM-core code for " ^ i ^ ":" ^ path) ^
       deb ("method prototypes for " ^ i ^ ":" ^ path) ^
       (* String.concat (";" ^ nl) (List.map c_mp_of_classDecl cdl) ^ nl ^   *)
@@ -158,6 +162,24 @@ let rec c_defs_of_classDef ce path argl cd =
       String.concat (nl) (List.map c_ioi_of_classDecl cdl) ^  (* span each object instance recursively *)
       deb ("methods declarations for " ^ i ^ ":" ^ path) ^
       String.concat (nl) (List.map c_md_of_classDecl cdl) ^ nl
+;;
+
+let rec generate_includes ce path cd =
+  let p = path ^ "_" in
+  let span_object_instances = function
+    | COVar (o, al, i) -> generate_includes ce (p ^ i) (myass o ce)
+    | _ -> ""
+  in
+  let generate_include_stmt extern path =
+    if extern = "" then ""
+    else "include " ^ "\"" ^ extern ^ "\"" ^ " as " ^ path ^ nl
+  in
+  match cd with
+  | ClassDef (i, cal, extern, cdl) ->
+    deb ("generating include for " ^ i ^ ":" ^ path) ^
+    (generate_include_stmt extern path) ^
+    String.concat (nl) (List.map span_object_instances cdl)  (* span each object instance recursively *)
+;;
 
 let c_of_Prog p =
   let ce = cEnv_of_classDef p in
@@ -170,6 +192,8 @@ let c_of_Prog p =
   match p with
   | Prog cl ->
       "// RTFM-cOOre, Per Lindgren (C) 2014" ^ nl ^
+      generate_includes ce "Root" cd ^ nl ^
       e_c ^ nl ^                                  (* escape from RTFM-core to C *)
       c_defs_of_classDef ce "Root" [] cd ^ nl ^   (* no args ( [] ) at top level *)
       c_e ^ nl                                    (* escpae back to RTFM-core *)
+;;

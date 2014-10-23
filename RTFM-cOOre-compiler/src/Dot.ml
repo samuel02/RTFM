@@ -19,7 +19,7 @@ let gv_of_p ce p =
     | _ -> "" (*raise UnMatched*)
 
   and gv_of_cd path = function
-    | ClassDef (i, cal, cdl) ->
+    | ClassDef (i, cal, extern, cdl) ->
         String.concat nl (List.map (gv_of_cdl path) cdl)
   in
 
@@ -52,7 +52,7 @@ let cycle_of_p ce p =
     | _                -> () (* unit value *)
 
   and cycle_of_cd path = function
-    | ClassDef (i, cal, cdl) ->
+    | ClassDef (i, cal, extern, cdl) ->
         (List.iter (cycle_of_cdl path) cdl)
 
   in
