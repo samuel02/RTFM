@@ -28,7 +28,7 @@ let rec c_defs_of_classDef ce path argl cd =
     | Bool -> "bool"
     | Byte -> "byte"
     | Void -> "void"
-    | String -> "char[]"
+    | String -> "char"
   in
 
   let rec c_of_expr = function
@@ -61,7 +61,9 @@ let rec c_defs_of_classDef ce path argl cd =
     | _ -> "" (*raise (UnMatched)*)
   in
   let c_of_mPArg = function
-    | MPArg (t, i) -> c_of_pType t ^ " " ^ p ^ i
+    | MPArg (t, i) -> match t with
+      | String -> c_of_pType t ^ " " ^ p ^ i ^ "[]"
+      | _      -> c_of_pType t ^ " " ^ p ^ i
   in
 
   let rec c_of_stmt ti = function
