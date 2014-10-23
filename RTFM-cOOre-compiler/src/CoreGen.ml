@@ -172,7 +172,7 @@ let rec generate_includes ce path cd =
   in
   let generate_include_stmt extern path =
     if extern = "" then ""
-    else "include " ^ "\"" ^ extern ^ "\"" ^ " as " ^ "\"" ^ path ^ "\" " ^ nl
+    else "include " ^ "\"" ^ extern ^ "\"" ^ " as " ^ path ^ nl
   in
   match cd with
   | ClassDef (i, cal, extern, cdl) ->
