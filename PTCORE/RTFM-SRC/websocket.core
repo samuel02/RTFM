@@ -168,9 +168,11 @@ Func void idle_websocket_local() {
         decoded[msg_size] = 0; // terminate the string
         DPS("Text msg %s", decoded);
 
-        <#
-        async client_receive(decoded[0]);
-        #>
+        for(int i = 0; i < msg_size; i++) {
+          <#
+          async client_receive(decoded[i]);
+          #>
+        }
       }
     DPS("trying to reconnect");
     close(connfd);

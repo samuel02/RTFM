@@ -1,6 +1,6 @@
 class Sequence<> {
-  string correct := "1234"; //"4 8 15 16 23 42"
-  int string_length := 4;
+  string correct := "4 8 15 16 23 42"
+  int string_length := 15;
   int cursor := 0;
 
   void handle_input(char input) {
