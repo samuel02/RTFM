@@ -1,0 +1,379 @@
+\documentclass[paper=a4, fontsize=11pt]{article}
+
+\usepackage[english]{babel}
+\usepackage[protrusion=true,expansion=true]{microtype}
+\usepackage{dirtree}
+
+\usepackage[T1]{fontenc}
+% Math
+\usepackage{amsmath,amsfonts,amsthm}
+
+%MATLAB code
+\usepackage{listings}
+
+% Tables
+\usepackage{multirow}
+
+% Graphics
+\usepackage[pdftex]{graphicx}
+\usepackage{color,transparent}
+\usepackage[left=20mm, right=25mm, top=15mm]{geometry}
+\usepackage{wrapfig}
+
+\usepackage{hyperref}
+
+
+% Custom captions under/above floats
+\usepackage[hang, small,labelfont=bf,up,textfont=it,up]{caption}
+
+% Nicer tables	
+\usepackage{booktabs}
+
+% Enable afterpage graphics										
+\usepackage{afterpage}
+
+% Counters for sections, equations
+%\usepackage{calc}
+
+% Advanced verbatim environment
+\usepackage{verbatim} 
+
+
+\usepackage{lipsum}%Temporary
+                                           
+\usepackage{fancyvrb}
+
+\usepackage{titlesec} 
+
+
+\titleformat{\section}[hang]
+{\large\bf
+}{\thesection.}
+{.5em}{
+}
+[\titlerule \vspace{.8ex}
+\normalfont\itshape]
+
+
+
+%\renewcommand{\thesection}{\arabic{section}} % Changing numbering to S.s instead of C.S.s
+\usepackage{graphicx}
+\usepackage{caption}
+\usepackage{subcaption}
+%%% Equation and float numbering
+\numberwithin{equation}{section}	% Equationnumbering: section.eq#
+\numberwithin{figure}{section}		% Figurenumbering: section.fig#
+\numberwithin{table}{section}		% Tablenumbering: section.tab#
+
+\renewcommand{\thesection}{\arabic{section}}
+%%% Begin document
+
+\begin{document}
+
+
+%%%%%%%%%%%%%%%
+% Title
+%%%%%%%%%%%%%%%
+\title{	\usefont{OT1}{bch}{b}{n}
+		\huge \strut RTFM cOOre \strut \\
+		\Large \bfseries \strut D7011E, Compiler Construction \strut
+}
+\author{
+        Angelica Brusell \\
+        \texttt{angbru-0@student.ltu.se}
+\and
+        Bj\"orn Nilsson\\
+        \texttt{bjrnil-0@student.ltu.se}
+\and
+        Samuel Nilsson\\
+        \texttt{samnil-0@student.ltu.se}
+}
+\date{\vspace{2em}Lule{\aa} University of Technology \\ \today \\
+\vspace{-2.7em}\hspace{-14.5em}\includegraphics[width=4em]{LTU.png}\hspace{10em}}
+\maketitle
+%--------------------------------
+
+\vspace{1em}
+\setcounter{tocdepth}{2}
+\tableofcontents
+\vspace{1em}
+
+\section{Introduction}
+    \paragraph{}
+        An introduction...
+
+\section {Method}
+    \subsection {OCaml}
+    
+    \paragraph{}
+        
+        Short text about OCaml as a language.
+    
+	\subsection {Testing}
+	
+	\paragraph {}
+	    In bigger software projects, testing plays a major part of the development. Since RTFM cOOre is still in a developing state no tests were written when the project started. When the work started with the type checking of cOOre programs the decision was made to create some sort of test suite in order to verify that the compiler produced desired output and two catch regressions during development. Thus an integration test suite was developed based on \texttt{bats} a light-weight testing framework built on bash...
+	
+	\paragraph {}
+	    The reasoning behind using \texttt{bats} was simple, for this testing there was no need to test the specific implementation in the cOOre compiler. Rather a test would just compile a given piece of cOOre code and make sure the compilation succeeded or failed with correct error message...
+
+\section {Result}
+	\subsection {Project overview}
+	    This text should describe an overview of the code base describing the different components...
+	    
+	    \subsubsection{Directory structure}
+	        \dirtree{%
+	            .1 /.
+	            .2 Docs/.
+	            .2 lost-counter/.
+	            .3 assets/.
+	            .2 PTCORE/.
+	            .3 Application/.
+	            .3 bin/.
+	            .3 RTFM-PT/.
+	            .3 RTFM-SRC/.
+	            .2 RTFM-1769/.
+	            .2 RTFM-common/.
+	            .2 RTFM-cOOre-compiler/.
+	            .3 src/.
+	            .3 text/.
+	            .2 RTFM-core-compiler/.
+	            .3 src/.
+	            .2 RTFM-mulle/.
+	            .2 WINCORE/.
+	        }
+    	
+	
+	\subsection {External bindings}
+	    \paragraph {}
+	        Most programming languages have support for including or importing external code and running it in the context of another application. In cOOre external bindings are done at class level, this means a class must specify in its declaration if it wants to use functions from an external file. This is done by using the keyword \texttt{extern}:
+	    
+	    \paragraph {}
+    	    class Object<> extern "Library.core" {
+	            ...
+	        }
+	    
+	    \paragraph{}
+	        The implementation of this in has been done according to the description at [link to codeplex documentation on external bindings]. Later on during the project this implementation done in the core compiler was replaced since the entire core compiler was replaced with newest version which already contained support for external bindings...
+	    
+	\subsection {Grammar and type checking}
+	    
+	    \subsubsection{Defined types, operators and statements in cOOre}
+
+            \paragraph*{Environments}
+                \begin{itemize}
+            	\item Class Environment
+            	\item Method Environment
+            	\item Task Environment
+            	\item Argument Environment
+            \end{itemize}
+
+            root <int i, method m>{
+            	void test (int i, method m2){
+            		int i := 2;
+            	}
+            
+            	Task (method m3) {
+            	
+            	}
+            }
+
+
+            \paragraph*{Types}
+            \begin{itemize}
+            	\item Integer (Int)
+            	\item Character (Char) ' '
+            	\item Boolean (Bool) 
+            	\item Byte (Byte)
+            	\item Void (Void)
+            	\item String (Char array) " "
+            	\item (Method Type)
+            \end{itemize}
+
+            \paragraph*{Operators}
+            \begin{itemize}
+            	\item Add (+)
+            	\item Subtract (-)
+            	\item Multiply (*)
+            	\item Divide (/)
+            	\item Modulus ($\%$)
+            	\item Greater than (>)
+            	\item Less than (<)
+            	\item Compare (==)
+            	\item Great or equal ($\geq$)
+            	\item Less or equal ($\leq$)
+            	\item Not equal (!=)
+            \end{itemize}
+
+            \paragraph*{Statements}
+            \begin{itemize}
+            	\item MPVar
+            	\item Assign
+            	\item Return
+            	\item If
+            	\item Else
+            	\item While
+            	\item RT$\_$Sleep
+            	\item RT$\_$Printf
+            	\item RT$\_$Putc
+            \end{itemize}
+
+
+
+	    \subsubsection{Basic type checking, Operators}
+                Only integers will be allowed to be operated on by mathematical operators for now.
+                
+            \paragraph*{Addition}
+            \begin{align*}
+                \frac{
+                \begin{array}{ll}
+                E \vdash e_1 : \textbf{int} & E \vdash e_2 : \textbf{int}
+                \end{array} }{E \vdash e_1+e_2 : \textbf{int}}
+            \end{align*}
+
+
+            \paragraph*{Subtraction}
+            \begin{align*}
+                \frac{
+                \begin{array}{ll}
+                E \vdash e_1 : \textbf{int} & E \vdash e_2 : \textbf{int}
+                \end{array} }{E \vdash e_1-e_2 : \textbf{int}}
+            \end{align*}
+
+            \paragraph*{Multiply}
+            \begin{align*}
+                \frac{
+                \begin{array}{ll}
+                E \vdash e_1 : \textbf{int} & E \vdash e_2 : \textbf{int}
+                \end{array} }{E \vdash e_1*e_2 : \textbf{int}}
+            \end{align*}
+
+            \paragraph*{Divide}
+            \begin{align*}
+                \frac{
+                \begin{array}{ll}
+                E \vdash e_1 : \textbf{int} & E \vdash e_2 : \textbf{int}
+                \end{array} }{E \vdash e_1/e_2 : \textbf{int}}
+            \end{align*}
+                
+            \paragraph*{Modulus}
+            \begin{align*}
+                \frac{
+                \begin{array}{ll}
+                E \vdash e_1 : \textbf{int} & E \vdash e_2 : \textbf{int}
+                \end{array} }{E \vdash e_1\%e_2 : \textbf{int}}
+            \end{align*}
+                
+            \paragraph*{Greater than}
+            \begin{align*}
+                \frac{
+                \begin{array}{ll}
+                E \vdash e_1 : \textbf{int} & E \vdash e_2 : \textbf{int}
+                \end{array} }{E \vdash e_1>e_2 : \textbf{int}}
+            \end{align*}
+
+            \paragraph*{Less than}
+            \begin{align*}
+                \frac{
+                \begin{array}{ll}
+                E \vdash e_1 : \textbf{int} & E \vdash e_2 : \textbf{int}
+                \end{array} }{E \vdash e_1<e_2 : \textbf{int}}
+            \end{align*}
+                
+            \paragraph*{Compare}
+            \begin{align*}
+                \frac{
+                \begin{array}{lll}
+                E \vdash e_1 : \textbf{t} & E \vdash e_2 : \textbf{t} & t \in \{ int, bool, byte \}
+                \end{array} }{E \vdash e_1==e_2 : \textbf{Bool}}
+            \end{align*}
+                
+            \paragraph*{Greater or equal $\geq$}
+            \begin{align*}
+                \frac{
+                \begin{array}{lll}
+                E \vdash e_1 : \textbf{t} & E \vdash e_2 : \textbf{t} & t \in \{ int, bool, byte \}
+                \end{array} }{E \vdash e_1 \geq e_2 : \textbf{Bool}}
+            \end{align*}
+
+            \paragraph*{Less or equal $\leq$}
+            \begin{align*}
+                \frac{
+                \begin{array}{lll}
+                E \vdash e_1 : \textbf{t} & E \vdash e_2 : \textbf{t} & t \in \{ int, bool, byte \}
+                \end{array} }{E \vdash e_1 \leq e_2 : \textbf{Bool}}
+            \end{align*}
+                
+            \paragraph*{Not equal !=}
+            \begin{align*}
+                \frac{
+                \begin{array}{lll}
+                E \vdash e_1 : \textbf{t} & E \vdash e_2 : \textbf{t} & t \in \{ int, bool, byte \}
+                \end{array} }{E \vdash e_1 != e_2 : \textbf{Bool}}
+            \end{align*}
+
+        \subsubsection {Basic type checking, Statements}
+            \paragraph*{MPVar}
+            \paragraph*{Assign}
+            \begin{align*}
+                	type \textbf{Var} := typeExpr && type \in \{int,bool,char,String,Byte\}
+            \end{align*}
+            \paragraph*{Return}
+            \paragraph*{If}
+            \begin{align*}
+                	\textbf{If } e_1 
+            \end{align*}
+            \paragraph*{Else}
+            \paragraph*{While}
+            \paragraph*{RT$\_$Sleep}
+            \paragraph*{RT$\_$Printf}
+            \paragraph*{RT$\_$Putc}
+
+        \subsubsection{Expression type checking procedure}
+            Assigning of variable, (int) example.
+            \begin{itemize}
+                	\item \textbf{int} a = 3;
+                	\item Set the variable a to an int in the environment.
+                	\item Check that 3 is and int.
+                	\item Check that "="-operator is allowed to operate on int-type.
+                	\item \textbf{IF} everything is okay: return return type
+                	\item \textbf{ELSE} TypeError
+            \end{itemize}
+
+        \subsubsection{General warning and no-no's}
+            \begin{itemize}
+            	\item Warn if you are indexing outside of the specified String length
+            	\item Warn if you are reassigning a method argument in the method.
+            	\item Function and Return type matching.
+            	\item Scope/Environment shadowing.
+            \end{itemize}
+    
+    \subsection {Visual representation (Graphviz)}
+        What graphs can we show, what are the benefits and how to produce them. Examples.
+        
+    \subsection {Lost countdown timer with web sockets}
+        \paragraph{}
+            Describe background and introduction to the lost countdown timer and its role during the project
+        
+        \paragraph{}
+            Describe the specific implementation of the lost counter in relation to cOOre.
+            
+        \paragraph{}
+            Describe the websocket implementation.
+            
+        \paragraph{}
+            Describe the website that communicates with the cOOre program via Websocket.
+        
+            
+\section {Discussion}
+    
+    \paragraph{}
+        Describe issues encountered with compilation speed and its relation to the static analysis and consequences of callbacks with "deep objects".
+    
+    \paragraph{}
+        Type checking of external modules?
+
+    \paragraph{}
+        Missing features?
+
+\end{document}
