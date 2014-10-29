@@ -7,8 +7,74 @@ RTFM is a set of languages and tools developed to facilitate both concurrent pro
 Below is a short introduction to developing applications in the cOOre and the core language.
 
 ### cOOre development
+cOOre is an object-oriented language based on the -core language. The main goal is to provide a light-weight object-oriented model for concurrent programming.
 
-#### Writing cOOre programs
+
+
+#### Syntax (EBNF like form)
+```
+coore:
+    classDef*
+
+classDef:
+    | "class" ID "<" classArgs ">" extern? "{" classDecl* "}"
+
+classArgs:
+    | classArg ("," classArgs)*
+
+classArg:
+    | pType ID
+    | pType (mSig) ID
+
+mSig:
+    | pType ("," mArgs)*
+
+classDecl:
+    | pType ID ":=" expr ";"   
+    | ID "<" params ">" ID  ";"
+    | pType ID "(" mArgs ")" "{" stmt* "}" 
+    | "Task" ID "(" mArgs ")" "{" stmt* "}"
+    | "Reset" "{" stmt* "}"                                      
+    | "Idle" "{" stmt* "}"                                      
+
+mArgs:
+    | mArg ("," mArgs)*
+  
+mArg:
+    | pType ID                                                
+       
+pType:
+    | INT | CHAR | BOOL | STRING | VOID
+
+  params:
+    | expr ("," params)*                        
+      
+  expr:                                                        
+    | "async" after? before? ids "(" params ")"    (* async expression *)
+    | ids LP params RP                             (* id expression    *)
+    | ids LP params RP                             (* sync expresion   *)
+    | INTVAL                                       (* integer value    *)
+    | CHARVAL                                      (* character value  *)
+    | BOOLVAL                                      (* boolean value    *)
+    | "RT_rand" "(" expr ")"                       (* RT built ins     *)
+    | "RT_getc" "(" ")"                                            
+
+  ids:
+    | ID "." ID                                                
+    | ID                                                       
+
+  after:
+    | "after" time                              
+
+  before:
+    | "before" time          
+
+  time:
+    | INTVAL tunit?
+
+  tuint:
+    | "us" | "ms" | "s"   
+```
 
 #### External code (core)
 
