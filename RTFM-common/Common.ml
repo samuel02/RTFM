@@ -95,9 +95,9 @@ type time =
   | Infinite
 
 let string_of_time = function
-  | Usec i   -> string_of_int i ^ " us"
-  | Msec i   -> string_of_int i ^ " ms"
-  | Sec  i   -> string_of_int i ^ " s"
+  | Usec i   -> string_of_int i ^ "us"
+  | Msec i   -> string_of_int i ^ "ms"
+  | Sec  i   -> string_of_int i ^ "s"
   | Infinite -> "Infinite"
 
 let usec_of_time = function
