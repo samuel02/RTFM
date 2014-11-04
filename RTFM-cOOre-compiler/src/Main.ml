@@ -34,7 +34,7 @@ let main () =
         if opt.verbose then p_stderr ("Parsing succeeded:" ^ nl);
         if opt.d_ast then p_stderr (string_of_prog p);
         p_stderr (string_of_class (scope_tree p));
-        if opt.typecheck then p_stderr (typecheck_prog (scope_tree p) p);
+        if opt.typecheck then p_stderr (typecheck_prog opt.typecheck_object_arguments (scope_tree p) p);
         
         (* check cyclic *)
         cyclic p;

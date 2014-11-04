@@ -25,8 +25,9 @@ type options =
     mutable typecheck: bool;
     mutable ldotout: bool;
     mutable ldotfile: string;
+    mutable typecheck_object_arguments: bool;
     (* mutable string: Time.t; -- requires Core *)
-  }
+  } 
 
 let opt =
   {
@@ -48,6 +49,7 @@ let opt =
     ldotfile = "";
     d_ast    = false;
     typecheck= true;
+    typecheck_object_arguments= false;
   }
 
 let string_of_opt opt =
@@ -70,3 +72,4 @@ let string_of_opt opt =
   "ldotfile       : " ^ opt.ldotfile ^ nl ^
   "d_ast          : " ^ string_of_bool opt.d_ast ^ nl ^
   "typecheck      : " ^ string_of_bool opt.typecheck ^ nl
+

@@ -149,9 +149,9 @@ let rec typecheck_stmt scope_tree class_name meth_name = function
     | Else (s)          -> typecheck_stmt scope_tree class_name meth_name s
     | While (e, s)      -> if in_list (typecheck_expr scope_tree class_name meth_name e) [Bool; Int] then typecheck_stmt scope_tree class_name meth_name s else raise_type_error ("Condition in while-statement must be evaluated to type int or bool.")
 
-let typecheck_classDecl scope_tree class_name = function
+let typecheck_classDecl opt scope_tree class_name = function
     | CPVar (t, i, e)        -> if typecheck_expr scope_tree class_name "" e = t then () else  raise_type_error ("Cannot assign " ^ string_of_pType (typecheck_expr scope_tree class_name "" e) ^ " " ^ string_of_expr e ^ " to " ^ string_of_pType (type_of_var scope_tree class_name "" i) ^ " " ^ i ^ ".")
-    | COVar (o, el, i)       -> typecheck_class_arg scope_tree o (List.map (typecheck_expr scope_tree class_name "") el)
+    | COVar (o, el, i)       -> if opt then typecheck_class_arg scope_tree o (List.map (typecheck_expr scope_tree class_name "") el) else ()
     | ExtMDecl (t, i, tl)    -> ()
     | CMDecl (t, i, al, sl)  -> List.map (typecheck_stmt scope_tree class_name i) sl; ()
     | CTaskDecl (i, al, sl ) -> List.map (typecheck_stmt scope_tree class_name i) sl; ()
@@ -159,8 +159,8 @@ let typecheck_classDecl scope_tree class_name = function
     | CResetDecl (sl)        -> List.map (typecheck_stmt scope_tree class_name "Reset") sl; ()
     | CIdleDecl (sl)         -> List.map (typecheck_stmt scope_tree class_name "Idle") sl; ()
 
-let typecheck_classDef scope_tree = function
-    | ClassDef (i, cal, e, cdl)    -> List.map (typecheck_classDecl scope_tree i) cdl
+let typecheck_classDef opt scope_tree = function
+    | ClassDef (i, cal, e, cdl)    -> List.map (typecheck_classDecl opt scope_tree i) cdl
 
-let typecheck_prog scope_tree = function
-    | Prog (cl) -> List.map (typecheck_classDef scope_tree) cl; "Passed type checking.\n"
+let typecheck_prog opt scope_tree = function
+    | Prog (cl) -> List.map (typecheck_classDef opt scope_tree) cl; "Passed type checking.\n"
