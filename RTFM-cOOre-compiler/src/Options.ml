@@ -6,7 +6,7 @@
 open Common
 
 type options =
-  { 
+  {
     mutable target: target;
     mutable backend: backend;
     mutable verbose: bool;
@@ -29,7 +29,7 @@ type options =
   }
 
 let opt =
-  { 
+  {
     target   = RTFM_RT;
     backend  = GCC;
     verbose  = false;
@@ -47,7 +47,7 @@ let opt =
     ldotout  = false;
     ldotfile = "";
     d_ast    = false;
-    typecheck= false;
+    typecheck= true;
   }
 
 let string_of_opt opt =
