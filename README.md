@@ -259,7 +259,7 @@ load test_helper
 To demonstrate an example application written in cOOre with websockets there is an application written simulating the countdown timer from the TV series [Lost](http://en.wikipedia.org/wiki/Lost_(TV_series)). The specification can be found at [http://lostpedia.wikia.com/wiki/Countdown_timer](http://lostpedia.wikia.com/wiki/Countdown_timer).
 
 
-### Run Lost countdown timer
+### Running the timer
 In order to test the timer start by compiling the coore program `PTCORE/RTFM-SRC/counter.coore`:
 
 ```bash
