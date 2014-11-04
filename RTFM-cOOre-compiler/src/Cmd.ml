@@ -21,6 +21,7 @@ let usage =
   nl ^
   "Additional options:" ^ nl ^
   "-gv_obj file.gv  Enable : Object structure in gv format (default disabled)" ^ nl ^
+  "-gv_inst file.gv  Enable : Object structure in gv format (default disabled)" ^ nl ^
   "-gv_task file.gv  Enable : Task structure in gv format (default disabled)" ^ nl ^
   "-d_ast           Enable : Dump internal AST (default disabled)" ^ nl ^
   nl ^
@@ -53,7 +54,7 @@ let speclist =
   ("-o", Arg.Set_string f_outfile, "\t\t: outfile (default <infile>.core)");
   ("-gv_obj", Arg.Set_string f_dotfile, "\t: graphviz file (default none)");
   ("-gv_task", Arg.Set_string f_fdotfile, "\t: graphviz file (default none)");
-  ("-gv_res", Arg.Set_string f_ldotfile, "\t: graphviz file (default none)");
+  ("-gv_inst", Arg.Set_string f_ldotfile, "\t: graphviz file (default none)");
   
   ("-v", Arg.Set o_verbose, "\t\t: verbose mode");
   ("-D", Arg.Set o_debug, "\t\t: debug mode");
@@ -111,10 +112,11 @@ let cmd =
       opt.gv_taskf <- !f_fdotfile;
       check_ext opt.gv_taskf gv_ext gv_ext_err
     end;
-    opt.gv_res <- (not (String.compare (!f_ldotfile) "" == 0));
-    if opt.gv_res then begin
-      opt.gv_resf <- !f_ldotfile;
-      check_ext opt.gv_resf gv_ext gv_ext_err
+    
+    opt.gv_inst <- (not (String.compare (!f_ldotfile) "" == 0));
+    if opt.gv_inst then begin
+      opt.gv_instf <- !f_ldotfile;
+      check_ext opt.gv_instf gv_ext gv_ext_err
     end;
     opt.d_ast <- !d_ast;
   with

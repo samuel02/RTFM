@@ -37,20 +37,7 @@ let main () =
         (* check cyclic *)
         cyclic p;
         
-(*
 
-        if opt.dotout then begin
-          let dots = (gv_of_res) in
-          if opt.verbose then p_stderr dots;
-          let ocd = open_out opt.dotfile in 
-          begin
-            p_oc ocd dots;
-            close_out ocd;
-          end;  
-        end;
-        let oc = open_out opt.outfile in
-        p_oc oc (c_of_Prog p);
-*)
         (* gv_obj optout *)
         if (opt.gv_obj) then begin
           let oc = open_out opt.gv_objf in
@@ -64,9 +51,9 @@ let main () =
           close_out oc;
         end;
         (* gv_res optout *)
-        if (opt.gv_res) then begin
-          let oc = open_out opt.gv_resf in
-          p_oc oc (gv_of_res);
+        if (opt.gv_inst) then begin
+          let oc = open_out opt.gv_instf in
+          p_oc oc (def_of_inst p);
           close_out oc;
         end;
 
