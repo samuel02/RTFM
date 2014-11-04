@@ -1,3 +1,0 @@
-Func void f_local(int v) {
-  #> printf("core Func f_local: arg v%d \n", v); <#
-}

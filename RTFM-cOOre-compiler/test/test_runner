@@ -1,9 +1,0 @@
-#!/usr/bin/env bash
-
-for f in *.bats
-do
-  name=$(echo ${f%%.*} | tr '_' ' ' | cut -c 6-)
-  echo "Testing $name..."
-  bats $f
-  echo ""
-done

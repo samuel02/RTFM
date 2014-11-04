@@ -1,9 +1,0 @@
-class Root <> {
-  bool ftrue() {
-    return true;
-  }
-
-  Reset {
-    int val := ftrue();
-  }
-}

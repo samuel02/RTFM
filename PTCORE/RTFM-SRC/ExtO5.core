@@ -1,9 +1,0 @@
-// ExtO5.core
-// Per Lindgren (C) 2014
-//
-
-Func void f(int v) {
-  claim {
-      #> printf("core Func O.f: arg v=%d, class arg cv=%d, state ci=%d\n", v, <#_STATE_#>cv, <#_STATE_#>ci); <#
-  }
-}

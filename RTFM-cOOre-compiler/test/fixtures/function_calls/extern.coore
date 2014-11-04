@@ -1,8 +1,0 @@
-class Root <> extern "ext.core" {
-  
-  extern bool func();
-
-  Reset {
-    bool r := func();
-  }
-}
