@@ -9,7 +9,8 @@ open TypeTree
 
 exception TypeError of string
 exception NameError of string
-exception NotImplemented of string
+exception ShouldNotHappen
+
 
 let raise_type_error msg = raise (TypeError("TypeError: " ^ msg));;
 
@@ -47,7 +48,7 @@ let rec typecheck_meth_arg env cls mtd args =
             | in_t::in_tl   -> if t = in_t then compare_args in_tl arg_tl else raise_type_error("Incorrect input arguments to function "^mtd^".")
             | []            -> raise_type_error("Not enough input arguments to function "^mtd^"."))
         | []              -> match inargs with
-            | []            -> true
+            | []            -> ()
             | _             -> raise_type_error("Too many input arguments to function "^mtd^".")
     in
     let rec find_meth_in_class = function
@@ -78,7 +79,7 @@ let rec typecheck_class_arg env cls args =
             | in_t::in_tl   -> if t = in_t then compare_args in_tl arg_tl else raise_type_error("Incorrect instance arguments to class "^cls^".")
             | []            -> raise_type_error("Not enough instance arguments to class "^cls^"."))
         | []              -> match inargs with
-            | []            -> true
+            | []            -> ()
             | _             -> raise_type_error("Too many instance arguments to class "^cls^".")
     in
     match env with
@@ -112,10 +113,12 @@ let typecheck_op scope_tree class_name meth_name op t1 t2 =
 let class_of_call env idl cls = match idl with
     | c::m::[]       -> class_of_instance env cls c
     | m::[]          -> cls
+    | _              -> raise(ShouldNotHappen)
 
 let meth_of_call idl = match idl with
     | c::m::[]   -> m
     | m::[]      -> m
+    | _              -> raise(ShouldNotHappen)
 
 let rec typecheck_expr scope_tree class_name meth_name = function
     | IndexExp (idl, e)         -> (*if ((typecheck_expr env e) = Int) && ((type_of (List.nth idl ((List.length idl)-1)) env) = String) then Char else raise_type_error ("Incorrect string indexing")*)Void
@@ -123,7 +126,9 @@ let rec typecheck_expr scope_tree class_name meth_name = function
     | CompExp (op, e1, e2)      -> typecheck_op scope_tree class_name meth_name op (typecheck_expr scope_tree class_name meth_name e1) (typecheck_expr scope_tree class_name meth_name e2)
     | ParExp (e)                -> typecheck_expr scope_tree class_name meth_name e
     | IdExp (idl)               -> type_of_var scope_tree (class_of_call scope_tree idl class_name) meth_name (meth_of_call idl)
-    | CallExp (m, el)           -> typecheck_meth_arg scope_tree (class_of_call scope_tree m class_name) (meth_of_call m) (List.map (typecheck_expr scope_tree class_name meth_name) el); return_type_of_meth scope_tree (class_of_call scope_tree m class_name) (meth_of_call m)
+    | CallExp (m, el)           -> 
+        typecheck_meth_arg scope_tree (class_of_call scope_tree m class_name) (meth_of_call m) (List.map (typecheck_expr scope_tree class_name meth_name) el);
+        return_type_of_meth scope_tree (class_of_call scope_tree m class_name) (meth_of_call m)
     | AsyncExp (af, be, il, el) -> Void
     | PendExp (il)              -> Void
     | IntExp (i)                -> Int
@@ -134,24 +139,24 @@ let rec typecheck_expr scope_tree class_name meth_name = function
     | RT_Getc                   -> Char
 
 let rec typecheck_stmt scope_tree class_name meth_name = function
-    | Stmt (sl)         -> List.for_all (typecheck_stmt scope_tree class_name meth_name) sl
-    | RT_Printf (s, el) -> List.map (typecheck_expr scope_tree class_name meth_name) el; true
-    | ExpStmt (e) | RT_Sleep (e) | RT_Putc (e) -> typecheck_expr scope_tree class_name meth_name e; true
-    | Return (e)        -> (typecheck_expr scope_tree class_name meth_name e) = (return_type_of_meth scope_tree class_name meth_name)
-    | MPVar (t, i, e)   -> if typecheck_expr scope_tree class_name meth_name e = t then true else raise_type_error ("Cannot assign " ^ string_of_pType (typecheck_expr scope_tree class_name meth_name e) ^ " " ^ string_of_expr e ^ " to " ^ string_of_pType (type_of_var scope_tree class_name meth_name i) ^ " " ^ i ^ ".")
-    | Assign (i, e)     -> if type_of_var scope_tree class_name meth_name i = typecheck_expr scope_tree class_name meth_name e then true else raise_type_error ("Cannot assign " ^ string_of_pType (typecheck_expr scope_tree class_name meth_name e) ^ " " ^ string_of_expr e ^ " to " ^ string_of_pType (type_of_var scope_tree class_name meth_name i) ^ " " ^ i ^ ".")
+    | Stmt (sl)         -> List.map (typecheck_stmt scope_tree class_name meth_name) sl; ()
+    | RT_Printf (s, el) -> List.map (typecheck_expr scope_tree class_name meth_name) el; ()
+    | ExpStmt (e) | RT_Sleep (e) | RT_Putc (e) -> typecheck_expr scope_tree class_name meth_name e; ()
+    | Return (e)        -> if (typecheck_expr scope_tree class_name meth_name e) = (return_type_of_meth scope_tree class_name meth_name) then () else raise_type_error ("Method "^meth_name^" has return_type " ^string_of_pType (return_type_of_meth scope_tree class_name meth_name)^".")
+    | MPVar (t, i, e)   -> if typecheck_expr scope_tree class_name meth_name e = t then () else raise_type_error ("Cannot assign " ^ string_of_pType (typecheck_expr scope_tree class_name meth_name e) ^ " " ^ string_of_expr e ^ " to " ^ string_of_pType (type_of_var scope_tree class_name meth_name i) ^ " " ^ i ^ ".")
+    | Assign (i, e)     -> if type_of_var scope_tree class_name meth_name i = typecheck_expr scope_tree class_name meth_name e then () else raise_type_error ("Cannot assign " ^ string_of_pType (typecheck_expr scope_tree class_name meth_name e) ^ " " ^ string_of_expr e ^ " to " ^ string_of_pType (type_of_var scope_tree class_name meth_name i) ^ " " ^ i ^ ".")
     | If (e, s)         -> if in_list (typecheck_expr scope_tree class_name meth_name e) [Bool; Int] then typecheck_stmt scope_tree class_name meth_name s else raise_type_error ("Condition in if-statement must be evaluated to type int or bool.")
     | Else (s)          -> typecheck_stmt scope_tree class_name meth_name s
     | While (e, s)      -> if in_list (typecheck_expr scope_tree class_name meth_name e) [Bool; Int] then typecheck_stmt scope_tree class_name meth_name s else raise_type_error ("Condition in while-statement must be evaluated to type int or bool.")
 
 let typecheck_classDecl scope_tree class_name = function
-    | CPVar (t, i, e)        -> if typecheck_expr scope_tree class_name "" e = t then true else  raise_type_error ("Cannot assign " ^ string_of_pType (typecheck_expr scope_tree class_name "" e) ^ " " ^ string_of_expr e ^ " to " ^ string_of_pType (type_of_var scope_tree class_name "" i) ^ " " ^ i ^ ".")
+    | CPVar (t, i, e)        -> if typecheck_expr scope_tree class_name "" e = t then () else  raise_type_error ("Cannot assign " ^ string_of_pType (typecheck_expr scope_tree class_name "" e) ^ " " ^ string_of_expr e ^ " to " ^ string_of_pType (type_of_var scope_tree class_name "" i) ^ " " ^ i ^ ".")
     | COVar (o, el, i)       -> typecheck_class_arg scope_tree o (List.map (typecheck_expr scope_tree class_name "") el)
-    | CMDecl (t, i, al, sl)  -> List.for_all (typecheck_stmt scope_tree class_name i) sl
-    | CTaskDecl (i, al, sl ) -> List.for_all (typecheck_stmt scope_tree class_name i) sl
-    | CIsrDecl (pr, i, sl)   -> List.for_all (typecheck_stmt scope_tree class_name i) sl
-    | CResetDecl (sl)        -> List.for_all (typecheck_stmt scope_tree class_name "Reset") sl
-    | CIdleDecl (sl)         -> List.for_all (typecheck_stmt scope_tree class_name "Idle") sl
+    | CMDecl (t, i, al, sl)  -> List.map (typecheck_stmt scope_tree class_name i) sl; ()
+    | CTaskDecl (i, al, sl ) -> List.map (typecheck_stmt scope_tree class_name i) sl; ()
+    | CIsrDecl (pr, i, sl)   -> List.map (typecheck_stmt scope_tree class_name i) sl; ()
+    | CResetDecl (sl)        -> List.map (typecheck_stmt scope_tree class_name "Reset") sl; ()
+    | CIdleDecl (sl)         -> List.map (typecheck_stmt scope_tree class_name "Idle") sl; ()
 
 let typecheck_classDef scope_tree = function
     | ClassDef (i, cal, e, cdl)    -> List.map (typecheck_classDecl scope_tree i) cdl

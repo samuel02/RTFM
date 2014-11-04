@@ -35,7 +35,7 @@ let rec list_of_scope_classDecl =
     | []                         -> []
 
 let rec list_of_local_scope_classDecl = function
-    | CPVar (t, i, e) ::tl       -> (i, t):: list_of_local_scope_classDecl tl
+    | CPVar (t, i, e) ::tl       -> (i, t)::list_of_local_scope_classDecl tl
     | COVar (o, el, i) ::tl      -> (i, ClassInstance(o)):: list_of_local_scope_classDecl tl
     | _::tl                      -> list_of_local_scope_classDecl tl
     | []                         -> []
@@ -43,11 +43,19 @@ let rec list_of_local_scope_classDecl = function
 let rec list_of_scope_classDef =
     let rec binding_classEnv = function
     | CPArg (t, i)::tl          -> (i, t)::binding_classEnv tl
+    | CMArg (t, al, i)::tl      -> binding_classEnv tl
+    | []                        -> []
+    in
+    let rec method_arguments_classEnv =
+        let enumerate_bindings i t = ("arg"^string_of_int i, t) in
+    function
+    | CPArg (t, i)::tl          -> method_arguments_classEnv tl
+    | CMArg (t, al, i)::tl      -> {mi=i;t=t;a=(List.mapi enumerate_bindings al);l=[]}::method_arguments_classEnv tl
     | []                        -> []
     in
     function
     | ClassDef (i, cal, e, cdl)::tl ->
-        {ci=i; t=Class; a=(binding_classEnv cal); l=(list_of_local_scope_classDecl cdl); m=(list_of_scope_classDecl cdl)}::list_of_scope_classDef tl
+        {ci=i; t=Class; a=(binding_classEnv cal); l=(list_of_local_scope_classDecl cdl); m=(method_arguments_classEnv cal @ list_of_scope_classDecl cdl)}::list_of_scope_classDef tl
     | []                         -> []
 
 let build_scope_tree = function
@@ -59,18 +67,10 @@ let rec string_of_class =
         | (i, t)::[]        -> string_of_pType t ^ " " ^ i
         | (i, t)::tl        -> string_of_pType t ^ " " ^ i ^ ", " ^ string_of_bind_list tl
     in
-    let string_of_arguments = function
-        | []     -> ""
-        | a      -> string_of_bind_list a
-    in
-    let string_of_locals = function
-        | []     -> ""
-        | l      -> string_of_bind_list l
-    in
     let rec string_of_methods = function
-        | {mi=mi;t=t;a=a;l=l}::tl     -> "    "^string_of_pType t ^ " " ^ mi ^ " ( " ^  string_of_arguments a ^ " ) \n      { " ^  string_of_locals l ^ " }\n" ^ string_of_methods tl
+        | {mi=mi;t=t;a=a;l=l}::tl     -> "    "^string_of_pType t ^ " " ^ mi ^ " ( " ^  string_of_bind_list a ^ " ) \n      { " ^  string_of_bind_list l ^ " }\n" ^ string_of_methods tl
         | []                          -> ""
     in
 function
-    | {ci=ci;t=t;a=a;l=l;m=m}::tl -> string_of_pType t ^ " " ^ ci ^ " ( " ^ string_of_arguments a ^ " ) \n { " ^ string_of_locals l ^ " }\n" ^ string_of_methods m ^ nl ^ string_of_class tl
+    | {ci=ci;t=t;a=a;l=l;m=m}::tl -> string_of_pType t ^ " " ^ ci ^ " ( " ^ string_of_bind_list a ^ " ) \n { " ^ string_of_bind_list l ^ " }\n" ^ string_of_methods m ^ nl ^ string_of_class tl
     | []                          -> ""
