@@ -258,6 +258,8 @@ load test_helper
 ## Lost countdown timer
 To demonstrate an example application written in cOOre with websockets there is an application written simulating the countdown timer from the TV series [Lost](http://en.wikipedia.org/wiki/Lost_(TV_series)). The specification can be found at [http://lostpedia.wikia.com/wiki/Countdown_timer](http://lostpedia.wikia.com/wiki/Countdown_timer).
 
+
+### Run Lost countdown timer
 In order to test the timer start by compiling the coore program `PTCORE/RTFM-SRC/counter.coore`:
 
 ```bash
@@ -271,3 +273,9 @@ $ sudo PTCORE/bin/counter
 ```
 
 To demonstrate the websockets part a web application has been created that uses Javascript and Websockets to connect to the application. The web application can be found under `lost-counter/`. Open `index.html` after you have started the binary and click the button "Connect" in order to connect to the application and start receiving data. If the correct password (4 8 15 16 23 42) is entered the timer will be reset.
+
+
+#### Notes
+- Sometimes the correct code must be entered twice in order for the timer to be reset correctly, not sure why.
+- If 90 seconds are reached the entire screen should start blinking red, this is to simulate the "beeping" in the real Lost countdown timer.
+- The web application has been developed in the latest version of Google Chrome and will probably run best in that browser although it should work correctly with all modern web browsers.
