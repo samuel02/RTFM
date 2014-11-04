@@ -19,3 +19,9 @@ load test_helper
   assert_success
   assert_last_line "Passed type checking."
 }
+
+@test "Passing extern function as callback" {
+  compile function_calls/extern_complex
+  assert_success
+  assert_last_line "Passed type checking."
+}
