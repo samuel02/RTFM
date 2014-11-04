@@ -152,6 +152,7 @@ let rec typecheck_stmt scope_tree class_name meth_name = function
 let typecheck_classDecl scope_tree class_name = function
     | CPVar (t, i, e)        -> if typecheck_expr scope_tree class_name "" e = t then () else  raise_type_error ("Cannot assign " ^ string_of_pType (typecheck_expr scope_tree class_name "" e) ^ " " ^ string_of_expr e ^ " to " ^ string_of_pType (type_of_var scope_tree class_name "" i) ^ " " ^ i ^ ".")
     | COVar (o, el, i)       -> typecheck_class_arg scope_tree o (List.map (typecheck_expr scope_tree class_name "") el)
+    | ExtMDecl (t, i, tl)    -> ()
     | CMDecl (t, i, al, sl)  -> List.map (typecheck_stmt scope_tree class_name i) sl; ()
     | CTaskDecl (i, al, sl ) -> List.map (typecheck_stmt scope_tree class_name i) sl; ()
     | CIsrDecl (pr, i, sl)   -> List.map (typecheck_stmt scope_tree class_name i) sl; ()

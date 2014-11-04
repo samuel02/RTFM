@@ -13,3 +13,9 @@ load test_helper
   assert_success
   assert_last_line "Passed type checking."
 }
+
+@test "Declaring class with external module" {
+  compile function_calls/extern
+  assert_success
+  assert_last_line "Passed type checking."
+}
