@@ -104,7 +104,23 @@ class Root<> extern "Websocket.core" {
 To compile an application using websockets use `PTCORE/RTFM-SRC/wscooremake`.
 
 #### Visualizations
+##### Object view
+Gives a visual overview of the class declarations and their tasks and functions.
+cOOre compiler flag in cooremake;
+`-gv_obj obj.gv`
 
+##### Instance view
+Gives a visual overview of the class instances and their tasks and functions.
+cOOre compiler flag in cooremake;
+`-gv_inst inst.gv`
+
+##### Task view
+Gives a visual overview of the task/function calls between class instances.
+cOOre compiler flag in cooremake;
+`-gv_task task.gv`
+
+To generate the pdf files;
+`dot -Tpdf task.gv -o task.pdf`
 
 ## Installation
 
