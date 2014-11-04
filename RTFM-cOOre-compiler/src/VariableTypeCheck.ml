@@ -121,7 +121,7 @@ let meth_of_call idl = match idl with
     | _              -> raise(ShouldNotHappen)
 
 let rec typecheck_expr scope_tree class_name meth_name = function
-    | IndexExp (idl, e)         -> (*if ((typecheck_expr env e) = Int) && ((type_of (List.nth idl ((List.length idl)-1)) env) = String) then Char else raise_type_error ("Incorrect string indexing")*)Void
+    | IndexExp (idl, e)         -> if ((typecheck_expr scope_tree class_name meth_name e) = Int) && (type_of_var scope_tree (class_of_call scope_tree idl class_name) meth_name (meth_of_call idl) = String) then Char else raise_type_error ("Incorrect string indexing")
     | MathExp (op, a, b)        -> typecheck_op scope_tree class_name meth_name op (typecheck_expr scope_tree class_name meth_name a)  (typecheck_expr scope_tree class_name meth_name b)
     | CompExp (op, e1, e2)      -> typecheck_op scope_tree class_name meth_name op (typecheck_expr scope_tree class_name meth_name e1) (typecheck_expr scope_tree class_name meth_name e2)
     | ParExp (e)                -> typecheck_expr scope_tree class_name meth_name e
