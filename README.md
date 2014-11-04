@@ -257,3 +257,20 @@ load test_helper
 `assert_equal` will check whether the two arguments that are given are euqal and report the difference if they aren't.
 
 `assert_last_line` will check whether the last line of the output is equal to given string.
+
+## Lost countdown timer
+To demonstrate an example application written in cOOre with websockets there is an application written simulating the countdown timer from the TV series [Lost](http://en.wikipedia.org/wiki/Lost_(TV_series)). The specification can be found at [http://lostpedia.wikia.com/wiki/Countdown_timer](http://lostpedia.wikia.com/wiki/Countdown_timer).
+
+In order to test the timer start by compiling the coore program `PTCORE/RTFM-SRC/counter.coore`:
+
+```bash
+$ cd PTCORE/RTFM-SRC && ./wscooremake counter.coore
+```
+
+Then in order to run the application do
+
+```bash
+$ sudo PTCORE/bin/counter
+```
+
+To demonstrate the websockets part a web application has been created that uses Javascript and Websockets to connect to the application. The web application can be found under `lost-counter/`. Open `index.html` after you have started the binary and click the button "Connect" in order to connect to the application and start receiving data. If the correct password (4 8 15 16 23 42) is entered the timer will be reset.
