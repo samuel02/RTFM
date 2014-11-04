@@ -14,17 +14,17 @@ exception ShouldNotHappen
 
 let raise_type_error msg = raise (TypeError("TypeError: " ^ msg));;
 
-let rec return_type_of_meth env cls mtd = 
+let rec return_type_of_meth env cls mtd =
     let rec find_meth_in_class = function
         | {mi=mi;t=t;a=a;l=l}::tl   -> if (mtd = mi) then t else find_meth_in_class tl
         | []      -> raise_type_error("Method "^mtd^" not found.")
     in
     match env with
         | {ci=ci;t=t;a=a;l=l;m=m}::tl -> if (cls = ci) then find_meth_in_class m else return_type_of_meth tl cls mtd
-        | []      -> raise_type_error("Method "^mtd^" not found.") 
+        | []      -> raise_type_error("Method "^mtd^" not found.")
 
-let rec type_of_var env cls mtd i = 
-    let in_this_scope a l= 
+let rec type_of_var env cls mtd i =
+    let in_this_scope a l=
         if List.mem_assoc i a then List.assoc i a else
         if List.mem_assoc i l then List.assoc i l else
         raise( NameError("NameError: "^i^" is not defined."))
@@ -37,8 +37,8 @@ let rec type_of_var env cls mtd i =
         | {ci=ci;t=t;a=a;l=l;m=m}::tl   ->
             if cls = ci then
                 match mtd with
-                    | ""            -> in_this_scope a l 
-                    | _             -> try find_in_meth m with NameError (msg) -> in_this_scope a l 
+                    | ""            -> in_this_scope a l
+                    | _             -> try find_in_meth m with NameError (msg) -> in_this_scope a l
             else type_of_var tl cls mtd i
         | []                            -> raise( NameError("Reference to variable "^i^". Variable not found."))
 
@@ -57,11 +57,11 @@ let rec typecheck_meth_arg env cls mtd args =
     in
     match env with
         | {ci=ci;t=t;a=a;l=l;m=m}::tl -> if cls = ci then find_meth_in_class m else typecheck_meth_arg tl cls mtd args
-        | []      -> raise_type_error("Method "^mtd^" not found.") 
+        | []      -> raise_type_error("Method "^mtd^" not found.")
 
-let rec class_of_instance env cls cls_instance = 
+let rec class_of_instance env cls cls_instance =
     let rec instance_in_scope = function
-        | (i, t)::tl -> if i = cls_instance then 
+        | (i, t)::tl -> if i = cls_instance then
             match t with
                 | ClassInstance(o)  -> o
                 | _                 -> raise(NameError(cls_instance^" is not a class instance"))
@@ -84,7 +84,7 @@ let rec typecheck_class_arg env cls args =
     in
     match env with
         | {ci=ci;t=t;a=a;l=l;m=m}::tl -> if cls = ci then compare_args args a else typecheck_class_arg tl cls args
-        | []      -> raise_type_error("Class "^cls^" not found.") 
+        | []      -> raise_type_error("Class "^cls^" not found.")
 
 
 let rec type_of id env =
@@ -159,7 +159,7 @@ let typecheck_classDecl scope_tree class_name = function
     | CIdleDecl (sl)         -> List.map (typecheck_stmt scope_tree class_name "Idle") sl; ()
 
 let typecheck_classDef scope_tree = function
-    | ClassDef (i, cal, cdl)    -> List.map (typecheck_classDecl scope_tree i) cdl
+    | ClassDef (i, cal, e, cdl)    -> List.map (typecheck_classDecl scope_tree i) cdl
 
 let typecheck_prog scope_tree = function
     | Prog (cl) -> List.map (typecheck_classDef scope_tree) cl; "Passed type checking.\n"

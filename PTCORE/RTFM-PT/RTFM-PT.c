@@ -51,13 +51,14 @@ typedef enum {
 #include <unistd.h>			// sleep etc.
 #include <stdio.h>			// printf etc.
 #include <stdlib.h>			// rand etc.
+#include <stdbool.h>    // bool
 // we are not sure the application includes the RTFM-RT
-#include <time.h>			// for random seed
-#include <sys/time.h>       // gettimeofday
+#include <time.h>			  // for random seed
+#include <sys/time.h>   // gettimeofday
 
 #include "RTFM-PT.h"
 
-#include "../Application/autogen.c"
+#include "autogen.c"
 
 #include <pthread.h>
 #include <errno.h>
@@ -150,7 +151,8 @@ RTFM_msg RTFM_async(RTFM_time a, RTFM_time b, int f, int t) {
 			new_base_line[t] = RT_time_add(base_line[f], a); // set the baseline for the receiver
 			new_dead_line[t] = new_base_line[t] + b;
 		}
-	}DPT("RTFM_pend   :pthread_mutex_unlock(&pend_count_mutex[%d])", t);
+	}
+	DPT("RTFM_pend   :pthread_mutex_unlock(&pend_count_mutex[%d])", t);
 	m_unlock(&pend_count_mutex[t]);
 
 	if (lcount == 0) { // just a single outstanding semaphore/mimic the single buffer pend of interrupt hardware
@@ -187,7 +189,8 @@ void RTFM_pend(RTFM_time b, int f, int t) {
 			DPT("after_bl[%2d]  = %f", f, RT_time_to_float(base_line[f]));
 
 		}
-	}DPT("RTFM_pend   :pthread_mutex_unlock(&pend_count_mutex[%d])", t);
+	}
+	DPT("RTFM_pend   :pthread_mutex_unlock(&pend_count_mutex[%d])", t);
 	m_unlock(&pend_count_mutex[t]);
 
 	if (lcount == 0) { // just a single outstanding semaphore/mimic the single buffer pend of interrupt hardware

@@ -12,14 +12,23 @@ let gv_of_p ce p =
     | COVar (o, el, i) ->
         let po = path ^ "_" ^ i in
         let cd = myass o ce in
-        po ^ " [label = " ^ ec ^ o ^ enl ^ i ^ ec ^ "]" ^ nl ^
+        po ^ " [label = " ^ ec ^ o ^enl ^ i ^ ec ^ nl ^ "shape = "^ ec ^"record" ^ ec ^ "]" ^ nl ^
         path ^ " -> " ^ po ^ nl ^
-
         gv_of_cd (po) cd
+    
+    | CTaskDecl (i, al, sl ) -> 
+        let po = path ^ "_" ^ i in
+        po ^ " [label = "^ ec ^"Task" ^enl ^ i ^ nl ^ ec ^ "]" ^ nl ^
+        path ^ " -> " ^ po ^ nl 
+
+    | CMDecl (t, i, al, sl) -> 
+        let po = path ^ "_" ^ i in
+        po ^ " [label = "^ ec ^"Function" ^enl ^ i ^ nl ^ ec ^ "]" ^ nl ^
+        path ^ " -> " ^ po ^ nl 
     | _ -> "" (*raise UnMatched*)
 
   and gv_of_cd path = function
-    | ClassDef (i, cal, cdl) ->
+    | ClassDef (i, cal, extern, cdl) ->
         String.concat nl (List.map (gv_of_cdl path) cdl)
   in
 
@@ -33,7 +42,7 @@ let gv_of_p ce p =
   in
   "digraph RTFM {" ^ nl
   ^ "Root [shape=diamond]" ^ nl
-  ^ gv_of_cd "Root" cd
+  ^ gv_of_cd "Root" cd 
   ^ "}"
 
 let d_of_p p =
@@ -52,7 +61,7 @@ let cycle_of_p ce p =
     | _                -> () (* unit value *)
 
   and cycle_of_cd path = function
-    | ClassDef (i, cal, cdl) ->
+    | ClassDef (i, cal, extern, cdl) ->
         (List.iter (cycle_of_cdl path) cdl)
 
   in

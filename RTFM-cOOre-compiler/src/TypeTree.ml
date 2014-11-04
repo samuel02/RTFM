@@ -54,7 +54,7 @@ let rec list_of_scope_classDef =
     | []                        -> []
     in
     function
-    | ClassDef (i, cal, cdl)::tl ->
+    | ClassDef (i, cal, e, cdl)::tl ->
         {ci=i; t=Class; a=(binding_classEnv cal); l=(list_of_local_scope_classDecl cdl); m=(method_arguments_classEnv cal @ list_of_scope_classDecl cdl)}::list_of_scope_classDef tl
     | []                         -> []
 
