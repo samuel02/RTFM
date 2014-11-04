@@ -31,6 +31,8 @@ class Timer<int secs, void (int) handle_output> {
 }
 
 class Root<> extern "Websocket.core" {
+  extern void ws_send(int);
+
   Sequence<> sequence;
   Timer<108, ws_send> timer;
 
