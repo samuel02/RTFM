@@ -20,36 +20,36 @@ let gv_of_inst ce p =
         path ^ " -> " ^ po ^ nl ^
         gv_of_cd (po) cd
     (* Reset *)
-    | CResetDecl (sl) -> 
+    | CResetDecl (sl) ->
         let po = path ^ "_" ^ "Reset" in
         po ^ " [label = "^ ec ^"Reset" ^ nl ^ ec ^ "shape = tab, style = filled, fillcolor = yellow]" ^ nl ^
         path ^ " -> " ^ po ^ nl
 		(* Idle *)
-    | CIdleDecl (sl)  -> 
+    | CIdleDecl (sl)  ->
         let p = path ^ "_" ^ "Idle" in
         p ^ " [label = "^ ec ^"Idle" ^ nl ^ ec ^ "shape = tab, style = filled, fillcolor = yellow]" ^ nl ^
-        path ^ " -> " ^ p ^ nl 
+        path ^ " -> " ^ p ^ nl
 
     (*Task level, prints an oval with Task' as title and its name*)
-    | CTaskDecl (i, al, sl ) -> 
+    | CTaskDecl (i, al, sl ) ->
         let po = path ^ "_" ^ i in
         po ^ " [label = "^ ec ^"Task" ^enl ^ i ^ nl ^ ec ^ "shape = folder, style = filled, fillcolor = orange]" ^ nl ^
-        path ^ " -> " ^ po ^ nl 
+        path ^ " -> " ^ po ^ nl
 
     (*Task level, prints an oval with 'Function' as title and its name*)
-    | CMDecl (t, i, al, sl) -> 
+    | CMDecl (t, i, al, sl) ->
         let po = path ^ "_" ^ i in
         po ^ " [label = "^ ec ^"Function" ^enl ^ i ^ nl ^ ec ^ "shape = folder, style = filled, fillcolor = firebrick2]" ^ nl ^
-        path ^ " -> " ^ po ^ nl 
+        path ^ " -> " ^ po ^ nl
     | _ -> "" (*raise UnMatched*)
 
   (*This appends the list of objects, functions and tasks...*)
   and gv_of_cd path = function
-  	| ClassDef (i, cal, cdl) -> String.concat nl (List.map (gv_of_cdl path) cdl)(*String.concat nl (List.map (gv_of_cdl path) cdl)*)
+  	| ClassDef (i, cal, e, cdl) -> String.concat nl (List.map (gv_of_cdl path) cdl)(*String.concat nl (List.map (gv_of_cdl path) cdl)*)
   in
-  
+
   (*let se = cEnv_of_classDef p in*)
-  let cd = 
+  let cd =
   	try
   		List.assoc "Root" ce
   	with
@@ -77,37 +77,37 @@ let gv_of_obj ce p=
         path ^ " -> " ^ po ^ nl (*^
         gv_of_od (po) cd*)
     (* Reset *)
-    | CResetDecl (sl) -> 
+    | CResetDecl (sl) ->
         let po = path ^ "_" ^ "Reset" in
         po ^ " [label = "^ ec ^"Reset" ^ ec ^ nl ^  "shape = tab, style = filled, fillcolor = yellow]" ^ nl ^
         path ^ " -> " ^ po ^ nl
     (* Idle *)
-    | CIdleDecl (sl)  -> 
+    | CIdleDecl (sl)  ->
         let p = path ^ "_" ^ "Idle" in
         p ^ " [label = "^ ec ^"Idle" ^ ec ^ nl  ^ "shape = tab, style = filled, fillcolor = yellow]" ^ nl ^
-        path ^ " -> " ^ p ^ nl 
+        path ^ " -> " ^ p ^ nl
 
     (*Task level, prints an oval with Task' as title and its name*)
-    | CTaskDecl (i, al, sl ) -> 
+    | CTaskDecl (i, al, sl ) ->
         let po = path ^ "_" ^ i in
         po ^ " [label = "^ ec ^"Task" ^enl ^ i ^ ec ^ nl ^ "shape = folder, style = filled, fillcolor = orange]" ^ nl
-        ^ path ^ " -> " ^ po ^ nl 
+        ^ path ^ " -> " ^ po ^ nl
 
     (*Task level, prints an oval with 'Function' as title and its name*)
-    | CMDecl (t, i, al, sl) -> 
+    | CMDecl (t, i, al, sl) ->
         let po = path ^ "_" ^ i in
         po ^ " [label = "^ ec ^"Function" ^enl ^ i ^ ec ^ nl ^ "shape = folder, style = filled, fillcolor = firebrick2]" ^ nl ^
-        path ^ " -> " ^ po ^ nl 
+        path ^ " -> " ^ po ^ nl
 
     | _ -> "" (*raise UnMatched*)
 
   (*This appends the list of objects, functions and tasks...*)
   and gv_of_od path = function
-    | ClassDef (i, cal, cdl) -> String.concat nl (List.map (gv_of_odl path) cdl)(*String.concat nl (List.map (gv_of_cdl path) cdl)*)
+    | ClassDef (i, cal, e, cdl) -> String.concat nl (List.map (gv_of_odl path) cdl)(*String.concat nl (List.map (gv_of_cdl path) cdl)*)
   in
-  
+
   (*let se = cEnv_of_classDef p in*)
-  let cd = 
+  let cd =
     try
       List.assoc "Root" ce
     with
@@ -126,9 +126,9 @@ let def_of_obj p =
 (*--------------------------------------------------------------*)
 
 (*
-let gv_of_spec dlp rml spec = 
+let gv_of_spec dlp rml spec =
   let rec stmts t tp sl = mymap (stmt t tp) sl
-  and stmt t tp s = 
+  and stmt t tp s =
     lable := !lable + 1;
     if opt.debug then p_stderr ("--- generating unique label " ^ string_of_int !label ^ " ----"^ nl );
     let id = !lable in
@@ -158,36 +158,36 @@ let gv_of_task ce p =
         gv_of_td (po) cd
 
 		(*Task level, prints an oval with Task' as title and its name*)
-		| CTaskDecl (i, al, sl ) -> 
+		| CTaskDecl (i, al, sl ) ->
   	  let po = path ^ "_" ^ i in
-  	  po ^ " [label = "^ ec ^"Task" ^enl ^ i ^ nl ^  ec ^ "shape = folder, style = filled, fillcolor = orange]" ^ nl ^ 
+  	  po ^ " [label = "^ ec ^"Task" ^enl ^ i ^ nl ^  ec ^ "shape = folder, style = filled, fillcolor = orange]" ^ nl ^
   	  path ^ " -> " ^ po ^ nl ^ (String.concat "" (List.map (gv_of_s path po) sl))
 
   	(*Task level, prints an oval with 'Function' as title and its name*)
-    | CMDecl (t, i, al, sl) -> 
+    | CMDecl (t, i, al, sl) ->
         let po = path ^ "_" ^ i in
         po ^ " [label = "^ ec ^"Function" ^ enl ^ i ^ nl ^ ec ^ "shape = folder, style = filled, fillcolor = firebrick2]" ^ nl ^
         path ^ " -> " ^ po ^ nl ^ (String.concat "" (List.map (gv_of_s path po) sl))
-     
-    (* Reset *)    
-    | CResetDecl (sl) -> 
+
+    (* Reset *)
+    | CResetDecl (sl) ->
         let po = path ^ "_" ^ "Reset" in
         po ^ " [label = "^ ec ^"Reset" ^ nl ^  ec ^ "shape = tab, style = filled, fillcolor = yellow]" ^ nl ^
         path ^ " -> " ^ po ^ nl ^ (String.concat "" (List.map (gv_of_s path po) sl))
 
     (* Idle *)
-    | CIdleDecl (sl)  -> 
+    | CIdleDecl (sl)  ->
         let p = path ^ "_" ^ "Idle" in
         p ^ " [label = "^ ec ^"Idle" ^ nl ^  ec ^ "shape = tab, style = filled, fillcolor = yellow]" ^ nl ^
         path ^ " -> " ^ p ^ nl ^ (String.concat "" (List.map (gv_of_s path p) sl))
 
     | _ -> "" (*raise UnMatched*)
-  
+
   and gv_of_td path = function
-  	| ClassDef (i, cal, cdl) -> String.concat nl (List.map (gv_of_tdl path) cdl)(*String.concat nl (List.map (gv_of_cdl path) cdl)*)
+  	| ClassDef (i, cal, e, cdl) -> String.concat nl (List.map (gv_of_tdl path) cdl)(*String.concat nl (List.map (gv_of_cdl path) cdl)*)
   in
 
-  let cd = 
+  let cd =
   	try
   		List.assoc "Root" ce
   	with
@@ -217,7 +217,7 @@ let cycle_of_p ce p =
     | _                -> () (* unit value *)
 
   and cycle_of_cd path = function
-    | ClassDef (i, cal, cdl) ->
+    | ClassDef (i, cal, e, cdl) ->
         (List.iter (cycle_of_cdl path) cdl)
 
   in
@@ -247,42 +247,42 @@ let gv_of_task ce p =
         nl ^ gv_of_td (po) cd
 
     (*Task level, prints an oval with Task' as title and its name*)
-    | CTaskDecl (i, al, sl ) -> 
+    | CTaskDecl (i, al, sl ) ->
       let po = path ^ "_" ^ i in
-      po ^ " [label = "^ ec ^"Task" ^enl ^ i ^ nl ^ String.concat "" (List.map (string_of_stmt (tab^tab)) sl) ^ ec ^ "]" ^ nl ^ 
-      path ^ " -> " ^ po ^ nl 
+      po ^ " [label = "^ ec ^"Task" ^enl ^ i ^ nl ^ String.concat "" (List.map (string_of_stmt (tab^tab)) sl) ^ ec ^ "]" ^ nl ^
+      path ^ " -> " ^ po ^ nl
 
     (*Task level, prints an oval with 'Function' as title and its name*)
-    | CMDecl (t, i, al, sl) -> 
+    | CMDecl (t, i, al, sl) ->
         let po = path ^ "_" ^ i in
         po ^ " [label = "^ ec ^"Function" ^enl ^ i ^ nl ^ String.concat "" (List.map (string_of_stmt (tab^tab)) sl) ^ ec ^ "]" ^ nl ^
-        path ^ " -> " ^ po ^ nl 
-     
-    (* Reset *)    
-    | CResetDecl (sl) -> 
+        path ^ " -> " ^ po ^ nl
+
+    (* Reset *)
+    | CResetDecl (sl) ->
         let po = path ^ "_" ^ "Reset" in
         po ^ " [label = "^ ec ^"Reset" ^ nl ^ String.concat "" (List.map (string_of_stmt (tab^tab)) sl) ^ ec ^ "shape = "^ ec ^"record" ^ ec ^ "]" ^ nl ^
         path ^ " -> " ^ po ^ nl
 
     (* Idle *)
-    | CIdleDecl (sl)  -> 
+    | CIdleDecl (sl)  ->
         let p = path ^ "_" ^ "Idle" in
         p ^ " [label = "^ ec ^"Idle" ^ nl ^ String.concat "" (List.map (string_of_stmt (tab^tab)) sl) ^ ec ^ "shape = "^ ec ^"record" ^ ec ^ "]" ^ nl ^
-        path ^ " -> " ^ p ^ nl 
+        path ^ " -> " ^ p ^ nl
 
     (* ?!?? Not wokring atm *)
     | CIsrDecl (pr, i, sl)   ->
         let po = path ^ "_" ^ string_of_int pr in
         po ^ " [label = "^ ec ^"ISR" ^enl ^ i ^ nl ^ string_of_int pr ^ ec   ^ "]" ^ nl ^ String.concat "" (List.map (string_of_stmt (tab^tab)) sl)
-        ^ path ^ " -> " ^ po ^ nl 
+        ^ path ^ " -> " ^ po ^ nl
 
     | _ -> "" (*raise UnMatched*)
-  
+
   and gv_of_td path = function
     | ClassDef (i, cal, cdl) -> String.concat nl (List.map (gv_of_tdl path) cdl)(*String.concat nl (List.map (gv_of_cdl path) cdl)*)
   in
 
-  let cd = 
+  let cd =
     try
       List.assoc "Root" ce
     with
