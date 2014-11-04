@@ -18,8 +18,8 @@ type options =
     mutable gv_objf: string;
     mutable gv_task: bool;
     mutable gv_taskf: string;
-    mutable gv_res: bool;
-    mutable gv_resf: string;
+    mutable gv_inst: bool;
+    mutable gv_instf: string;
     mutable dotfile: string;
     mutable d_ast: bool;
     mutable typecheck: bool;
@@ -41,8 +41,8 @@ let opt =
     gv_objf  = "";
     gv_task   = false;
     gv_taskf  = "";
-    gv_res   = false;
-    gv_resf  = "";
+    gv_inst   = false;
+    gv_instf  = "";
     dotfile  = "";
     ldotout  = false;
     ldotfile = "";
@@ -63,8 +63,8 @@ let string_of_opt opt =
   "gv_objf        : " ^ opt.gv_objf ^ nl ^
   "gv_task        : " ^ string_of_bool opt.gv_task ^ nl ^
   "gv_taskf       : " ^ opt.gv_taskf ^ nl ^
-  "gv_res         : " ^ string_of_bool opt.gv_res ^ nl ^
-  "gv_resf        : " ^ opt.gv_resf ^ nl ^
+  "gv_inst        : " ^ string_of_bool opt.gv_inst ^ nl ^
+  "gv_instf       : " ^ opt.gv_instf ^ nl ^
   "dotfile        : " ^ opt.dotfile ^ nl ^
   "ldotout        : " ^ string_of_bool opt.ldotout ^ nl ^
   "ldotfile       : " ^ opt.ldotfile ^ nl ^
