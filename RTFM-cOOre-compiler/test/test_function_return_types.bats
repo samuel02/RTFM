@@ -26,6 +26,6 @@ load test_helper
 @test "function that returns value of other type than declared type should fail" {
 
   compile function_return_types/return_undeclared_type
-  assert_success
-  assert_last_line "Passed type checking."
+  assert_failure
+  assert_last_line "TypeError: Method ftrue has return_type bool."
 }

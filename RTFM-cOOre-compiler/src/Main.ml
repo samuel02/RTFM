@@ -9,7 +9,7 @@ open Options
 open AST
 open Env
 open CoreGen
-open Dot
+open Graphviz
 open VariableTypeCheck
 open TypeTree
 
@@ -39,23 +39,29 @@ let main () =
         (* check cyclic *)
         cyclic p;
         
-        (* dot for task/resource structure *)
-        if opt.dotout then begin
-          let dots = (d_of_p p) in
-          if opt.verbose then p_stderr dots;
-          let ocd = open_out opt.dotfile in 
-          begin
-            p_oc ocd dots;
-            close_out ocd;
-          end;  
-        end;
-        let oc = open_out opt.outfile in
-        begin
-          p_oc oc (c_of_Prog p);
+
+        (* gv_obj optout *)
+        if (opt.gv_obj) then begin
+          let oc = open_out opt.gv_objf in
+          p_oc oc (def_of_obj p);
           close_out oc;
-          exit (0);
+        end;
+        (* gv_task optout *)
+        if (opt.gv_task) then begin
+          let oc = open_out opt.gv_taskf in
+          p_oc oc (def_of_task p);
+          close_out oc;
+        end;
+        (* gv_res optout *)
+        if (opt.gv_inst) then begin
+          let oc = open_out opt.gv_instf in
+          p_oc oc (def_of_inst p);
+          close_out oc;
         end;
 
+        let oc = open_out opt.outfile in
+        p_oc oc (c_of_Prog p);
+  
   (* exception handling *)
   with
   | Lexer.SyntaxError msg -> p_stderr (msg ^ parse_err_msg lexbuf); exit(-1)

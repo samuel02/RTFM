@@ -6,7 +6,7 @@
 open Common
 
 type options =
-  { 
+  {
     mutable target: target;
     mutable backend: backend;
     mutable verbose: bool;
@@ -14,6 +14,12 @@ type options =
     mutable infile: string;
     mutable outfile: string;
     mutable dotout: bool;
+    mutable gv_obj: bool;
+    mutable gv_objf: string;
+    mutable gv_task: bool;
+    mutable gv_taskf: string;
+    mutable gv_inst: bool;
+    mutable gv_instf: string;
     mutable dotfile: string;
     mutable d_ast: bool;
     mutable typecheck: bool;
@@ -23,7 +29,7 @@ type options =
   }
 
 let opt =
-  { 
+  {
     target   = RTFM_RT;
     backend  = GCC;
     verbose  = false;
@@ -31,6 +37,12 @@ let opt =
     infile   = "";
     outfile  = "";
     dotout   = false;
+    gv_obj   = false;
+    gv_objf  = "";
+    gv_task   = false;
+    gv_taskf  = "";
+    gv_inst   = false;
+    gv_instf  = "";
     dotfile  = "";
     ldotout  = false;
     ldotfile = "";
@@ -47,6 +59,12 @@ let string_of_opt opt =
   "verbose        : " ^ string_of_bool opt.verbose ^ nl ^
   "debug          : " ^ string_of_bool opt.debug ^ nl ^
   "dotout         : " ^ string_of_bool opt.dotout ^ nl ^
+  "gv_obj         : " ^ string_of_bool opt.gv_obj ^ nl ^
+  "gv_objf        : " ^ opt.gv_objf ^ nl ^
+  "gv_task        : " ^ string_of_bool opt.gv_task ^ nl ^
+  "gv_taskf       : " ^ opt.gv_taskf ^ nl ^
+  "gv_inst        : " ^ string_of_bool opt.gv_inst ^ nl ^
+  "gv_instf       : " ^ opt.gv_instf ^ nl ^
   "dotfile        : " ^ opt.dotfile ^ nl ^
   "ldotout        : " ^ string_of_bool opt.ldotout ^ nl ^
   "ldotfile       : " ^ opt.ldotfile ^ nl ^

@@ -1,0 +1,7 @@
+class Foo <int a, bool (int) b> {}
+
+class Root <> {
+  Foo<2, 45> f;
+
+  Reset {}
+}
