@@ -9,8 +9,6 @@ Below is a short introduction to developing applications in the cOOre and the co
 ### cOOre development
 cOOre is an object-oriented language based on the -core language. The main goal is to provide a light-weight object-oriented model for concurrent programming.
 
-
-
 #### Syntax (EBNF like form)
 ```
 coore:
@@ -77,15 +75,33 @@ pType:
 ```
 
 #### External code (core)
+External bindings are implemented according to [A candidate cOOre module system](https://rtfm.codeplex.com/wikipage?title=Bindings1&referringTitle=2nd%20Challenge).
 
 #### Websockets
+Since RTFM is to be used in small embedded systems there is a chance that the system will need to communicate with some other system via internet. For this purpose the "library" `Websocket.core` can be used:
 
-#### Visualizations
+```C
+// Example showing the use of websocket send/receive
 
+class Root<> extern "Websocket.core" {
+  extern void ws_send(int);
 
-### core development
+  Task client_receive(char msg) {
+    RT_printf("client wrote : %c\n", msg);
+  }
 
-#### Writing core programs
+  Reset {
+    RT_printf("Reset!");
+  }
+
+  Idle {
+    ws_send(2); // Send number 2 on websocket
+    idle_websocket();
+  }
+}
+```
+
+To compile an application using websockets use `PTCORE/RTFM-SRC/wscooremake`.
 
 #### Visualizations
 
@@ -136,7 +152,7 @@ $ opam install menhir   # Our Parser generator (installs ocamlfind also)
 Tested on Windows 7, 8 and 8.1. All 64-bit. (tested also on win8.1 32-bit)
 
 #### WODI
-1. Download wodi 32bit graphical installer: http://wodi.forge.ocamlcore.org/download.html
+1. Download wodi 32bit graphical installer: [http://wodi.forge.ocamlcore.org/download.html](http://wodi.forge.ocamlcore.org/download.html)
 2. Install at standard location (C:\wodi32), standard location is important!
 3. During Cygwin setup add the following under devel:
     - binutils
@@ -148,7 +164,7 @@ Tested on Windows 7, 8 and 8.1. All 64-bit. (tested also on win8.1 32-bit)
 5. Install menhir by clicking on "Apply"
 
 #### Graphviz
-- Download graphviz for Windows: http://www.graphviz.org/Download_windows.php
+- Download graphviz for Windows: [http://www.graphviz.org/Download_windows.php](http://www.graphviz.org/Download_windows.php)
 - Run the installer package "graphviz-X.XX.msi"
 - Place it under C:\GraphvizX.XX\, NO spaces in the path!!!
 - Add C:\GraphvizX.XX\bin to path.
@@ -164,11 +180,7 @@ $ cd RTFM-core-compiler && make rtfm_core
 $ cd RTFM-cOOre-compiler && make rtfm_coore
 ```
 
-## Developing the -core compiler
-This should have some text describing how to work with the core compiler, where to find stuff and a basic overview of how it works. Also some information on how debugging works.
-
 ## Developing the cOOre compiler
-This should have some text describing how to work with the cOOre compiler, where to find stuff and a basic overview of how it works. Also some information on how debugging works.
 
 ### Testing
 The test suite is using [sstephenson/bats](https://github.com/sstephenson/bats) to automate the testing of the type checker in the cOOre compiler. In order to run the tests, start by installing bats:
@@ -188,6 +200,11 @@ $ chmod u+x test/test_runner
 $ cd test && ./test_runner
 ```
 
+or
+
+```bash
+$ cd test && bats .
+```
 
 ### Run specific test files
 ```bash
@@ -224,14 +241,3 @@ load test_helper
 `assert_equal` will check whether the two arguments that are given are euqal and report the difference if they aren't.
 
 `assert_last_line` will check whether the last line of the output is equal to given string.
-
-## History
-
-##### 2014-09-02
-Updated Linux install instructions (for Linux Mint etc)
-
-##### 2014-09-01
-v1.0 release candidate
-
-##### 2014-07-18
-v1.0 development branch
