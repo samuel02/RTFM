@@ -44,9 +44,6 @@ RTFM-cOOre-compiler/src/Error.ml
 _build/
 bin/
 
-*.html
-*.css
-
 #################
 ## Sublime Project Files
 #################
