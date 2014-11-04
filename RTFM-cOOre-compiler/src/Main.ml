@@ -3,14 +3,15 @@
 
 (* RTFM-cOOre/Main *)
 
+
 open Common
 open Options
 open AST
 open Env
 open CoreGen
 open Graphviz
-(*open Dot*)
-open Grammar
+open VariableTypeCheck
+open TypeTree
 
 open Error
 open Cmd
@@ -26,13 +27,14 @@ let main () =
   
   try
     let res = Parser.prog Lexer.lex lexbuf in
-    
+    let scope_tree p = build_scope_tree p in
     match res with
     | None   -> p_stderr ("Not accepted!" ^ nl); exit (-1);
     | Some p ->
         if opt.verbose then p_stderr ("Parsing succeeded:" ^ nl);
         if opt.d_ast then p_stderr (string_of_prog p);
-        if opt.typecheck then p_stderr (typecheck_prog p);
+        p_stderr (string_of_class (scope_tree p));
+        if opt.typecheck then p_stderr (typecheck_prog (scope_tree p) p);
         
         (* check cyclic *)
         cyclic p;
@@ -75,12 +77,14 @@ let main () =
   
   (* exception handling *)
   with
-  | Lexer.SyntaxError msg -> p_stderr (msg ^ parse_err_msg lexbuf);
-  | RtfmError msg         -> p_stderr msg;
-  | Failure msg           -> p_stderr msg;
-  | Parser.Error          -> p_stderr ("Parser error." ^ parse_err_msg lexbuf);
-      
-      exit (-1);;
+  | Lexer.SyntaxError msg -> p_stderr (msg ^ parse_err_msg lexbuf); exit(-1)
+  | RtfmError msg         -> p_stderr msg; exit(-1)
+  | Failure msg           -> p_stderr msg; exit(-1)
+  | Parser.Error          -> p_stderr ("Parser error." ^ parse_err_msg lexbuf); exit(-1)
+  | TypeError msg         -> p_stderr msg; exit(-1)
+  | NameError msg         -> p_stderr msg; exit(-1)
+;;
+
 (* exit 0;; *)
 
 main ();;
