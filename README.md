@@ -106,18 +106,15 @@ To compile an application using websockets use `PTCORE/RTFM-SRC/wscooremake`.
 #### Visualizations
 ##### Object view
 Gives a visual overview of the class declarations and their tasks and functions.
-cOOre compiler flag in cooremake;
-`-gv_obj obj.gv`
+To use, run cOOre compiler flag with flag `-gv_obj obj.gv`.
 
 ##### Instance view
 Gives a visual overview of the class instances and their tasks and functions.
-cOOre compiler flag in cooremake;
-`-gv_inst inst.gv`
+To use, run cOOre compiler flag with flag `-gv_inst inst.gv`.
 
 ##### Task view
 Gives a visual overview of the task/function calls between class instances.
-cOOre compiler flag in cooremake;
-`-gv_task task.gv`
+To use, run cOOre compiler flag with flag `-gv_task task.gv`.
 
 To generate the pdf files;
 `dot -Tpdf task.gv -o task.pdf`
@@ -129,7 +126,7 @@ Tested on OSX Mavericks (10.9) and OSX Yosemite (10.10).
 
 #### Prerequisities
 
- - XCode (Latest XCODE command line tools)
+ - XCode (Latest XCode command line tools)
 
 #### Install packages with Homebrew
 
@@ -171,22 +168,22 @@ Tested on Windows 7, 8 and 8.1. All 64-bit. (tested also on win8.1 32-bit)
 1. Download wodi 32bit graphical installer: [http://wodi.forge.ocamlcore.org/download.html](http://wodi.forge.ocamlcore.org/download.html)
 2. Install at standard location (C:\wodi32), standard location is important!
 3. During Cygwin setup add the following under devel:
-    - binutils
-    - clang
-    - gcc-core
-    - gcc-g++
-    - gdb
+    - `binutils`
+    - `clang`
+    - `gcc-core`
+    - `gcc-g++`
+    - `gdb`
 4. Run "Wodi32 Package Manager", search for menhir and select it for installation
 5. Install menhir by clicking on "Apply"
 
 #### Graphviz
 - Download graphviz for Windows: [http://www.graphviz.org/Download_windows.php](http://www.graphviz.org/Download_windows.php)
-- Run the installer package "graphviz-X.XX.msi"
-- Place it under C:\GraphvizX.XX\, NO spaces in the path!!!
-- Add C:\GraphvizX.XX\bin to path.
+- Run the installer package `graphviz-X.XX.msi`.
+- Place it under `C:\GraphvizX.XX\` (**N.B.** NO spaces in the path!)
+- Add `C:\GraphvizX.XX\bin` to path.
 
 #### Workaround for Common.ml files
-- under Cygwin: run "source fix_common_link.sh"
+- under Cygwin: run `source fix_common_link.sh`
 
 ### Setting up the development environment
 
