@@ -21,11 +21,13 @@ let rec list_of_scope_stmt = function
     | []                        -> []
 
 let rec list_of_scope_classDecl =
+    let enumerate_bindings i t = ("arg"^string_of_int i, t) in
   let rec binding_argList = function
     | MPArg (t, i)::tl           -> (i, t)::binding_argList tl
     | []                         -> []
     in
     function
+    | ExtMDecl (t, i, tl)::tail  -> {mi=i; t=t; a=(List.mapi enumerate_bindings tl); l=[]}::list_of_scope_classDecl tail
     | CMDecl (t, i, al, sl)::tl  -> {mi=i; t=t; a=(binding_argList al); l=(list_of_scope_stmt sl)}::list_of_scope_classDecl tl
     | CTaskDecl (i, al, sl)::tl  -> {mi=i; t=Void; a=(binding_argList al); l=(list_of_scope_stmt sl)}::list_of_scope_classDecl tl
     | CIsrDecl (pr, i, sl)::tl   -> {mi=i; t=Void; a=[]; l=(list_of_scope_stmt sl)}::list_of_scope_classDecl tl

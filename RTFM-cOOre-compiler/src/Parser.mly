@@ -52,6 +52,7 @@ mSig:
 classDecl:
   | pType ID ASSIGN expr SC                                         { CPVar ($1, $2, $4) }
   | ID LT params GT ID  SC                                          { COVar ($1, $3, $5) }
+  | EXTERN pType ID LP mSig RP SC                                   { ExtMDecl ($2, $3, $5) }
   | pType ID LP mArgs RP LCP stmt* RCP                              { CMDecl ($1, $2, $4, $7) }
   | TASK ID LP mArgs RP LCP stmt* RCP                               { CTaskDecl ($2, $4, $7) }
   | ISR INTVAL ID LCP stmt* RCP                                     { CIsrDecl ($2, $3, $5) }

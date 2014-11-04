@@ -72,6 +72,7 @@ type classDecl =
     | CPVar      of pType * id * expr
     | COVar      of id * expr list * id
     | CMDecl     of pType * id * mPArg list * stmt list
+    | ExtMDecl   of pType * id * pType list
     | CTaskDecl  of id * mPArg list * stmt list
     | CIsrDecl   of int * id * stmt list
     | CResetDecl of stmt list
@@ -155,6 +156,7 @@ let string_of_classDecl = function
             tab ^ string_of_pType t ^ " " ^ i ^ string_par string_of_mPArg al ^ "{" ^ nl
             ^ String.concat "" (List.map (string_of_stmt (tab^tab)) sl)
             ^ tab ^ "}"
+    | ExtMDecl (t, i, tl)    -> tab ^ "extern " ^ string_of_pType t ^ " " ^ i ^ string_par string_of_pType tl ^ sc ^ nl
     | CTaskDecl (i, al, sl ) ->
       tab ^ "TaskDef " ^ i ^ " " ^ string_par string_of_mPArg al ^ "{" ^ nl ^
       String.concat "" (List.map (string_of_stmt (tab^tab)) sl) ^

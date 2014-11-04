@@ -124,6 +124,7 @@ let rec c_defs_of_classDef ce path argl cd =
             String.concat "" (List.map (c_of_stmt tab) sl) ^
             c_e ^ " } " ^ e_c ^ nl ^ nl
       )
+    | ExtMDecl (t, i, tl)       -> "// extern prototype: "^i
     | CTaskDecl (i, al, sl)     ->
       let c_data_of_mPArg path = function
         | MPArg (t, i) -> c_of_pType t ^ " " ^ path ^ "_" ^ i
