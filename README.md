@@ -209,14 +209,14 @@ See [Installing bats from source](https://github.com/sstephenson/bats#installing
 
 ### Running the tests
 ```bash
-$ chmod u+x test/test_runner
-$ cd test && ./test_runner
+$ chmod u+x RTFM-cOOre-compiler/test/test_runner
+$ cd RTFM-cOOre-compiler/test && ./test_runner
 ```
 
 or
 
 ```bash
-$ cd test && bats .
+$ cd RTFM-cOOre-compiler/test && bats .
 ```
 
 ### Run specific test files
@@ -260,7 +260,7 @@ To demonstrate an example application written in cOOre with websockets there is 
 
 
 ### Running the timer
-In order to test the timer start by compiling the coore program `PTCORE/RTFM-SRC/counter.coore`:
+In order to test the timer start by compiling the cOOre program `PTCORE/RTFM-SRC/counter.coore`:
 
 ```bash
 $ cd PTCORE/RTFM-SRC && ./wscooremake counter.coore
