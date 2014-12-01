@@ -12,28 +12,37 @@ let gv_of_p ce p =
     | COVar (o, el, i) ->
         let po = path ^ "_" ^ i in
         let cd = myass o ce in
-        po ^ " [label = " ^ ec ^ o ^ enl ^ i ^ ec ^ "]" ^ nl ^
+        po ^ " [label = " ^ ec ^ o ^enl ^ i ^ ec ^ nl ^ "shape = "^ ec ^"record" ^ ec ^ "]" ^ nl ^
         path ^ " -> " ^ po ^ nl ^
-        
         gv_of_cd (po) cd
-    | _ -> raise UnMatched
-  
+    
+    | CTaskDecl (i, al, sl ) -> 
+        let po = path ^ "_" ^ i in
+        po ^ " [label = "^ ec ^"Task" ^enl ^ i ^ nl ^ ec ^ "]" ^ nl ^
+        path ^ " -> " ^ po ^ nl 
+
+    | CMDecl (t, i, al, sl) -> 
+        let po = path ^ "_" ^ i in
+        po ^ " [label = "^ ec ^"Function" ^enl ^ i ^ nl ^ ec ^ "]" ^ nl ^
+        path ^ " -> " ^ po ^ nl 
+    | _ -> "" (*raise UnMatched*)
+
   and gv_of_cd path = function
-    | ClassDef (i, cal, cdl) ->
-        myconcat nl (mymap (gv_of_cdl path) cdl)
+    | ClassDef (i, cal, extern, cdl) ->
+        String.concat nl (List.map (gv_of_cdl path) cdl)
   in
-  
+
   let ce = cEnv_of_classDef p in
   let cd =
     try
       List.assoc "Root" ce
     with
     | _ -> raise (RtfmError ("Root not defined"))
-  
+
   in
   "digraph RTFM {" ^ nl
   ^ "Root [shape=diamond]" ^ nl
-  ^ gv_of_cd "Root" cd
+  ^ gv_of_cd "Root" cd 
   ^ "}"
 
 let d_of_p p =
@@ -45,16 +54,16 @@ let cycle_of_p ce p =
   let rec cycle_of_cdl path = function
     | COVar (o, el, i) ->
         let po = o ^ ":" ^ i in
-        if List.mem po path then raise (RtfmError ("Cyclic instances in " ^ myconcat "-> " (List.rev path) ^ po));
-        
+        if List.mem po path then raise (RtfmError ("Cyclic instances in " ^ String.concat "-> " (List.rev path) ^ po));
+
         let cd = myass o ce in
         cycle_of_cd (po :: path) cd
     | _                -> () (* unit value *)
-  
+
   and cycle_of_cd path = function
-    | ClassDef (i, cal, cdl) ->
+    | ClassDef (i, cal, extern, cdl) ->
         (List.iter (cycle_of_cdl path) cdl)
-  
+
   in
   let ce = cEnv_of_classDef p in
   let cd =
@@ -62,7 +71,7 @@ let cycle_of_p ce p =
       List.assoc "Root" ce
     with
     | _ -> raise (RtfmError ("Root not defined"))
-  
+
   in
   cycle_of_cd ["Root"] cd
 

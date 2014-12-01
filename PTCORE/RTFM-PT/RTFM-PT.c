@@ -51,13 +51,14 @@ typedef enum {
 #include <unistd.h>			// sleep etc.
 #include <stdio.h>			// printf etc.
 #include <stdlib.h>			// rand etc.
+#include <stdbool.h>    // bool
 // we are not sure the application includes the RTFM-RT
-#include <time.h>			// for random seed
-#include <sys/time.h>       // gettimeofday
+#include <time.h>			  // for random seed
+#include <sys/time.h>   // gettimeofday
 
 #include "RTFM-PT.h"
 
-#include "../Application/autogen.c"
+#include "autogen.c"
 
 #include <pthread.h>
 #include <errno.h>
@@ -80,6 +81,7 @@ RTFM_time base_line[ENTRY_NR];
 RTFM_time dead_line[ENTRY_NR];
 RTFM_time new_base_line[ENTRY_NR];
 RTFM_time new_dead_line[ENTRY_NR];
+bool aborted[ENTRY_NR];
 
 //RTFM_time after[ENTRY_NR];
 //RTFM_time after_base_line[ENTRY_NR];
@@ -131,7 +133,44 @@ void RTFM_unlock(int f, int r) {
 	m_unlock(&res_mutex[r]);
 }
 
-void RTFM_pend(RTFM_time a, RTFM_time b, int f, int t) {
+RTFM_msg RTFM_async(RTFM_time a, RTFM_time b, int f, int t) {
+	int lcount;
+	DP("Async     :%s->%s", entry_names[f], entry_names[t]);
+
+	DPT("RTFM_async  :pthread_mutex_lock(&pend_count_mutex[%d])", t);
+	m_lock(&pend_count_mutex[t]);
+	{   // inside lock of the counter
+		lcount = pend_count[t];
+		if (lcount == 0) {
+			DPT("RTFM_pend   :pend_count[%d]++", t);
+			pend_count[t]++; // may not be atomic, hence needs a lock
+
+			// for good measure, we work on the timing information under the lock
+			DPT("after_bl[%2d]  = %f", f, RT_time_to_float(base_line[f]));DPT("after[%2d|     = %f", f, RT_time_to_float(a));
+
+			new_base_line[t] = RT_time_add(base_line[f], a); // set the baseline for the receiver
+			new_dead_line[t] = new_base_line[t] + b;
+		}
+	}
+	DPT("RTFM_pend   :pthread_mutex_unlock(&pend_count_mutex[%d])", t);
+	m_unlock(&pend_count_mutex[t]);
+
+	if (lcount == 0) { // just a single outstanding semaphore/mimic the single buffer pend of interrupt hardware
+		DPT("RTFM_pend   :pend_sem[%d], Post :semaphore posted %s", t, entry_names[t])
+		s_post(pend_sem[t]);
+	} else {
+		DPT("RTFM_pend   :Post :semaphore discarded, already outstanding");
+	}
+	aborted[t] = false;
+	return t;
+}
+
+bool RTFM_abort(int id) {
+	aborted[id] = true;
+	return true; // for the time being
+}
+
+void RTFM_pend(RTFM_time b, int f, int t) {
 	int lcount;
 	DP("Pend     :%s->%s", entry_names[f], entry_names[t]);
 
@@ -144,12 +183,14 @@ void RTFM_pend(RTFM_time a, RTFM_time b, int f, int t) {
 			pend_count[t]++; // may not be atomic, hence needs a lock
 
 			// for good measure, we work on the timing information under the lock
-			DPT("after_bl[%2d]  = %f", f, RT_time_to_float(base_line[f])); DPT("after[%2d|     = %f", f, RT_time_to_float(a));
 
-			new_base_line[t] = RT_time_add(base_line[f], a); // set the baseline for the receiver
+			new_base_line[t] = time_get(); // set the baseline for the receiver
 			new_dead_line[t] = new_base_line[t] + b;
+			DPT("after_bl[%2d]  = %f", f, RT_time_to_float(base_line[f]));
+
 		}
-	} DPT("RTFM_pend   :pthread_mutex_unlock(&pend_count_mutex[%d])", t);
+	}
+	DPT("RTFM_pend   :pthread_mutex_unlock(&pend_count_mutex[%d])", t);
 	m_unlock(&pend_count_mutex[t]);
 
 	if (lcount == 0) { // just a single outstanding semaphore/mimic the single buffer pend of interrupt hardware
@@ -250,19 +291,22 @@ void *thread_handler(void *id_ptr) {
 
 		DPT("time_usleep(offset)   = %f", RT_time_to_float(offset));
 		time_usleep(offset);
-
-		DPT("thread      :entry_func[%d](%d)", id, id);DP("Task run :%s", entry_names[id]);
-		entry_func[id](id); // dispatch the task
+		if (aborted[id]) {
+			DP("Task aborted %s", entry_names[id]);
+			aborted[id] = true;
+		} else {
+			DPT("thread      :entry_func[%d](%d)", id, id);DP("Task run :%s", entry_names[id]);
+			entry_func[id](id); // dispatch the task
 
 #ifdef ABORT_DL
-		if (over_run(id)) {
-			fprintf(stderr, "Aborting on failing to meet deadline!\n");
-			exit(EXIT_FAILURE);
-		}
-
+			if (over_run(id)) {
+				fprintf(stderr, "Aborting on failing to meet deadline!\n");
+				exit(EXIT_FAILURE);
+			}
 #elif WARN_DL
-		over_run(id);
+			over_run(id);
 #endif
+		}
 	}
 	return NULL;
 }
@@ -467,7 +511,8 @@ int main() {
 		base_line[i] = 0; // only for good measure
 	}
 
-	printf("-----------------------------------------------------------------------------------------------------------------------\n");
+	printf(
+			"-----------------------------------------------------------------------------------------------------------------------\n");
 	DPT("main        :user_reset(user_reset_nr);");
 	user_reset(user_reset_nr);
 
@@ -476,10 +521,11 @@ int main() {
 		s_post(reset_sem[i]);
 	}
 
-	printf("-----------------------------------------------------------------------------------------------------------------------\n");
+	printf(
+			"-----------------------------------------------------------------------------------------------------------------------\n");
 	user_idle(user_idle_nr);
 
 	while (1)
 		RT_sleep(RT_sec * 1); // zzzzzz to save CPU
-				/* code for cleanup omitted, we trust POSIX (Linux/OSX) to do the cleaning */
+	/* code for cleanup omitted, we trust POSIX (Linux/OSX) to do the cleaning */
 }

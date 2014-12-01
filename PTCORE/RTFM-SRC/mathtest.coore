@@ -1,0 +1,60 @@
+class Class1 <int i> {
+	int x := 2;
+
+	Task loop1() {
+		bool test := true;
+		x := 1;
+	}
+	Task loop2(){
+		async before 1 s loop1();
+	}
+
+}
+
+class Class2 <int i> {
+	int x1 := 4;
+
+	Task run1(){
+		x1 := 3;
+	}
+
+	int func_test(){
+		int x2 := 1;
+		return x2;
+	}
+}
+
+class Root <> {
+	// Initilaizers must be constant
+	int f := 0;
+	int b := 2;
+	int a := 4;
+	char k := 'e';
+	Class1<2> C1_Instance1;
+	Class1<2> C1_Instance2;
+	Class2<5> C2_Instance1;
+	Class2<5> C2_Instance2;
+	//RT_printf("Hej");
+	
+	Task root_task(){
+		x1 := 3;
+	}
+
+	void root_func(){
+		async before 1 s C1_Instance1.loop2();
+		int x2 := 1;
+	}
+
+	
+	Idle {
+		int aq := 2;
+		async C2_Instance2.run1();
+		async C2_Instance1.run1();
+	}
+
+	Reset {
+		int b := 2;
+
+	}
+
+}

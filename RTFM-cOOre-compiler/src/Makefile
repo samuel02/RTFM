@@ -28,14 +28,14 @@ ALL_PDF = task.pdf res.pdf
 OCAMLFLAGS      = -use-menhir
 OCAMLCLEANFLAGS = -quiet -clean
 DIRFLAGS        = -p
-DOTFLAGS        = -gv_task task.gv -gv_res res.gv
+DOTFLAGS        = -gv_obj obj.gv -gv_task task.gv -gv_res res.gv
 PDFFLAGS        = -Tpdf
 
 # Application directory
 APPLICATION_DIR = ../../PTCORE/RTFM-SRC/
 
 # Application and example files
-APPLICATION_SRC = $(APPLICATION_DIR)Application.core
+APPLICATION_SRC = $(APPLICATION_DIR)Application.coore
 EXAMPLE1_SRC = $(APPLICATION_DIR)Ex1.core
 EXAMPLE2_SRC = $(APPLICATION_DIR)Ex2.core
 EXAMPLE3_SRC = $(APPLICATION_DIR)Ex3.core
@@ -54,7 +54,7 @@ C_TARGET     = autogen.c
 V0 = @
 V1 = 
 
-all: rtfm_coore dot
+all: rtfm_coore
 
 rtfm_coore: application_dir
 	$(V0) echo $(quote) Compiling RTFM-core... $(quote)

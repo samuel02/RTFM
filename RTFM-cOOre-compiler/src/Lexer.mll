@@ -3,13 +3,13 @@
 
 (* RTFM-cOOre/Lexer.mll *)
 
-{    
- open Parser   
+{
+ open Parser
  open Lexing
  open Common
- open Error  
-   
- exception SyntaxError of string 
+ open Error
+
+ exception SyntaxError of string
 }
 
 (* reg exps *)
@@ -17,12 +17,12 @@ let white   = [' ' '\t']+
 let newline = '\r' | '\n' | "\r\n"
 let cite    = '\''
 let quote   = '\"'
-let char    = [^ '\'']   
-let id      = ['A'-'Z' 'a'-'z' '_']['0'-'9' 'A'-'Z' 'a'-'z' '_']*  
+let char    = [^ '\'']
+let id      = ['A'-'Z' 'a'-'z' '_']['0'-'9' 'A'-'Z' 'a'-'z' '_']*
 let digits  = ['0'-'9']+
-let str     = [^ '\"']* 
+let str     = [^ '\"']*
 
-(* lexing rules *)  
+(* lexing rules *)
 rule lex = parse
   | "Task"                 { TASK }                                (* RTFM-core related *)
   | "ISR"                  { ISR }
@@ -31,23 +31,30 @@ rule lex = parse
   | "after"                { AFTER }
   | "before"               { BEFORE }
 (*| "prio"                 { PRIO } *)
-  | "Reset"                { RESET } 
-  | "Idle"                 { IDLE } 
+  | "Reset"                { RESET }
+  | "Idle"                 { IDLE }
 
   | "RT_sleep"             { RT_SLEEP }                            (* RT specifics *)
   | "RT_printf"            { RT_PRINTF }
   | "RT_rand"              { RT_RAND }
   | "RT_getc"              { RT_GETC }
   | "RT_putc"              { RT_PUTC }
-    
-  | "class"                { CLASS }                               (* RTFM-cOOre related *) 
+
+  | "class"                { CLASS }                               (* RTFM-cOOre related *)
+  | "extern"               { EXTERN }
   | "return"               { RETURN }
-     
-  | "int"                  { INT }                                 (* primitive types *)                                                                      
+
+  | "if"                   { IF }
+  | "else"                 { ELSE }
+  | "while"                { WHILE }
+  (*| "for"                  { FOR } Possible future work*)
+
+  | "int"                  { INT }                                 (* primitive types *)
   | "char"                 { CHAR }
+  | "string"               { STRING }
   | "bool"                 { BOOL }
   | "void"                 { VOID }
-                          
+
   | ','                    { COMMA }                               (* delimeters *)
   | ":="                   { ASSIGN }
   | '<'                    { LT }
@@ -56,13 +63,26 @@ rule lex = parse
   | '}'                    { RCP }
   | '('                    { LP }
   | ')'                    { RP }
+  | '['                    { LSQ }
+  | ']'                    { RSQ }
   | '.'                    { DOT }
-  | ';'                    { SC } 
-  
+  | ';'                    { SC }
+
+  | "+"                    { ADD }
+  | "-"                    { SUB }
+  | "*"                    { MUL }
+  | "/"                    { DIV }
+  | "%"                    { MOD }
+
+  | "=="                   { EQ }
+  | "!="                   { NEQ }
+  | ">="                   { GTEQ }
+  | "<="                   { LTEQ }
+
   | "us"                   { USEC }                               (* time *)
   | "ms"                   { MSEC }
   | "s"                    { SEC }
-    
+
   | "true"                 { BOOLVAL (true) }                     (* literals/values *)
   | "false"                { BOOLVAL (false) }
   | digits as i            { INTVAL (int_of_string i) }
@@ -72,21 +92,21 @@ rule lex = parse
   | id as s                { ID (s) }
   | white                  { lex lexbuf }                         (* white space *)
   | newline                { next_line lexbuf; lex lexbuf }       (* new line *)
-  | "//"                   { set_info lexbuf; comment lexbuf }    (* single line comment *) 
-  | "(*"                   { set_info lexbuf; comments 0 lexbuf } (* nested comment *) 
-                          
+  | "//"                   { set_info lexbuf; comment lexbuf }    (* single line comment *)
+  | "(*"                   { set_info lexbuf; comments 0 lexbuf } (* nested comment *)
+
   | eof                    { EOF }
   | _                      { raise Parser.Error }
-    
+
 and comment = parse
   | newline                { next_line lexbuf; lex lexbuf }
   | eof                    { EOF }                                (* // at last line *)
-  | _                      { comment lexbuf; }    
-    
+  | _                      { comment lexbuf; }
+
 and comments level = parse
   | "*)"                   { if level = 0 then lex lexbuf else comments (level-1) lexbuf }
   | "(*"                   { comments (level+1) lexbuf }
   | newline                { next_line lexbuf; comments level lexbuf }
   | _                      { comments level lexbuf }
   | eof                    { bol lexbuf; raise (SyntaxError("Comment not closed.")) }
-    
+

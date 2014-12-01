@@ -1,0 +1,23 @@
+
+class Root<> extern "websocket2.core" {
+  int i := 1;
+  string message := "a";
+
+  Task client_receive(string msg) {
+    RT_printf("client wrote : %s\n", msg);
+  }
+
+  Task periodic() {
+    i := i + 1;
+    async ws_send(message[i]);
+    async after 2s periodic();
+  }
+
+  Reset {
+    RT_printf("User Reset\n");
+
+    async periodic ();
+    async idle_websocket ();
+  }
+
+}

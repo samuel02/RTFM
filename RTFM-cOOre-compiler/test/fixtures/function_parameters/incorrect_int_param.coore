@@ -1,0 +1,10 @@
+class Root <> {
+
+  int square(int x) {
+      return x*x;
+  }
+
+  Reset {
+    square(true);
+  }
+}
