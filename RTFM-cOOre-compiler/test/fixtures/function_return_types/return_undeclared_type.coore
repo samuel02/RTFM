@@ -1,0 +1,9 @@
+class Root <> {
+  bool ftrue() {
+    return 2;
+  }
+
+  Reset {
+    ftrue();
+  }
+}

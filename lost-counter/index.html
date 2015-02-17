@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>RTFM Lost Counter</title>
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link rel="stylesheet" href="assets/css/normalize.css">
+    <link rel="stylesheet" href="assets/css/buttons.css">
+    <link rel="stylesheet" href="assets/css/main.css">
+  </head>
+  <body>
+    <div class="blink"></div>
+
+    <div class="status-bar">
+        <button class="btn btn-primary" id="connect-btn">Connect</button>
+        <button class="btn btn-danger" id="disconnect-btn">Disconnect</button>
+    </div>
+
+    <div class="container">
+        <div id="timer"></div>
+    </div>
+
+    <div class="input-container">
+        <p>Enter correct password</p>
+        <span>>:</span>
+        <input id="text-input">
+    </div>
+
+    <script src="assets/javascript/jquery-2.1.1.min.js"></script>
+    <script src="assets/javascript/lodash.min.js"></script>
+    <script src="assets/javascript/jquery-countdown-timer.js"></script>
+    <script src="assets/javascript/main.js"></script>
+  </body>
+</html>

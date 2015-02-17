@@ -1,0 +1,10 @@
+class Root <> {
+
+  char getchar(char c) {
+      return c;
+  }
+
+  Reset {
+    getchar(2)
+  }
+}

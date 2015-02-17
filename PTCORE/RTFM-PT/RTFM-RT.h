@@ -7,11 +7,15 @@
 #define RT_sec                  1000000
 #define RT_ms					1000
 typedef int64_t RTFM_time;
+typedef int RTFM_msg;
 #define RT_time					RTFM_time
+#define RT_msg					RTFM_msg
+#define RTFM_inherit			(-1)
 
 // prototypes
 RTFM_time RTFM_get_bl(int id);
 void RTFM_set_bl(int id);
+bool RTFM_abort(int id);
 RTFM_time time_get();
 
 #define RT_time_sub(t1, t2)     (t1 - t2)
@@ -30,5 +34,8 @@ RTFM_time time_get();
 #define RT_printf(...) 			{ printf( __VA_ARGS__ ); }
 #define RT_getc()				( getc(stdin) )
 #define RT_putc(c)				{ putc(c, stdout); }
+
+#define RT_halt(x)				{ if (x) {while (1) { ; }} else return; }
+#define RT_abort(t)				{ RTFM_abort(t); }
 
 #endif /* RTFM_RT_H_ */

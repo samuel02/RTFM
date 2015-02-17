@@ -22,6 +22,7 @@ let cite    = '\"'
 let str     = [^ '"']* 
 let id      = ['A'-'Z' 'a'-'z' '_']['0'-'9' 'A'-'Z' 'a'-'z' '_']*  
 let digits  = ['0'-'9']+
+let myfloat = digits '.'? digits?
 let enter_c = "#>"
 let exit_c  = "<#"
 (*let params  = ( [^ '*' ')'] [^ ')']* )?   *)
@@ -30,13 +31,20 @@ let exit_c  = "<#"
 rule lex = parse
   | "module"             { MODULE }                             (* module system related *)
   | "include"            { INCLUDE }
+  | "as"                 { AS }
    
   | "pend"               { PEND }                               (* statements *)
   | "sync"               { SYNC }
   | "async"              { ASYNC }
+  | "halt"               { HALT }
   | "claim"              { CLAIM }
   | "after"              { AFTER }
   | "before"             { BEFORE }
+  | "abort"              { ABORT }
+  | "claim_return"       { RETURN }
+  | "claim_break"        { BREAK }
+  | "claim_continue"     { CONTINUE }
+  | "claim_goto"         { GOTO }  
 (*| "prio"               { PRIO } *)
   
   | "ISR"                { ISR }                                (* top level *)
@@ -44,14 +52,22 @@ rule lex = parse
   | "Func"               { FUNC }
   | "Reset"              { RESET }
   | "Idle"               { IDLE }
-  
-  | "us"                 { USEC }                               (* time *)
-  | "ms"                 { MSEC }
-  | "s"                  { SEC }
+
+ (*  
+  | (digits as d) "us"   { TIME(Int64.of_string d) }            (* time *)
+  | (digits as d) "ms"   { TIME(Int64.mul (Int64.of_string d) 1000L) }
+  | (digits as d) "s"    { TIME(Int64.mul (Int64.of_string d) 1000000L) }
+ *) 
+  | (myfloat as d) "us"  { TIME(Int64.of_float (float_of_string d)) }            
+  | (myfloat as d) "ms"  { TIME(Int64.of_float ((float_of_string d) *. 1000.0)) }
+  | (myfloat as d) "s"   { TIME(Int64.of_float ((float_of_string d) *. 1000.0 *. 1000.0)) }
   
   | '{'                  { LCP }                                (* delimeters *)
   | '}'                  { RCP }
   | ';'                  { SC } 
+  
+  | ":="                 { ASSIGN }
+  | "_STATE_"            { STATE }
   
   | digits as i          { INTVAL (int_of_string i) }           (* literals/values *)
   | cite (str as s) cite { STRINGVAL (s) }

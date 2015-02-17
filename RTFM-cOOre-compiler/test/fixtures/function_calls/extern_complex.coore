@@ -1,0 +1,12 @@
+class Foo<bool (void) f> {
+
+}
+
+class Root<> extern "ext.core" {
+  extern bool func();
+  Foo<func> f;
+
+  Reset {
+    RT_printf("Reset!");
+  }
+}

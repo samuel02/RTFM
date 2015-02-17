@@ -1,0 +1,10 @@
+class Root <> {
+
+  void print(string str) {
+      RT_printf(str);
+  }
+
+  Reset {
+    print(2);
+  }
+}

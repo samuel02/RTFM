@@ -1,0 +1,17 @@
+class A<> {
+	int func() {
+		return 3;
+	}
+}
+
+class Root <> {
+  A<> a;
+  
+  bool func() {
+    return true;
+  }
+
+  Reset {
+    bool r := func();
+  }
+}

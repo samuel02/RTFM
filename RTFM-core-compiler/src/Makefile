@@ -72,7 +72,7 @@ application_dir:
 
 dot:
 	$(V0) echo $(quote) Generating application and DOT files... $(quote)
-	$(V0) $(OCAML_TARGETDIR)$(OCAML_TARGET) $(APPLICATION_SRC) -o $(APPLICATION_TARGETDIR)$(C_TARGET) $(DOTFLAGS)
+	$(V0) $(OCAML_TARGETDIR)$(OCAML_TARGET) $(APPLICATION_SRC) -o $(APPLICATION_TARGETDIR)$(C_TARGET) $(DOTFLAGS) -Tpdf
 
 pdf: pdf_print $(ALL_PDF)
 

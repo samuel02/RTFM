@@ -35,6 +35,7 @@ RTFM_time base_line[ENTRY_NR];
 RTFM_time dead_line[ENTRY_NR];
 RTFM_time new_base_line[ENTRY_NR];
 RTFM_time new_dead_line[ENTRY_NR];
+BOOL aborted[ENTRY_NR];
 
 RTFM_time global_base_line = 0;
 
@@ -64,21 +65,6 @@ void RTFM_unlock(int f, int r) {
 	)) error("ReleaseMutex");
 }
 
-void RTFM_pend(RTFM_time a, RTFM_time b, int f, int t) {
-	new_base_line[t] = base_line[f] + (a / 1000); // set the baseline for the receiver
-	new_dead_line[t] = new_base_line[t] + (b / 1000);
-
-	DP("Pend    :%s->%s", entry_names[f], entry_names[t]);
-	BOOL check = ReleaseSemaphore(
-		pend_sem[t],		// handle to semaphore
-		1,					// increase count by one
-		NULL				// not interested in previous count
-		);
-
-	if (!check)
-		DPT("ReleaseSemaphore: exceeded max number");
-}
-
 RTFM_time RTFM_get_bl(int id) {
 	return base_line[id] * 1000;
 }
@@ -95,6 +81,46 @@ void  RTFM_set_bl(int id) {
 
 void set_global_baseline() {
 	global_base_line = GetTickCount();
+}
+
+
+
+RTFM_msg RTFM_async(RTFM_time a, RTFM_time b, int f, int t) {
+	new_base_line[t] = base_line[f] + (a / 1000); // set the baseline for the receiver
+	new_dead_line[t] = new_base_line[t] + (b / 1000);
+
+	DP("Pend    :%s->%s", entry_names[f], entry_names[t]);
+	BOOL check = ReleaseSemaphore(
+		pend_sem[t],		// handle to semaphore
+		1,					// increase count by one
+		NULL				// not interested in previous count
+		);
+
+	if (!check)
+		DPT("ReleaseSemaphore: exceeded max number");
+
+	aborted[t] = FALSE;
+	return t;
+}
+
+BOOL RTFM_abort(int id) {
+	aborted[id] = TRUE;
+	return TRUE; // for the time being
+}
+
+void RTFM_pend(RTFM_time b, int f, int t) {
+	new_base_line[t] = time_get(); // set the baseline for the receiver
+	new_dead_line[t] = new_base_line[t] + (b / 1000);
+
+	DP("Pend    :%s->%s", entry_names[f], entry_names[t]);
+	BOOL check = ReleaseSemaphore(
+		pend_sem[t],		// handle to semaphore
+		1,					// increase count by one
+		NULL				// not interested in previous count
+		);
+
+	if (!check)
+		DPT("ReleaseSemaphore: exceeded max number");
 }
 
 int over_run(int id) {
@@ -129,8 +155,15 @@ DWORD WINAPI MyThreadFunction(LPVOID lpParam) {
 		if (cur_time < base_line[id])
 			Sleep(offset);
 
-		DP("Invoke  :%s", entry_names[id]);
-		entry_func[id](id);	// dispatch the task
+
+		if (aborted[id]) {
+			DP("Task aborted %s", entry_names[id]);
+			aborted[id] = TRUE;
+		} else {
+			DP("Invoke  :%s", entry_names[id]);
+			entry_func[id](id);	// dispatch the task
+		}
+
 
 #ifdef ABORT_DL
 		if (over_run(id)) {

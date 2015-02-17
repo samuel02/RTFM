@@ -15,7 +15,7 @@ let rec lookup_task id p = match p with
 
 (* lookup id -> topl -> stmt list *)
 let rec lookup_func_sl id p = match p with
-  | []                                                      -> failwith("Failed to lookup Func " ^ id)
+  | []                                                      -> failwith("Failed to lookup Func sl" ^ id)
   | FuncDef (_, fid, _, sl) :: l when (compare id fid == 0) -> sl
   | _ :: l                                                  -> lookup_func_sl id l
 
@@ -24,4 +24,10 @@ let rec lookup_func id p = match p with
   | []                                                      -> failwith("Failed to lookup Func " ^ id)
   | FuncDef (r, fid, p, sl) :: l when (compare id fid == 0) -> FuncDef (r, fid, p, sl)
   | _ :: l                                                  -> lookup_func id l
+
+(* lookup id -> topl -> ISR *)
+let rec lookup_isr id p = match p with
+  | []                                                      -> failwith("Failed to lookup Isr " ^ id)
+  | Isr (p, iid, sl) :: l when (compare id iid == 0)        -> Isr (p, iid, sl) 
+  | _ :: l                                                  -> lookup_isr id l
 

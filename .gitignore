@@ -44,9 +44,6 @@ RTFM-cOOre-compiler/src/Error.ml
 _build/
 bin/
 
-*.html
-*.css
-
 #################
 ## Sublime Project Files
 #################
@@ -231,3 +228,6 @@ pip-log.txt
 
 # Mac crap
 .DS_Store
+
+# Gv-files
+*.gv

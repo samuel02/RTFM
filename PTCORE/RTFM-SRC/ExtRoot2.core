@@ -1,0 +1,7 @@
+// ExtRoot2.core
+// Per Lindgren (C) 2014
+//
+
+Func void f_local(int v) {
+  #> printf("core Func f_local: arg v%d state %d\n", v, <#_STATE_#>i); <#
+}

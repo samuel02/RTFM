@@ -1,0 +1,10 @@
+class Foo <int a, bool (int, int) b> {}
+
+class Root <> {
+  Foo<2, is_equal> f;
+
+  Reset {}
+  bool is_equal (int a, int b) {
+  	return (a == b);
+  }
+}

@@ -1,0 +1,18 @@
+// ExtTest5.coore
+// Per Lindgren (C) 2014
+//
+// State access in -core binding
+
+class O<int cv> extern "ExtO5.core" {
+  int ci := cv + 5;
+}
+
+class Root<> {
+  O<1> o1;
+  O<2> o2;
+
+  Reset {
+    o1.f(54);
+    o2.f(99);
+  }
+}

@@ -1,0 +1,12 @@
+// ExtTest2.coore
+// Per Lindgren (C) 2014
+//
+// State access in -core binding
+
+class Root<> extern "ExtRoot2.core" {
+  int i := 77;
+  Reset {
+    f(10);
+    RT_printf("Root i=%d\n", i);
+  }
+}
