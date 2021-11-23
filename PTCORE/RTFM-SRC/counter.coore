@@ -1,3 +1,20 @@
+class IO<void (char) handle_input> extern "Websocket.core" {
+  extern void ws_send(int);
+  extern void idle_websocket();
+
+  Task client_receive(char msg) {
+    handle_input(msg);
+  }
+
+  void print(int seconds) {
+    ws_send(seconds);
+  }
+
+  void setup() {
+    idle_websocket();
+  }
+}
+
 class Sequence<> {
   string correct := "4 8 15 16 23 42";
   int string_length := 15;
@@ -5,9 +22,12 @@ class Sequence<> {
 
   void handle_input(char input) {
     if (input == correct[cursor]) cursor := cursor + 1;
+
+    bool is_complete := is_complete(0);
+    if(is_complete) reset();
   }
 
-  bool is_complete() {
+  bool is_complete(int foo) {
     return cursor == string_length;
   }
 
@@ -16,13 +36,16 @@ class Sequence<> {
   }
 }
 
-class Timer<int secs, void (int) handle_output> {
+class Timer<int secs, void (int) handle_output, bool (int) reset_condition> {
   int seconds := secs;
 
   Task tick () {
     seconds := seconds - 1;
     handle_output(seconds);
     if (seconds >= 0) async after 1 s tick();
+
+    bool condition := reset_condition(0);
+    if(condition) reset();
   }
 
   void reset() {
@@ -30,22 +53,10 @@ class Timer<int secs, void (int) handle_output> {
   }
 }
 
-class Root<> extern "Websocket.core" {
-  extern void ws_send(int);
-  extern void idle_websocket();
-
+class Root<> {
+  IO<> io;
   Sequence<> sequence;
-  Timer<108, ws_send> timer;
-
-  Task client_receive(char msg) {
-    sequence.handle_input(msg);
-
-    bool is_complete := sequence.is_complete();
-    if(is_complete) {
-      sequence.reset();
-      timer.reset();
-    }
-  }
+  Timer<108, io.print, sequence.is_complete> timer;
 
   Reset {
     RT_printf("Reset!\n");
@@ -53,6 +64,6 @@ class Root<> extern "Websocket.core" {
 
   Idle {
     async timer.tick();
-    idle_websocket();
+    io.setup();
   }
 }

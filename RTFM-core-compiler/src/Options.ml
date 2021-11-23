@@ -5,11 +5,11 @@
 
 open Common
 
-type options =
+type options = 
   {
-   mutable target:      target;
+   mutable target:      target; 
    mutable backend:     backend;
-   mutable async_err:   bool;
+   mutable async_err:   bool; 
    mutable verbose:     bool;
    mutable debug:       bool;
    mutable infile:      string;
@@ -21,10 +21,10 @@ type options =
    mutable d_ast:       bool;
    (* mutable string:   Time.t; -- not yet implemented *)
   }
-
-let opt =
+  
+let opt = 
   {
-   target    = RTFM_RT;
+   target    = RTFM_RT; 
    backend   = GCC;
    async_err = false;
    verbose   = false;
@@ -36,11 +36,11 @@ let opt =
    gv_res    = false;
    gv_resf   = "";
    d_ast     = false;
-  }
-
-
-let string_of_opt opt =
-  "RTFM-core options:" ^ nl ^
+  } 
+    
+    
+let string_of_opt opt = 
+  "RTFM-core options:" ^ nl ^  
   "infile       : " ^ opt.infile ^ nl ^
   "outfile      : " ^ opt.outfile ^ nl ^
   "async_err    : " ^ string_of_bool opt.async_err ^ nl ^
@@ -57,10 +57,11 @@ let string_of_opt opt =
 let verb s  = if opt.verbose then p_stderr s
 let debug s = if opt.debug then p_stderr s
 
-let timed s f g =
+let timed s f g = 
   (* verb ("---> " ^ s ^ ":"); *)
   let t = Sys.time() in
   let res = f g in
   let sfloat = Printf.sprintf "%.3f" (Sys.time() -. t) in
   verb ("---> " ^ s ^ ": finished in " ^ sfloat ^ "s.");
   res
+  

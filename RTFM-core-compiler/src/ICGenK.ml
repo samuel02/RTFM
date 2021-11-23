@@ -40,43 +40,49 @@ let c_rt_of_i dlp spec r id_vid t_div =
     in  
     let proto_top = function
       | ITask (_, dl, id, _, par, _) ->
+        Some (
           "// Task instance definition: prio " ^ string_of_dl dlp dl ^ " " ^ id ^ nl ^
           "void " ^ id ^ def_par par ^ "; // function prototype for the instance task" ^ nl ^
           entry_info id dl
+          )
           
       | IIsr (dl, id, _) ->
+        Some (
           "// Isr prio " ^ string_of_dl dlp dl ^ " " ^ id ^ nl ^
           entry_info id dl
+          )
       | IReset (_) ->
+        Some (
           "// Reset " ^ 
           entry_info "user_reset" Time.Infinite
-      
+        )
       | IIdle (_) ->
+        Some (
           "// Idle " ^ 
           entry_info "user_idle" Time.Infinite
-            
-      | _ -> raise (UnMatched)
+          ) 
+      | _ -> None
     in
     let entries_top = function
-      | IIsr (_, id, _)               -> id
-      | ITask (_, _, id, pa, _, _)    -> id
-      | _                             -> raise (UnMatched)
+      | IIsr (_, id, _)               -> Some id
+      | ITask (_, _, id, pa, _, _)    -> Some id
+      | _                             -> None
     in
     let priorities_top = function
-      | IIsr (dl, _, _)               -> string_of_dl dlp dl
-      | ITask (_, dl, _, pa, _, _)    -> string_of_dl dlp dl
-      | _                             -> raise (UnMatched)
+      | IIsr (dl, _, _)               -> Some (string_of_dl dlp dl)
+      | ITask (_, dl, _, pa, _, _)    -> Some (string_of_dl dlp dl)
+      | _                             -> None
     in
     (* let entries = "user_reset" :: "user_idle" :: mymap entries_top topl in *)
-    let entries = mymap entries_top topl in
+    let entries = mymapo entries_top topl in
     (* let pre_str s1 s2 = s1 ^ s2 in *)
     let post_str s1 s2 = s2 ^ s1 in 
     (*"enum entry_nr {" ^ mycon ", " ((List.map (post_str "_nr") entries) @ ["ENTRY_NR"]) ^ "};" ^ nl ^ *)
-    "enum entry_nr {" ^ mycon ", " (mymap (IsrCGen.entries_enum id_vid) entries) ^ "};" ^ nl ^ 
+    "enum entry_nr {" ^ mycon ", " (List.map (IsrCGen.entries_enum id_vid) entries) ^ "};" ^ nl ^ 
     "const int entry_vi[] = {" ^ mycon ", " (List.map (post_str "_nr") entries) ^ "};" ^ nl ^
-    "int entry_prio[] = {" ^ mycon ", " (mymap priorities_top topl) ^ "};" ^ nl ^ 
-    "const char* entry_names[] = {" ^ mycon ", " (mymap quote entries) ^ "};" ^ nl ^ nl ^ 
-    mycon nl (mymap proto_top topl) ^ nl 
+    "int entry_prio[] = {" ^ mycon ", " (mymapo priorities_top topl) ^ "};" ^ nl ^ 
+    "const char* entry_names[] = {" ^ mycon ", " (List.map quote entries) ^ "};" ^ nl ^ nl ^ 
+    mycon nl (mymapo proto_top topl) ^ nl 
     (* ^ 
     "ENTRY_FUNC entry_func[] = {"^ mycon ", " ("user_reset" :: "user_idle" :: (List.map (pre_str "entry_") (mymap entries_top topl))) ^ "};" ^ nl ^ nl 
    *)
@@ -99,19 +105,20 @@ let c_rt_of_i dlp spec r id_vid t_div =
         (* alternative solution suing the ITaskDefType for generating typedef, not used, and may be omitted in th future *)
         (* let par = lookup_itasktype_par oid topl in *)
         (* "typedef struct {" ^ String.map tpar par ^ ";} ARG_" ^ id ^ "; // type definition for arguments" ^ nl ^ *)
+        Some (
         "typedef struct {" ^ String.map tpar al ^ ";} ARG_" ^ id ^ "; // type definition for arguments" ^ nl ^ 
         
         "ARG_" ^ id ^ " arg_" ^ id ^ "; // instance for argument" ^ nl ^
         "void entry_" ^ id ^ "(int RTFM_id) {" ^ nl ^
         tab ^ id ^ pass_par args ^ "; // (inlined) call to the async function" ^ nl ^
         "}"
-    | IFunc (_, rt, id, par, s) ->
-      rt ^ " " ^ id ^ def_par par ^ "; // function prototype"
-    | _ -> raise (UnMatched)
+        )
+    | IFunc (_, rt, id, par, s) -> Some ( rt ^ " " ^ id ^ def_par par ^ "; // function prototype" )
+    | _ -> None
   
   in
  
-  let rec stmts path sl = myconcat "" (mymap (stmt path) sl) 
+  let rec stmts path sl = myconcat "" (List.map (stmt path) sl) 
   and stmt path = function
     | Claim (r, csl)          -> "RTFM_lock(RTFM_id, " ^ r ^ ");" ^ nl ^ (stmts path) csl ^ "RTFM_unlock(RTFM_id, " ^ r ^ ");" ^ nl
     | Pend (be, id, par)      -> 
@@ -145,7 +152,7 @@ let c_rt_of_i dlp spec r id_vid t_div =
         | _  ->
         "// code generated to return from within claims : " ^ myconcat "," cs ^ nl ^
         "{ ret_val = " ^ String.trim c ^ ";" ^ nl ^
-        myconcat nl (mymap (fun r -> "RTFM_unlock(RTFM_id, " ^ r ^ ");") cs) ^ 
+        myconcat nl (List.map (fun r -> "RTFM_unlock(RTFM_id, " ^ r ^ ");") cs) ^ 
         "return ret_val; }" ^ nl
        ) 
     | Break(n, cs)               ->
@@ -158,7 +165,7 @@ let c_rt_of_i dlp spec r id_vid t_div =
          | r :: l -> if (i > 1) then r :: n_cs (i-1) l else [r]
         in
         "// code generated to break within claims : " ^ myconcat "," cs ^ nl ^
-        "{ " ^ myconcat nl (mymap (fun r -> "RTFM_unlock(RTFM_id, " ^ r ^ ");") (n_cs n cs)) ^ 
+        "{ " ^ myconcat nl (List.map (fun r -> "RTFM_unlock(RTFM_id, " ^ r ^ ");") (n_cs n cs)) ^ 
         "break; }" ^ nl
       )
     | Continue (n, cs)               ->
@@ -171,7 +178,7 @@ let c_rt_of_i dlp spec r id_vid t_div =
          | r :: l -> if (i > 1) then r :: n_cs (i-1) l else [r]
         in
         "// code generated to continue within claims : " ^ myconcat "," cs ^ nl ^
-        "{ " ^ myconcat nl (mymap (fun r -> "RTFM_unlock(RTFM_id, " ^ r ^ ");") (n_cs n cs)) ^ 
+        "{ " ^ myconcat nl (List.map (fun r -> "RTFM_unlock(RTFM_id, " ^ r ^ ");") (n_cs n cs)) ^ 
         "continue; }" ^ nl
       )  
     | Goto (l, n, cs)               ->
@@ -183,42 +190,48 @@ let c_rt_of_i dlp spec r id_vid t_div =
          | r :: l -> if (i > 1) then r :: n_cs (i-1) l else [r]
         in
         "// code generated to goto within claims : " ^ myconcat "," cs ^ nl ^
-        "{ " ^ myconcat nl (mymap (fun r -> "RTFM_unlock(RTFM_id, " ^ r ^ ");") (n_cs n cs)) ^ 
+        "{ " ^ myconcat nl (List.map (fun r -> "RTFM_unlock(RTFM_id, " ^ r ^ ");") (n_cs n cs)) ^ 
         "goto " ^ l ^ "; }" ^ nl
        
   and top = function
     | IIsr (dl, id, sl)                -> 
+      Some (
         "// Isr prio " ^ string_of_dl dlp dl ^ " " ^ id ^ nl ^
         "void " ^ id ^ "() {" ^ nl ^ 
         "bl_" ^ id ^ " = " ^ "new_bl_" ^ id ^ ";" ^ nl ^
         (stmts id) sl ^ nl ^ 
         "}"
+        )
     | ITask (_, dl, id, pa, par, sl)   ->
+      Some (
         "// Task instance implementation: prio " ^ string_of_dl dlp dl ^ " " ^ id ^ nl ^
         "void " ^ List.assoc id id_vid ^ def_par par ^ "{" ^ nl ^ 
         (stmts pa) sl ^ nl ^
         "}"
+        )
     | IFunc (_, r, id, par, sl)      -> 
+      Some (
       r ^ " " ^ id ^ def_par par ^ "{" ^ nl ^ 
       r ^ " ret_val;" ^ nl ^ 
-     (stmts id) sl ^ "}" ^ nl
+      (stmts id) sl ^ "}" ^ nl
+      )
       
-    | IReset (sl)                     -> "void user_reset() {" ^ nl ^ (stmts "user_reset") sl ^ nl ^ "}"
-    | IIdle (sl)                      -> "void user_idle() {" ^ nl ^ (stmts "user_idle") sl ^ nl ^ "}"
-    | _                               -> raise (UnMatched)
+    | IReset (sl)                     -> Some ("void user_reset() {" ^ nl ^ (stmts "user_reset") sl ^ nl ^ "}")
+    | IIdle (sl)                      -> Some ("void user_idle() {" ^ nl ^ (stmts "user_idle") sl ^ nl ^ "}")
+    | _                               -> None
   
   in
   let c_top = function
-    | IC (c) -> deb ("top level code ") ^ c
-    | _      -> raise (UnMatched)
+    | IC (c) -> Some (deb ("top level code ") ^ c)
+    | _      -> None
   in
   let info = "const char* CORE_FILE_INFO = \"Compiled with : " ^ String.escaped (string_of_opt opt) ^ "\";" ^ nl
   
   in
   "// RTFM-core for RTFM-RT" ^ nl ^
   info ^ nl ^
-  deb ("Includes etc.") ^ myconcat nl (mymap c_top spec) ^ 
+  deb ("Includes etc.") ^ myconcat nl (mymapo c_top spec) ^ 
   deb ("Resources and ceilings") ^ c_of_r r ^
   deb ("Entry points") ^ c_entry_of_top spec ^
-  deb ("Argument instances") ^ myconcat nl (mymap c_entry_inst spec) ^ nl ^ 
-  deb ("Application") ^ myconcat nl (mymap top spec) 
+  deb ("Argument instances") ^ myconcat nl (mymapo c_entry_inst spec) ^ nl ^ 
+  deb ("Application") ^ myconcat nl (mymapo top spec) 

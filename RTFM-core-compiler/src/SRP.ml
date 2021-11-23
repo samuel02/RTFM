@@ -49,13 +49,13 @@ let rec lookup_ifunc id p = match p with
 let dl_to_pr spec =
   (* extract the priorities of task instances *)
   let prl = function
-    | IIsr (dl, _, _)           -> Time.usec_of_time dl
-    | ITask (_, dl, _, _, _, _) -> Time.usec_of_time dl 
-    | _ -> raise (UnMatched)
+    | IIsr (dl, _, _)           -> Some (Time.usec_of_time dl)
+    | ITask (_, dl, _, _, _, _) -> Some (Time.usec_of_time dl) 
+    | _                         -> None
   in
   
   (* get them sorted *)
-  let sort_prl = List.sort compare (mymap prl spec) in 
+  let sort_prl = List.sort compare (mymapo prl spec) in 
   
   (* remove dupicate deadlines *)
   let rec compress = function

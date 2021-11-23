@@ -10,7 +10,7 @@
 %token <string> CCODE
 %token <string> PARAMS
 %token MODULE INCLUDE AS ISR TASK FUNC RESET IDLE SYNC ASYNC HALT PEND AFTER BEFORE ABORT (* PRIO *) 
-%token CLAIM RETURN BREAK CONTINUE GOTO SC ASSIGN STATE LCP RCP EOF
+%token CLAIM RETURN BREAK CONTINUE GOTO LABEL COLON SC ASSIGN STATE LCP RCP EOF
 
 %{
   open AST
@@ -60,7 +60,8 @@ stmt:
   | CONTINUE SC                             { Continue (1, []) }
   | CONTINUE INTVAL SC                      { Continue ($2, []) } 
   | GOTO ID SC                              { Goto ($2, 1, []) }
-  | GOTO INTVAL ID SC                       { Goto ($3, $2, []) } 
+  | GOTO INTVAL ID SC                       { Goto ($3, $2, []) }
+  | LABEL ID COLON                          { Label ($2, []) } 
   
 
 assign:

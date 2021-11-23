@@ -7,7 +7,7 @@ open Common
 open AST
 
 let setinc inc tl = 
-  let rec stmts sl = mymap stmt sl  
+  let rec stmts sl = List.map stmt sl  
   and top = function
     | FuncDef (t, id, par, s)  -> FuncDef (t, inc ^ id, par, stmts s)
     | TaskDef (id, par, s)     -> TaskDef (inc ^ id, par, stmts s) 
@@ -25,5 +25,5 @@ let setinc inc tl =
     | State (_)                   -> State (inc)
     | x                           -> x
   in
-  mymap top tl
+  List.map top tl
       

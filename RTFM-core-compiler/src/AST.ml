@@ -18,6 +18,7 @@ type stmt =
   | Break     of int * string list                                        (* n_level, claim stack               *)
   | Continue  of int * string list                                        (* n_level, claim stack               *)
   | Goto      of string * int * string list                               (* n_level, claim stack               *)
+  | Label     of string * string list                                     (* label, claim stack                 *)
        
 type top =
   | TopC      of string                                         (* code_c                             *)
@@ -38,7 +39,7 @@ let s_op = function
   | None   -> ""
     
 let string_of_tops tl = 
-  let rec stmts t sl = myconcat nl (mymap (stmt (t ^ tab)) sl)  
+  let rec stmts t sl = myconcat nl (List.map (stmt (t ^ tab)) sl)  
   and top = function
     | TopC (c)                 -> c (* "#> CCODE <#" *)
     | Isr (p, id, s)           -> "Isr before " ^ Time.string_of_time p ^ " " ^ id ^ op ^ stmts "" s ^ cl ^ nl 
@@ -62,7 +63,7 @@ let string_of_tops tl =
     | Continue (n, cs)                 -> t ^ "claim_continue; " ^ string_of_int n ^ ",in claims " ^ myconcat "," cs
     | Goto (l, n, cs)                  -> t ^ "claim_goto " ^ string_of_int n ^ " to " ^ l ^ "; in claims " ^ myconcat "," cs
   in
-  myconcat nl (mymap top tl) 
+  myconcat nl (List.map top tl) 
 
 let string_of_prog = 
   let inc = function
@@ -71,7 +72,7 @@ let string_of_prog =
   function
   | Prog (mName, mIncl, mTop) ->
       "Module:" ^ mName ^ nl ^
-      "Use :" ^ String.concat "," (mymap inc mIncl) ^ nl ^
+      "Use :" ^ String.concat "," (List.map inc mIncl) ^ nl ^
       "Prog:" ^ nl ^ string_of_tops mTop
                   
 let rec prio_to_string r = match r with

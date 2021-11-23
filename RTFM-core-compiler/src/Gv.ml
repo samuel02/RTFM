@@ -109,7 +109,7 @@ let d_of_dt rl d =
 let label = ref (0);;
 
 let gv_of_spec dlp rml spec = 
-  let rec stmts t tp sl = mymap (stmt t tp ) sl 
+  let rec stmts t tp sl = List.map (stmt t tp ) sl 
   and stmt t tp s = 
     label := !label + 1;
     if opt.debug then p_stderr ("--- generating unique label " ^ string_of_int !label ^ " ----"^ nl ); 
@@ -148,6 +148,6 @@ let gv_of_spec dlp rml spec =
   in
   "digraph RTFM {" ^ nl ^ 
   "ISR [shape=plaintext, label = ISR_VECTOR]" ^ nl ^ gv_of (pl_spec dlp spec rml) (* priorities/resources to the left *) ^ 
-  myconcat nl (List.map (d_of_dt rml) (mymap mytop spec)) ^ 
+  myconcat nl (List.map (d_of_dt rml) (List.map mytop spec)) ^ 
   "}"
     

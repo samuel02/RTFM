@@ -21,7 +21,7 @@ let s_op = function
 
 let string_of_spec tl = 
   (* top *)
-  let rec stmts t sl = myconcat nl  (mymap (stmt (t ^ tab)) sl)  
+  let rec stmts t sl = myconcat nl  (List.map (stmt (t ^ tab)) sl)  
   and top = function
     | IC (c)                        -> "#> " ^ c ^ "<#"
     | IIsr (be, id, s)              -> "Isr before " ^ Time.string_of_time be ^ " " ^ id ^ op ^ stmts "" s ^ cl ^ nl 
@@ -47,6 +47,6 @@ let string_of_spec tl =
     | Continue (n, cs)                  -> t ^ "continue; // " ^ string_of_int n ^ " nested claims, inside claims : " ^ myconcat "," cs
     | Goto (l, n, cs)                   -> t ^ "goto " ^ l ^ "; // " ^ string_of_int n ^ " nested claims, inside claims : " ^ myconcat "," cs
   in
-  myconcat nl (mymap top tl)  
+  myconcat nl (List.map top tl)  
 
  

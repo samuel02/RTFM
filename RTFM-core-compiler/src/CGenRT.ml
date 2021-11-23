@@ -130,7 +130,9 @@ let crt_of_p topl v r =
       "void " ^ id  ^ def_par par ^ "{ // function implementation for the task:"  ^ id ^ "[" ^ pa ^ "]" ^ nl ^ 
       (stmts pa) sl ^ 
       "}"
-    | Func (r, id, par, sl) -> r ^ " " ^ id ^ def_par par ^ "{" ^ nl ^ (stmts id) sl ^ "}" 
+    | Func (r, id, par, sl) -> 
+      "// implemtation for Func: " ^ r ^ " " ^ id ^ nl ^  
+      r ^ " " ^ id ^ def_par par ^ "{" ^ nl ^ (stmts id) sl ^ "}" 
     | Reset (sl)            -> "void user_reset(int RTFM_id) {" ^ nl ^ (stmts "reset") sl ^ "}"
     | _                     -> raise (UnMatched)
 
